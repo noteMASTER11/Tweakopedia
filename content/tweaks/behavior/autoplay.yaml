@@ -1,0 +1,59 @@
+id: behavior.autoplay
+title: 'Автозапуск команд с носителей'
+category: behavior
+subcategory: media
+kind: setting
+summary: 'Управляет обработкой команд AutoRun при подключении носителей.'
+explanation:
+  purpose: 'Управляет обработкой команд AutoRun при подключении носителей.'
+  mechanism: 'Параметр NoAutorun задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении команды с носителя не запускаются автоматически; ручное открытие файлов остаётся доступным.'
+  tradeoffs: 'Старые установочные диски перестанут автоматически открывать своё меню.'
+  recommendation: 'Оставляйте выключенным, если автоматический запуск со съёмных носителей не требуется.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoAutorun.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: NoAutorun
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: NoAutorun
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+  value_name: NoAutorun
+  view: registry64
+  states:
+    1: disabled
+    2: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false

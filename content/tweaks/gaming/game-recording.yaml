@@ -1,0 +1,59 @@
+id: gaming.game-recording
+title: 'Системная запись игр и приложений'
+category: gaming
+subcategory: capture
+kind: setting
+summary: 'Управляет платформой Game DVR для фоновой и ручной записи экрана.'
+explanation:
+  purpose: 'Управляет платформой Game DVR для фоновой и ручной записи экрана.'
+  mechanism: 'Параметр AllowGameDVR задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении функции Xbox Game Bar, связанные с записью, становятся недоступны.'
+  tradeoffs: 'Запись клипов средствами Windows работать не будет.'
+  recommendation: 'Отключайте, если используете другой рекордер или не записываете экран.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\GameDVR\AllowGameDVR.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\GameDVR'
+        value_name: AllowGameDVR
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\GameDVR'
+        value_name: AllowGameDVR
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\GameDVR'
+  value_name: AllowGameDVR
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

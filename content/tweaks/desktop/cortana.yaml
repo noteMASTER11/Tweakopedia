@@ -1,0 +1,59 @@
+id: desktop.cortana
+title: 'Голосовой помощник Cortana'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Управляет разрешением на запуск Cortana без отключения локального поиска.'
+explanation:
+  purpose: 'Управляет разрешением на запуск Cortana без отключения локального поиска.'
+  mechanism: 'Параметр AllowCortana задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении Cortana не запускается; в новых версиях отдельное приложение может отсутствовать.'
+  tradeoffs: 'Голосовые и персональные функции Cortana становятся недоступны.'
+  recommendation: 'Отключайте, если помощник присутствует, но не используется.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\AllowCortana.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+        value_name: AllowCortana
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+        value_name: AllowCortana
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+  value_name: AllowCortana
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

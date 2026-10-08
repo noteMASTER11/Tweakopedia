@@ -1,0 +1,59 @@
+id: privacy.upload-user-activities
+title: 'Отправка действий между устройствами'
+category: privacy
+subcategory: activity
+kind: setting
+summary: 'Управляет отправкой опубликованных действий в облачный граф устройств.'
+explanation:
+  purpose: 'Управляет отправкой опубликованных действий в облачный граф устройств.'
+  mechanism: 'Параметр UploadUserActivities задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении действия не отправляются для межустройственного продолжения.'
+  tradeoffs: 'Продолжение работы на другом устройстве перестаёт получать эти записи.'
+  recommendation: 'Отключайте, если межустройственные сценарии не используются.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\System\UploadUserActivities.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 16299
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\System'
+        value_name: UploadUserActivities
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\System'
+        value_name: UploadUserActivities
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [16299, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\System'
+  value_name: UploadUserActivities
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

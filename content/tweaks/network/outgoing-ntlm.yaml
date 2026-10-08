@@ -1,0 +1,69 @@
+id: network.outgoing-ntlm
+title: 'Исходящий NTLM к удалённым серверам'
+category: network
+subcategory: authentication
+kind: setting
+summary: 'Задаёт разрешение, аудит или блокировку исходящей проверки подлинности NTLM.'
+explanation:
+  purpose: 'Задаёт разрешение, аудит или блокировку исходящей проверки подлинности NTLM.'
+  mechanism: 'Параметр RestrictSendingNTLMTraffic задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'Блокировка может разорвать подключения к старым серверам; аудит только регистрирует обращения.'
+  tradeoffs: 'Полный запрет требует готовности зависимых систем работать через другие методы.'
+  recommendation: 'Сначала используйте аудит, затем блокируйте после проверки зависимостей.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0\RestrictSendingNTLMTraffic.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  allowed:
+    title: 'Разрешён'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0'
+        value_name: RestrictSendingNTLMTraffic
+        view: registry64
+        value: 0
+  audit:
+    title: 'Только аудит'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0'
+        value_name: RestrictSendingNTLMTraffic
+        view: registry64
+        value: 1
+  blocked:
+    title: 'Заблокирован'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0'
+        value_name: RestrictSendingNTLMTraffic
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: allowed
+  - os: windows11
+    builds: [22000, 26200]
+    state: allowed
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0'
+  value_name: RestrictSendingNTLMTraffic
+  view: registry64
+  states:
+    0: allowed
+    1: audit
+    2: blocked
+  missing_state: allowed
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

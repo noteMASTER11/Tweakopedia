@@ -1,0 +1,59 @@
+id: desktop.recently-added-apps
+title: 'Недавно добавленные приложения'
+category: desktop
+subcategory: start
+kind: setting
+summary: 'Управляет списком недавно установленных приложений в меню «Пуск».'
+explanation:
+  purpose: 'Управляет списком недавно установленных приложений в меню «Пуск».'
+  mechanism: 'Параметр HideRecentlyAddedApps задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении новые приложения не выделяются отдельным разделом.'
+  tradeoffs: 'После установки программу придётся искать вручную.'
+  recommendation: 'Отключайте, если раздел не используется.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer\HideRecentlyAddedApps.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14393
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Explorer'
+        value_name: HideRecentlyAddedApps
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Explorer'
+        value_name: HideRecentlyAddedApps
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [14393, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\Explorer'
+  value_name: HideRecentlyAddedApps
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

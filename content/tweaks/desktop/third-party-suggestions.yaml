@@ -1,0 +1,59 @@
+id: desktop.third-party-suggestions
+title: 'Предложения сторонних приложений'
+category: desktop
+subcategory: spotlight
+kind: setting
+summary: 'Управляет предложениями приложений и содержимого сторонних издателей.'
+explanation:
+  purpose: 'Управляет предложениями приложений и содержимого сторонних издателей.'
+  mechanism: 'Параметр DisableThirdPartySuggestions задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении сторонние предложения скрываются, но рекомендации Microsoft могут оставаться.'
+  tradeoffs: 'Некоторые рекомендации приложений исчезнут.'
+  recommendation: 'Отключайте, если такие предложения не используются.'
+  technical_details: 'Основной объект — 32-битный DWORD HKCU\Software\Policies\Microsoft\Windows\CloudContent\DisableThirdPartySuggestions.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14393
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\CloudContent'
+        value_name: DisableThirdPartySuggestions
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\CloudContent'
+        value_name: DisableThirdPartySuggestions
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [14393, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\CloudContent'
+  value_name: DisableThirdPartySuggestions
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

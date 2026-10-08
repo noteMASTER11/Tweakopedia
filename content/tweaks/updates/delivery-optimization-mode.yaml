@@ -1,0 +1,89 @@
+id: updates.delivery-optimization-mode
+title: 'Режим оптимизации доставки'
+category: updates
+subcategory: delivery
+kind: setting
+summary: 'Выбирает источники, из которых Windows может получать части обновлений.'
+explanation:
+  purpose: 'Выбирает источники, из которых Windows может получать части обновлений.'
+  mechanism: 'Параметр DODownloadMode задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'Режим определяет использование одноранговых источников в локальной сети, группе или Интернете.'
+  tradeoffs: 'Одноранговые режимы экономят внешний трафик в сети, но создают обмен между устройствами.'
+  recommendation: 'Для одного компьютера выбирайте только HTTP; для нескольких устройств может быть полезен локальный режим.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization\DODownloadMode.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  http_only:
+    title: 'Только серверы Microsoft'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization'
+        value_name: DODownloadMode
+        view: registry64
+        value: 0
+  local_network:
+    title: 'Локальная сеть'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization'
+        value_name: DODownloadMode
+        view: registry64
+        value: 1
+  group:
+    title: 'Группа устройств'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization'
+        value_name: DODownloadMode
+        view: registry64
+        value: 2
+  internet:
+    title: 'Интернет'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization'
+        value_name: DODownloadMode
+        view: registry64
+        value: 3
+  simple:
+    title: 'Простой режим'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization'
+        value_name: DODownloadMode
+        view: registry64
+        value: 99
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: http_only
+  - os: windows11
+    builds: [22000, 26200]
+    state: http_only
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization'
+  value_name: DODownloadMode
+  view: registry64
+  states:
+    0: http_only
+    1: local_network
+    2: group
+    3: internet
+    99: simple
+  missing_state: http_only
+dependencies: []
+conflicts: []
+restart: service
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,59 @@
+id: desktop.recent-documents-history
+title: 'История последних документов'
+category: desktop
+subcategory: start
+kind: setting
+summary: 'Управляет накоплением списка недавно открытых документов.'
+explanation:
+  purpose: 'Управляет накоплением списка недавно открытых документов.'
+  mechanism: 'Параметр NoRecentDocsHistory задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении новые документы не появляются в системных списках недавних элементов.'
+  tradeoffs: 'Быстрый возврат к недавно открытым файлам станет менее удобным.'
+  recommendation: 'Отключайте на общих компьютерах или если списки недавних файлов не используются.'
+  technical_details: 'Основной объект — 32-битный DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoRecentDocsHistory.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: NoRecentDocsHistory
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: NoRecentDocsHistory
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+  value_name: NoRecentDocsHistory
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

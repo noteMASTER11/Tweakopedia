@@ -1,0 +1,59 @@
+id: desktop.search-box-suggestions
+title: 'Предложения в строке поиска'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Управляет динамическими предложениями в интерфейсе поиска Windows.'
+explanation:
+  purpose: 'Управляет динамическими предложениями в интерфейсе поиска Windows.'
+  mechanism: 'Параметр DisableSearchBoxSuggestions задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении остаются локальные результаты без внешних предложений.'
+  tradeoffs: 'Подсказки популярных запросов и часть веб-интеграции исчезают.'
+  recommendation: 'Отключайте для локально ориентированного поиска.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\DisableSearchBoxSuggestions.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 19041
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+        value_name: DisableSearchBoxSuggestions
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+        value_name: DisableSearchBoxSuggestions
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [19041, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+  value_name: DisableSearchBoxSuggestions
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

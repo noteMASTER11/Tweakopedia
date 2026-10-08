@@ -1,0 +1,59 @@
+id: apps.developer-mode
+title: 'Режим разработчика'
+category: apps
+subcategory: development
+kind: setting
+summary: 'Разрешает системные возможности разработки и локального развёртывания приложений.'
+explanation:
+  purpose: 'Разрешает системные возможности разработки и локального развёртывания приложений.'
+  mechanism: 'Параметр AllowDevelopmentWithoutDevLicense задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При включении становятся доступны связанные средства разработки и загрузка поддерживаемых пакетов.'
+  tradeoffs: 'На обычном компьютере дополнительные возможности разработки могут быть не нужны.'
+  recommendation: 'Включайте только при разработке, тестировании или локальном развёртывании приложений.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Appx\AllowDevelopmentWithoutDevLicense.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Appx'
+        value_name: AllowDevelopmentWithoutDevLicense
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Appx'
+        value_name: AllowDevelopmentWithoutDevLicense
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\Appx'
+  value_name: AllowDevelopmentWithoutDevLicense
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

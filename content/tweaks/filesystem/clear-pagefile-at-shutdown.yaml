@@ -1,0 +1,59 @@
+id: filesystem.clear-pagefile-at-shutdown
+title: 'Очистка файла подкачки при выключении'
+category: filesystem
+subcategory: memory
+kind: setting
+summary: 'Управляет обнулением файла подкачки во время завершения работы.'
+explanation:
+  purpose: 'Управляет обнулением файла подкачки во время завершения работы.'
+  mechanism: 'Параметр ClearPageFileAtShutdown задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При включении Windows перезаписывает используемые области pagefile.sys перед выключением.'
+  tradeoffs: 'Завершение работы замедляется и создаёт дополнительную запись на накопитель.'
+  recommendation: 'На личном компьютере обычно оставляйте выключенным.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\ClearPageFileAtShutdown.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management'
+        value_name: ClearPageFileAtShutdown
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management'
+        value_name: ClearPageFileAtShutdown
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management'
+  value_name: ClearPageFileAtShutdown
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

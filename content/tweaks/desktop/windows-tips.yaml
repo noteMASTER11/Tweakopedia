@@ -1,0 +1,59 @@
+id: desktop.windows-tips
+title: 'Советы Windows'
+category: desktop
+subcategory: spotlight
+kind: setting
+summary: 'Управляет системными советами и обучающими предложениями Windows.'
+explanation:
+  purpose: 'Управляет системными советами и обучающими предложениями Windows.'
+  mechanism: 'Параметр DisableSoftLanding задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении советы не показываются через поддерживаемые поверхности Windows.'
+  tradeoffs: 'Пользователь реже узнаёт о новых системных возможностях.'
+  recommendation: 'Отключайте после освоения системы, если подсказки не нужны.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent\DisableSoftLanding.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14393
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\CloudContent'
+        value_name: DisableSoftLanding
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\CloudContent'
+        value_name: DisableSoftLanding
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [14393, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\CloudContent'
+  value_name: DisableSoftLanding
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

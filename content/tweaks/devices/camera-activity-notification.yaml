@@ -1,0 +1,59 @@
+id: devices.camera-activity-notification
+title: 'Экранное уведомление об использовании камеры'
+category: devices
+subcategory: camera
+kind: setting
+summary: 'Управляет экранным индикатором камеры на устройствах без физического светодиода.'
+explanation:
+  purpose: 'Управляет экранным индикатором камеры на устройствах без физического светодиода.'
+  mechanism: 'Параметр NoPhysicalCameraLED задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При включении Windows показывает уведомление во время включения и выключения камеры.'
+  tradeoffs: 'На устройстве с физическим индикатором программное уведомление может быть лишним.'
+  recommendation: 'Включайте на камерах без аппаратного светодиода.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Microsoft\OEM\Device\Capture\NoPhysicalCameraLED.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\OEM\Device\Capture'
+        value_name: NoPhysicalCameraLED
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\OEM\Device\Capture'
+        value_name: NoPhysicalCameraLED
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\OEM\Device\Capture'
+  value_name: NoPhysicalCameraLED
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

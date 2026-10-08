@@ -1,0 +1,56 @@
+id: desktop.cloud-optimized-content
+title: 'Облачное оптимизированное содержимое'
+category: desktop
+subcategory: spotlight
+kind: setting
+summary: 'Управляет получением облачного содержимого для поверхностей Windows.'
+explanation:
+  purpose: 'Управляет получением облачного содержимого для поверхностей Windows.'
+  mechanism: 'Параметр DisableCloudOptimizedContent задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении Windows использует меньше динамически подбираемого содержимого.'
+  tradeoffs: 'Часть рекомендаций может исчезнуть или замениться стандартным содержимым.'
+  recommendation: 'Отключайте, если динамические облачные рекомендации не нужны.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent\DisableCloudOptimizedContent.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\CloudContent'
+        value_name: DisableCloudOptimizedContent
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\CloudContent'
+        value_name: DisableCloudOptimizedContent
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\CloudContent'
+  value_name: DisableCloudOptimizedContent
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

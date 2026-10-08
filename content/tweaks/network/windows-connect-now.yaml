@@ -1,0 +1,59 @@
+id: network.windows-connect-now
+title: 'Мастер Windows Connect Now'
+category: network
+subcategory: discovery
+kind: setting
+summary: 'Управляет доступностью мастера автоматической настройки сетевых устройств.'
+explanation:
+  purpose: 'Управляет доступностью мастера автоматической настройки сетевых устройств.'
+  mechanism: 'Параметр DisableWcnUi задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении мастер WCN не предлагается для настройки совместимых устройств.'
+  tradeoffs: 'Старое оборудование, рассчитанное на WCN, придётся настраивать другим способом.'
+  recommendation: 'Отключайте, если WCN не используется.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\WCN\UI\DisableWcnUi.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WCN\UI'
+        value_name: DisableWcnUi
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WCN\UI'
+        value_name: DisableWcnUi
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\WCN\UI'
+  value_name: DisableWcnUi
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

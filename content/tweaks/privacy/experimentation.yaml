@@ -1,0 +1,59 @@
+id: privacy.experimentation
+title: 'Экспериментальные конфигурации Windows'
+category: privacy
+subcategory: diagnostics
+kind: setting
+summary: 'Управляет получением вариантов функций через системный механизм экспериментов.'
+explanation:
+  purpose: 'Управляет получением вариантов функций через системный механизм экспериментов.'
+  mechanism: 'Параметр EnableExperimentation задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении устройство не должно получать конфигурационные эксперименты через этот механизм.'
+  tradeoffs: 'Параметр не останавливает обычные обновления и не фиксирует весь интерфейс.'
+  recommendation: 'Отключайте, если предпочтительно более предсказуемое поведение между обновлениями.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection\EnableExperimentation.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 15063
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\DataCollection'
+        value_name: EnableExperimentation
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\DataCollection'
+        value_name: EnableExperimentation
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [15063, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\DataCollection'
+  value_name: EnableExperimentation
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

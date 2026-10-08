@@ -1,0 +1,59 @@
+id: desktop.windows-spotlight
+title: 'Все функции Windows Spotlight'
+category: desktop
+subcategory: spotlight
+kind: setting
+summary: 'Общим переключателем управляет Windows Spotlight и связанными предложениями.'
+explanation:
+  purpose: 'Общим переключателем управляет Windows Spotlight и связанными предложениями.'
+  mechanism: 'Параметр DisableWindowsSpotlightFeatures задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении фон Spotlight, советы и часть предложений прекращают работу.'
+  tradeoffs: 'Индивидуальные настройки Spotlight не действуют, пока включён общий запрет.'
+  recommendation: 'Используйте общий запрет, если не нужна ни одна функция Spotlight.'
+  technical_details: 'Основной объект — 32-битный DWORD HKCU\Software\Policies\Microsoft\Windows\CloudContent\DisableWindowsSpotlightFeatures.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14393
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\CloudContent'
+        value_name: DisableWindowsSpotlightFeatures
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\CloudContent'
+        value_name: DisableWindowsSpotlightFeatures
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [14393, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\CloudContent'
+  value_name: DisableWindowsSpotlightFeatures
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,71 @@
+id: filesystem.pagefile-encryption
+title: 'Шифрование файла подкачки NTFS'
+category: filesystem
+subcategory: memory
+kind: setting
+summary: 'Управляет шифрованием pagefile.sys средствами NTFS.'
+explanation:
+  purpose: 'Управляет шифрованием pagefile.sys средствами NTFS.'
+  mechanism: 'Параметр NtfsEncryptPagingFile задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При включении содержимое файла подкачки хранится в зашифрованном виде.'
+  tradeoffs: 'Возможна дополнительная нагрузка; функция не заменяет полное шифрование тома.'
+  recommendation: 'Используйте при конкретной необходимости.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SYSTEM\CurrentControlSet\Control\FileSystem\NtfsEncryptPagingFile.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\FileSystem'
+        value_name: NtfsEncryptPagingFile
+        view: registry64
+        value: 0
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Policies'
+        value_name: NtfsEncryptPagingFile
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\FileSystem'
+        value_name: NtfsEncryptPagingFile
+        view: registry64
+        value: 1
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Policies'
+        value_name: NtfsEncryptPagingFile
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\FileSystem'
+  value_name: NtfsEncryptPagingFile
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

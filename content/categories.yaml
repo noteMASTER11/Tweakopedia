@@ -8,6 +8,10 @@ categories:
         title: Загруженные файлы и вложения
       - id: clipboard
         title: Буфер обмена
+      - id: input
+        title: Ввод текста и проверка орфографии
+      - id: media
+        title: Носители и автозапуск
   - id: boot
     title: Загрузка и вход
     subcategories:
@@ -15,6 +19,13 @@ categories:
         title: Сообщения и диагностика входа
       - id: sign-in
         title: Экран блокировки и входа
+  - id: accounts
+    title: Учётные записи и системные полномочия
+    subcategories:
+      - id: authentication
+        title: Проверка подлинности и системные процессы
+      - id: microsoft
+        title: Учётная запись Microsoft
   - id: desktop
     title: Рабочий стол и панель задач
     subcategories:
@@ -22,6 +33,14 @@ categories:
         title: Панель задач и уведомления
       - id: notifications
         title: Системные уведомления
+      - id: start
+        title: Меню «Пуск» и история использования
+      - id: search
+        title: Поиск Windows
+      - id: effects
+        title: Анимации и эффекты
+      - id: spotlight
+        title: Рекомендации и Windows Spotlight
   - id: privacy
     title: Конфиденциальность и облачные функции
     subcategories:
@@ -31,6 +50,10 @@ categories:
         title: Журнал действий
       - id: prompts
         title: Системные запросы и экраны
+      - id: app-permissions
+        title: Разрешения приложений
+      - id: diagnostics
+        title: Диагностические функции и эксперименты
   - id: filesystem
     title: Накопители, NTFS и файловая система
     subcategories:
@@ -38,6 +61,8 @@ categories:
         title: Пути и совместимость приложений
       - id: removable
         title: Съёмные накопители
+      - id: memory
+        title: Файл подкачки и память
   - id: network
     title: Сеть и общий доступ
     subcategories:
@@ -45,11 +70,38 @@ categories:
         title: Подключённые сетевые диски
       - id: sharing
         title: Общие ресурсы
+      - id: discovery
+        title: Обнаружение устройств и имён
+      - id: remote
+        title: Удалённый доступ
+      - id: authentication
+        title: Сетевая проверка подлинности
   - id: apps
     title: Компоненты и приложения Windows
     subcategories:
       - id: pen
         title: Перо и рукописный ввод
+      - id: development
+        title: Разработка и развёртывание
+      - id: cloud-storage
+        title: Облачное хранилище
+  - id: devices
+    title: Устройства и датчики
+    subcategories:
+      - id: biometrics
+        title: Биометрические устройства
+      - id: camera
+        title: Камера
+  - id: gaming
+    title: Игры и запись экрана
+    subcategories:
+      - id: capture
+        title: Запись игр и приложений
+  - id: power
+    title: Питание и режимы работы
+    subcategories:
+      - id: sleep
+        title: Сон и гибернация
   - id: updates
     title: Обновления Windows
     subcategories:
@@ -57,3 +109,5 @@ categories:
         title: Драйверы через Windows Update
       - id: restart
         title: Перезагрузка после обновлений
+      - id: delivery
+        title: Доставка обновлений

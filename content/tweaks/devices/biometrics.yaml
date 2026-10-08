@@ -1,0 +1,71 @@
+id: devices.biometrics
+title: 'Биометрический вход'
+category: devices
+subcategory: biometrics
+kind: setting
+summary: 'Управляет использованием отпечатка пальца и распознавания лица средствами Windows.'
+explanation:
+  purpose: 'Управляет использованием отпечатка пальца и распознавания лица средствами Windows.'
+  mechanism: 'Параметр Enabled задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении Windows Hello не использует отпечаток или лицо для входа.'
+  tradeoffs: 'Потребуется PIN-код, пароль или другой доступный способ входа.'
+  recommendation: 'Оставляйте включённым на устройствах с настроенным биометрическим входом.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Biometrics\Enabled.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключен'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Biometrics'
+        value_name: Enabled
+        view: registry64
+        value: 0
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Biometrics\Credential Provider'
+        value_name: Enabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включён'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Biometrics'
+        value_name: Enabled
+        view: registry64
+        value: 1
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Biometrics\Credential Provider'
+        value_name: Enabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Biometrics'
+  value_name: Enabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: high
+reversibility: reversible
+requires_network: false

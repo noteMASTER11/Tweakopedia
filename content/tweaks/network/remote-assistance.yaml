@@ -1,0 +1,59 @@
+id: network.remote-assistance
+title: 'Удалённый помощник Windows'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Управляет возможностью пользователя запрашивать интерактивную удалённую помощь.'
+explanation:
+  purpose: 'Управляет возможностью пользователя запрашивать интерактивную удалённую помощь.'
+  mechanism: 'Параметр fAllowToGetHelp задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении штатный сценарий запроса помощи недоступен.'
+  tradeoffs: 'Поддержка через Remote Assistance потребует временного включения функции или другого инструмента.'
+  recommendation: 'Отключайте, если штатный удалённый помощник не используется.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SYSTEM\CurrentControlSet\Control\Remote Assistance\fAllowToGetHelp.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Remote Assistance'
+        value_name: fAllowToGetHelp
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Remote Assistance'
+        value_name: fAllowToGetHelp
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\Remote Assistance'
+  value_name: fAllowToGetHelp
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

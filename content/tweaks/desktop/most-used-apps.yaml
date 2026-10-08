@@ -1,0 +1,59 @@
+id: desktop.most-used-apps
+title: 'Список часто используемых приложений'
+category: desktop
+subcategory: start
+kind: setting
+summary: 'Управляет разделом часто запускаемых программ в меню «Пуск».'
+explanation:
+  purpose: 'Управляет разделом часто запускаемых программ в меню «Пуск».'
+  mechanism: 'Параметр NoStartMenuMFUprogramsList задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении список скрывается, но запуск и закрепление приложений работают как обычно.'
+  tradeoffs: 'Меню «Пуск» теряет автоматически подбираемые быстрые ссылки.'
+  recommendation: 'Отключайте, если используете только закреплённые приложения или поиск.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoStartMenuMFUprogramsList.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: NoStartMenuMFUprogramsList
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: NoStartMenuMFUprogramsList
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+  value_name: NoStartMenuMFUprogramsList
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

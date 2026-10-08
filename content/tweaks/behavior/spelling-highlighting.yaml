@@ -1,0 +1,59 @@
+id: behavior.spelling-highlighting
+title: 'Подсветка орфографических ошибок'
+category: behavior
+subcategory: input
+kind: setting
+summary: 'Управляет визуальным выделением слов, которые система считает ошибочными.'
+explanation:
+  purpose: 'Управляет визуальным выделением слов, которые система считает ошибочными.'
+  mechanism: 'Параметр TurnOffHighlightMisspelledWords задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении слова больше не подчёркиваются как ошибочные.'
+  tradeoffs: 'Ошибки сложнее заметить во время набора текста.'
+  recommendation: 'Оставляйте включённой для обычной работы с текстом.'
+  technical_details: 'Основной объект — 32-битный DWORD HKCU\SOFTWARE\Policies\Microsoft\Control Panel\International\TurnOffHighlightMisspelledWords.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Policies\Microsoft\Control Panel\International'
+        value_name: TurnOffHighlightMisspelledWords
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Policies\Microsoft\Control Panel\International'
+        value_name: TurnOffHighlightMisspelledWords
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Policies\Microsoft\Control Panel\International'
+  value_name: TurnOffHighlightMisspelledWords
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

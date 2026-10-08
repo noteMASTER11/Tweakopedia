@@ -1,0 +1,59 @@
+id: desktop.windows-search
+title: 'Поиск Windows'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Управляет доступностью системного поиска в панели задач и меню «Пуск».'
+explanation:
+  purpose: 'Управляет доступностью системного поиска в панели задач и меню «Пуск».'
+  mechanism: 'Параметр DisableSearch задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении поиск приложений, параметров и индексированного содержимого через оболочку становится недоступен.'
+  tradeoffs: 'Это широкое ограничение; отдельные параметры поиска становятся несущественными.'
+  recommendation: 'Оставляйте включённым, если используете поиск в меню «Пуск».'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\DisableSearch.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+        value_name: DisableSearch
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+        value_name: DisableSearch
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+  value_name: DisableSearch
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

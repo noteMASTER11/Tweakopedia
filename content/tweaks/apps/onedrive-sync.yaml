@@ -1,0 +1,71 @@
+id: apps.onedrive-sync
+title: 'Синхронизация OneDrive'
+category: apps
+subcategory: cloud-storage
+kind: setting
+summary: 'Управляет системной политикой синхронизации файлов OneDrive.'
+explanation:
+  purpose: 'Управляет системной политикой синхронизации файлов OneDrive.'
+  mechanism: 'Параметр DisableFileSyncNGSC задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении клиент OneDrive не синхронизирует файлы с облаком.'
+  tradeoffs: 'Облачные файлы перестанут обновляться и могут быть недоступны локально.'
+  recommendation: 'Отключайте только если OneDrive не используется.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive\DisableFileSyncNGSC.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключена'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\OneDrive'
+        value_name: DisableFileSyncNGSC
+        view: registry64
+        value: 1
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\OneDrive'
+        value_name: DisableFileSync
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включена'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\OneDrive'
+        value_name: DisableFileSyncNGSC
+        view: registry64
+        value: 0
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\OneDrive'
+        value_name: DisableFileSync
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\OneDrive'
+  value_name: DisableFileSyncNGSC
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

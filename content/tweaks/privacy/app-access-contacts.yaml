@@ -1,0 +1,69 @@
+id: privacy.app-access-contacts
+title: 'Доступ приложений: Контакты'
+category: privacy
+subcategory: app-permissions
+kind: setting
+summary: 'Задаёт системное правило доступа приложений к контактов пользователя.'
+explanation:
+  purpose: 'Позволяет оставить выбор пользователю, принудительно разрешить или запретить доступ приложений к контактов пользователя.'
+  mechanism: 'Политика LetAppsAccessContacts задаёт режим по умолчанию для пакетных приложений; отдельные правила конкретных приложений могут иметь приоритет.'
+  effect: 'Режим «Всегда запрещать» блокирует доступ, «Всегда разрешать» предоставляет его принудительно, а «Выбор пользователя» возвращает управление приложению «Параметры».'
+  tradeoffs: 'Принудительный запрет может отключить функции приложений, которым нужен соответствующий ресурс; принудительное разрешение убирает пользовательский выбор.'
+  recommendation: 'Обычно оставляйте выбор пользователю. Принудительный режим используйте только для понятного сценария на этом компьютере.'
+  technical_details: 'Изменяется 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy\LetAppsAccessContacts: 0 — выбор пользователя, 1 — разрешить, 2 — запретить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14393
+states:
+  user_control:
+    title: 'Выбор пользователя'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\AppPrivacy'
+        value_name: LetAppsAccessContacts
+        view: registry64
+        value: 0
+  force_allow:
+    title: 'Всегда разрешать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\AppPrivacy'
+        value_name: LetAppsAccessContacts
+        view: registry64
+        value: 1
+  force_deny:
+    title: 'Всегда запрещать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\AppPrivacy'
+        value_name: LetAppsAccessContacts
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [14393, 19045]
+    state: user_control
+  - os: windows11
+    builds: [22000, 26200]
+    state: user_control
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\AppPrivacy'
+  value_name: LetAppsAccessContacts
+  view: registry64
+  states:
+    0: user_control
+    1: force_allow
+    2: force_deny
+  missing_state: user_control
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

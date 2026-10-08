@@ -1,0 +1,59 @@
+id: desktop.welcome-experience
+title: 'Приветственный экран после обновлений'
+category: desktop
+subcategory: spotlight
+kind: setting
+summary: 'Управляет экраном с рассказом о новых функциях Windows.'
+explanation:
+  purpose: 'Управляет экраном с рассказом о новых функциях Windows.'
+  mechanism: 'Параметр DisableWindowsSpotlightWindowsWelcomeExperience задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении система не открывает ознакомительный экран после подходящих обновлений.'
+  tradeoffs: 'Пользователь может не заметить новые функции.'
+  recommendation: 'Отключайте, если предпочитаете изучать изменения самостоятельно.'
+  technical_details: 'Основной объект — 32-битный DWORD HKCU\Software\Policies\Microsoft\Windows\CloudContent\DisableWindowsSpotlightWindowsWelcomeExperience.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 15063
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\CloudContent'
+        value_name: DisableWindowsSpotlightWindowsWelcomeExperience
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\CloudContent'
+        value_name: DisableWindowsSpotlightWindowsWelcomeExperience
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [15063, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\CloudContent'
+  value_name: DisableWindowsSpotlightWindowsWelcomeExperience
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

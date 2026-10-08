@@ -1,0 +1,59 @@
+id: desktop.web-search
+title: 'Веб-результаты в поиске Windows'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Управляет добавлением интернет-результатов к локальному поиску.'
+explanation:
+  purpose: 'Управляет добавлением интернет-результатов к локальному поиску.'
+  mechanism: 'Параметр DisableWebSearch задаёт описанное поведение Windows для этого компьютера или пользователя.'
+  effect: 'При выключении веб-поиска запросы из меню «Пуск» не дополняются интернет-результатами.'
+  tradeoffs: 'Искать в Интернете придётся через браузер.'
+  recommendation: 'Отключайте, если смешанные результаты мешают локальному поиску.'
+  technical_details: 'Основной объект — 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\DisableWebSearch.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+        value_name: DisableWebSearch
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+        value_name: DisableWebSearch
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+  value_name: DisableWebSearch
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
