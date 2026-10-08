@@ -9,7 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include(CTest)
 include(cmake/Dependencies.cmake)
 
-find_package(Qt6 6.8.3 REQUIRED COMPONENTS Core Test)
+find_package(Qt6 6.8.3 REQUIRED COMPONENTS Core Sql Test)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -20,6 +20,7 @@ add_subdirectory(src/content)
 add_subdirectory(src/platform)
 add_subdirectory(src/detection)
 add_subdirectory(src/planning)
+add_subdirectory(src/persistence)
 
 if(BUILD_TESTING)
     add_subdirectory(tests)

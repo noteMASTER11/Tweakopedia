@@ -129,3 +129,39 @@ target_link_libraries(PlanBuilderTest
 )
 
 add_test(NAME PlanBuilder COMMAND PlanBuilderTest)
+
+add_executable(AppPathsTest
+    persistence/AppPathsTest.cpp
+)
+
+target_link_libraries(AppPathsTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaPersistence
+)
+
+add_test(NAME AppPaths COMMAND AppPathsTest)
+
+add_executable(TransactionRepositoryTest
+    persistence/TransactionRepositoryTest.cpp
+)
+
+target_link_libraries(TransactionRepositoryTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaPersistence
+)
+
+add_test(NAME TransactionRepository COMMAND TransactionRepositoryTest)
+
+add_executable(TransactionFilesTest
+    persistence/TransactionFilesTest.cpp
+)
+
+target_link_libraries(TransactionFilesTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaPersistence
+)
+
+add_test(NAME TransactionFiles COMMAND TransactionFilesTest)
