@@ -120,6 +120,7 @@ TestCase {
 
         mouseClick(combo)
         tryVerify(function() { return combo.popup.visible })
+        compare(combo.popup.width, combo.width)
         tryCompare(combo, "highlightedIndex", 0)
         keyClick(Qt.Key_Down)
         keyClick(Qt.Key_Down)

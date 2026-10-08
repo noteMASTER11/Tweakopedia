@@ -124,7 +124,7 @@ ComboBox {
 
     popup: Popup {
         y: root.height + 4
-        width: Math.max(root.width, 320)
+        width: root.width
         implicitHeight: Math.min(contentItem.implicitHeight + 8, 280)
         padding: 4
 
