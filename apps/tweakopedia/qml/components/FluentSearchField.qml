@@ -19,12 +19,14 @@ TextField {
     onTextEdited: searchRequested(text)
 
     Text {
+        objectName: "searchFieldGlyph"
         anchors.left: parent.left
         anchors.leftMargin: 12
         anchors.verticalCenter: parent.verticalCenter
-        text: "⌕"
+        text: "\uE721"
         color: FluentTheme.textSecondary
-        font.pixelSize: 18
+        font.family: "Segoe MDL2 Assets"
+        font.pixelSize: 15
     }
 
     background: Rectangle {

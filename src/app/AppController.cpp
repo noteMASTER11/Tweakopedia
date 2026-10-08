@@ -188,6 +188,31 @@ void AppController::setHideUnsupportedTweaks(bool hide)
     filteredTweaksModel_.setHideUnsupported(hide);
 }
 
+int AppController::revealTweak(const QString& id)
+{
+    const auto parsed = domain::TweakId::parse(id);
+    const auto* tweak = parsed ? catalog_.find(*parsed) : nullptr;
+    if (!tweak) {
+        setError(u"tweak.unknown"_s);
+        return -1;
+    }
+
+    filteredTweaksModel_.setQuery({});
+    filteredTweaksModel_.setHideUnsupported(false);
+    filteredTweaksModel_.setCategoryId(tweak->category);
+
+    for (int row = 0; row < filteredTweaksModel_.rowCount(); ++row) {
+        const auto index = filteredTweaksModel_.index(row, 0);
+        if (filteredTweaksModel_.data(index, TweakListModel::IdRole).toString() == id) {
+            setError({});
+            return row;
+        }
+    }
+
+    setError(u"tweak.not_visible"_s);
+    return -1;
+}
+
 bool AppController::selectTarget(const QString& id, const QString& state)
 {
     const auto parsed = domain::TweakId::parse(id);

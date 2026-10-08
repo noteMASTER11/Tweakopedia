@@ -210,6 +210,43 @@ private slots:
         QCOMPARE(controller.categories()->rowCount(), 4);
     }
 
+    void revealingTweakClearsFiltersAndReturnsVisibleRow()
+    {
+        auto backend = services();
+        auto supported = backend.catalog.tweaks().first();
+        auto unsupported = supported;
+        unsupported.id = *domain::TweakId::parse(u"experimental.future-feature"_s);
+        unsupported.title = u"Будущая функция"_s;
+        unsupported.category = u"experimental"_s;
+        unsupported.subcategory = u"feature-store"_s;
+        unsupported.compatibility.minimumBuild = 99999;
+        backend.catalog = content::TweakCatalog({supported, unsupported});
+        backend.categoryCatalog = content::CategoryCatalog({
+            {.id = u"filesystem"_s, .title = u"Файловая система"_s},
+            {.id = u"experimental"_s, .title = u"Экспериментальные функции"_s},
+        });
+        app::AppController controller(backend);
+
+        QVERIFY(controller.startup());
+        controller.setTweakSearch(u"нет совпадений"_s);
+        controller.setTweakCategory(u"filesystem"_s);
+        controller.setHideUnsupportedTweaks(true);
+        QCOMPARE(controller.filteredTweaks()->rowCount(), 0);
+
+        const auto row = controller.revealTweak(u"experimental.future-feature"_s);
+
+        QVERIFY(row >= 0);
+        QCOMPARE(controller.filteredTweaks()->query(), QString{});
+        QCOMPARE(controller.filteredTweaks()->categoryId(), u"experimental"_s);
+        QCOMPARE(controller.filteredTweaks()->hideUnsupported(), false);
+        QCOMPARE(controller.filteredTweaks()->data(
+                     controller.filteredTweaks()->index(row, 0),
+                     app::TweakListModel::IdRole).toString(),
+                 u"experimental.future-feature"_s);
+        QCOMPARE(controller.revealTweak(u"unknown.tweak"_s), -1);
+        QCOMPARE(controller.lastErrorCode(), u"tweak.unknown"_s);
+    }
+
     void appRemovalCatalogIsLoadedOnlyAfterExplicitScan()
     {
         auto backend = services();

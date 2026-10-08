@@ -45,11 +45,23 @@ AbstractButton {
 
         Item { Layout.fillHeight: true }
 
-        Text {
-            text: "Открыть  ›"
-            color: FluentTheme.accent
-            font.family: FluentTheme.fontFamily
-            font.pixelSize: 12
+        RowLayout {
+            spacing: 5
+
+            Text {
+                text: "Открыть"
+                color: FluentTheme.accent
+                font.family: FluentTheme.fontFamily
+                font.pixelSize: 12
+            }
+
+            Text {
+                objectName: "relatedArticleChevron_" + root.article.id
+                text: "\uE970"
+                color: FluentTheme.accent
+                font.family: "Segoe MDL2 Assets"
+                font.pixelSize: 10
+            }
         }
     }
 

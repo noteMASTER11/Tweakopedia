@@ -107,6 +107,7 @@ public:
     Q_INVOKABLE void setTweakSearch(const QString& query);
     Q_INVOKABLE void setTweakCategory(const QString& categoryId);
     Q_INVOKABLE void setHideUnsupportedTweaks(bool hide);
+    Q_INVOKABLE int revealTweak(const QString& id);
     Q_INVOKABLE bool selectTarget(const QString& id, const QString& state);
     Q_INVOKABLE bool removeFromQueue(const QString& id);
     Q_INVOKABLE QVariantMap openExplanation(const QString& id) const;

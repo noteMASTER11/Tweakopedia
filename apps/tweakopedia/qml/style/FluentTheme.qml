@@ -11,6 +11,7 @@ QtObject {
     readonly property color stroke: "#E1E5ED"
     readonly property color accent: "#0067C0"
     readonly property color accentHover: "#005BAA"
+    readonly property color accentPressed: "#004F93"
     readonly property color hover: "#F2F5FA"
     readonly property color selected: "#DEE9FB"
     readonly property color disabledSurface: "#F5F6F8"

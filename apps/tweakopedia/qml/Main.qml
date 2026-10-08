@@ -42,6 +42,7 @@ ApplicationWindow {
 
             OverviewPage { controller: appController }
             TweaksPage {
+                id: tweaksPage
                 controller: appController
                 wideLayout: window.width >= 1180
                 onReviewRequested: window.openQueue()
@@ -49,6 +50,10 @@ ApplicationWindow {
             TweakopediaPage {
                 controller: appController
                 availableWindowWidth: window.width
+                onTweakRequested: function(tweakId) {
+                    navigation.currentIndex = 1
+                    tweaksPage.openTweak(tweakId)
+                }
             }
             QueuePage {
                 controller: appController

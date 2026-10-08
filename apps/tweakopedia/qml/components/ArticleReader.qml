@@ -17,6 +17,7 @@ Item {
     readonly property var compatibilityData: articleData.compatibility || ({})
     readonly property var restartData: articleData.restart || ({})
     signal sectionRequested(string sectionId)
+    signal tweakRequested(string id)
 
     objectName: "articleReader"
 
@@ -84,16 +85,91 @@ Item {
                     font.pixelSize: 12
                 }
 
-                Text {
-                    id: articleTitle
-                    objectName: "articleTitle"
+                RowLayout {
                     Layout.fillWidth: true
-                    text: root.articleData.title || ""
-                    color: FluentTheme.textPrimary
-                    wrapMode: Text.WordWrap
-                    font.family: FluentTheme.fontFamily
-                    font.pixelSize: 30
-                    font.weight: Font.DemiBold
+                    spacing: 12
+
+                    Text {
+                        id: articleTitle
+                        objectName: "articleTitle"
+                        Layout.fillWidth: true
+                        text: root.articleData.title || ""
+                        color: FluentTheme.textPrimary
+                        wrapMode: Text.WordWrap
+                        font.family: FluentTheme.fontFamily
+                        font.pixelSize: 30
+                        font.weight: Font.DemiBold
+                    }
+
+                    Button {
+                        id: openTweakButton
+                        objectName: "articleOpenTweakButton"
+                        Layout.alignment: Qt.AlignTop
+                        leftPadding: 14
+                        rightPadding: 14
+                        topPadding: 9
+                        bottomPadding: 9
+                        Accessible.name: "Перейти к твику: " + (root.articleData.title || "")
+                        onClicked: root.tweakRequested(root.articleData.id || "")
+
+                        contentItem: RowLayout {
+                            spacing: 7
+
+                            Text {
+                                text: "Перейти к твику"
+                                color: "white"
+                                font.family: FluentTheme.fontFamily
+                                font.pixelSize: 13
+                                font.weight: Font.DemiBold
+                            }
+
+                            Text {
+                                text: "\uE72A"
+                                color: "white"
+                                font.family: "Segoe MDL2 Assets"
+                                font.pixelSize: 11
+                            }
+                        }
+
+                        background: Rectangle {
+                            radius: 6
+                            color: openTweakButton.down
+                                ? FluentTheme.accentPressed
+                                : (openTweakButton.hovered
+                                    ? FluentTheme.accentHover : FluentTheme.accent)
+                        }
+                    }
+
+                    Button {
+                        id: contentsButton
+                        objectName: "articleContentsButton"
+                        visible: !root.showContents
+                            && (root.articleData.sections || []).length > 0
+                        Layout.alignment: Qt.AlignTop
+                        implicitWidth: 38
+                        implicitHeight: 38
+                        Accessible.name: "Открыть содержание статьи"
+                        onClicked: contentsPopup.open()
+
+                        contentItem: Text {
+                            text: "\uE8FD"
+                            color: FluentTheme.textPrimary
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            font.family: "Segoe MDL2 Assets"
+                            font.pixelSize: 15
+                        }
+
+                        background: Rectangle {
+                            radius: 6
+                            color: contentsButton.down ? FluentTheme.selected
+                                : (contentsButton.hovered
+                                    ? FluentTheme.hover : FluentTheme.surface)
+                            border.width: contentsButton.activeFocus ? 2 : 1
+                            border.color: contentsButton.activeFocus
+                                ? FluentTheme.accent : FluentTheme.stroke
+                        }
+                    }
                 }
 
                 Text {
@@ -236,24 +312,12 @@ Item {
         }
     }
 
-    Button {
-        id: contentsButton
-        objectName: "articleContentsButton"
-        anchors.top: parent.top
-        anchors.right: parent.right
-        z: 2
-        visible: !root.showContents && (root.articleData.sections || []).length > 0
-        text: "Содержание"
-        Accessible.name: "Открыть содержание статьи"
-        onClicked: contentsPopup.open()
-    }
-
     Popup {
         id: contentsPopup
         objectName: "articleContentsPopup"
         parent: root
         x: Math.max(0, root.width - width - 8)
-        y: contentsButton.height + 8
+        y: contentsButton.mapToItem(root, 0, contentsButton.height).y + 8
         width: Math.min(260, root.width - 16)
         height: Math.min(contentItem.implicitHeight, root.height - y - 8)
         padding: 0

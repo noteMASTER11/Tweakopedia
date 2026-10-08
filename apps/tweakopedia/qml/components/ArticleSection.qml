@@ -79,10 +79,12 @@ Rectangle {
                 }
 
                 Text {
+                    objectName: "articleSectionChevron_" + root.section.id
                     visible: root.section.technical
-                    text: root.expanded ? "⌃" : "⌄"
+                    text: root.expanded ? "\uE96D" : "\uE96E"
                     color: FluentTheme.textSecondary
-                    font.pixelSize: 16
+                    font.family: "Segoe MDL2 Assets"
+                    font.pixelSize: 12
                 }
             }
 

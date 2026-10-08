@@ -170,6 +170,22 @@ TestCase {
         compare(encyclopediaController.lastOpenedId, "privacy.telemetry-details")
     }
 
+    function test_articleRequestsMatchingTweak() {
+        showArticle("privacy.diagnostic-data")
+        const page = createTemporaryObject(pageComponent, this)
+        const spy = signalSpy.createObject(page, {
+            target: page,
+            signalName: "tweakRequested"
+        })
+
+        const button = findChild(page, "articleOpenTweakButton")
+        verify(button)
+        button.clicked()
+
+        compare(spy.count, 1)
+        compare(spy.signalArguments[0][0], "privacy.diagnostic-data")
+    }
+
     function test_contentsScrollsToSectionAndTechnicalObjectIsSelectable() {
         showArticle("privacy.diagnostic-data")
         const page = createTemporaryObject(pageComponent, this, {
@@ -203,6 +219,14 @@ TestCase {
         const page = createTemporaryObject(pageComponent, this)
         const back = findChild(page, "tweakopediaBackButton")
         const forward = findChild(page, "tweakopediaForwardButton")
+        const backGlyph = findChild(page, "tweakopediaBackGlyph")
+        const forwardGlyph = findChild(page, "tweakopediaForwardGlyph")
+        verify(backGlyph)
+        verify(forwardGlyph)
+        compare(backGlyph.font.family, "Segoe MDL2 Assets")
+        compare(forwardGlyph.font.family, "Segoe MDL2 Assets")
+        compare(backGlyph.text, "\uE72B")
+        compare(forwardGlyph.text, "\uE72A")
         compare(back.enabled, false)
         compare(forward.enabled, false)
         encyclopediaController.canGoBack = true
@@ -249,6 +273,25 @@ TestCase {
         compare(contentsButton.visible, false)
         compare(sectionsGrid.columns, 2)
         verify(treeRow.width >= tree.width - 12)
+        compare(treeRow.contentItem.leftPadding, 0)
+        const treeIndicator = findChild(page,
+            "encyclopediaIndicator_privacy.diagnostic-data")
+        verify(treeIndicator)
+        compare(treeIndicator.font.family, "Segoe MDL2 Assets")
+
+        const contentsPurpose = findChild(page, "articleContents_purpose")
+        verify(contentsPurpose.leftPadding >= 8)
+        verify(contentsPurpose.rightPadding >= 8)
+
+        const technicalChevron = findChild(page, "articleSectionChevron_technical")
+        verify(technicalChevron)
+        compare(technicalChevron.font.family, "Segoe MDL2 Assets")
+
+        const relatedChevron = findChild(page,
+            "relatedArticleChevron_privacy.telemetry-details")
+        verify(relatedChevron)
+        compare(relatedChevron.font.family, "Segoe MDL2 Assets")
+        compare(relatedChevron.text, "\uE970")
 
         const purposeCard = findChild(page, "articleSection_purpose")
         const mechanismCard = findChild(page, "articleSection_mechanism")
@@ -325,4 +368,6 @@ TestCase {
         verify(technicalPoint.x + technical.width <= page.width + 1)
         verify(related.width > page.width * 0.7)
     }
+
+    Component { id: signalSpy; SignalSpy {} }
 }

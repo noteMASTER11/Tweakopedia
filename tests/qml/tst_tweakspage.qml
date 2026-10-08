@@ -31,6 +31,7 @@ TestCase {
         property string appRemovalScanStatus: "idle"
         property string appRemovalScanError: ""
         property int scanCalls: 0
+        property string lastRevealedTweak: ""
         function setTweakSearch(query) { lastSearch = query }
         function setTweakCategory(category) {
             lastCategory = category
@@ -45,6 +46,10 @@ TestCase {
                 technicalDetails: "Детали", registryObject: "HKLM\\Object",
                 rollback: "Возврат"
             }
+        }
+        function revealTweak(id) {
+            lastRevealedTweak = id
+            return id === "filesystem.win32-long-paths" ? 0 : -1
         }
         function scanInstalledApps() {
             ++scanCalls
@@ -81,6 +86,7 @@ TestCase {
         fakeController.appRemovalScanStatus = "idle"
         fakeController.appRemovalScanError = ""
         fakeController.scanCalls = 0
+        fakeController.lastRevealedTweak = ""
         tweaksModel.categoryId = ""
         queueModel.count = 2
     }
@@ -152,6 +158,19 @@ TestCase {
         keyClick(Qt.Key_Escape)
         compare(pane.opened, false)
         tryCompare(row, "activeFocus", true)
+    }
+
+    function test_openTweakRevealsRowAndExplanation() {
+        const page = createTemporaryObject(pageComponent, this)
+        findChild(page, "tweakSearchField").text = "старый фильтр"
+
+        page.openTweak("filesystem.win32-long-paths")
+
+        compare(fakeController.lastRevealedTweak, "filesystem.win32-long-paths")
+        compare(findChild(page, "tweakSearchField").text, "")
+        tryCompare(findChild(page, "tweakList"), "currentIndex", 0)
+        tryCompare(findChild(page, "infoPane"), "opened", true)
+        compare(findChild(page, "infoTitle").text, "Первое пояснение")
     }
 
     function test_emptyQueueHidesCommandBar() {

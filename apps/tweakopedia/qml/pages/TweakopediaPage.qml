@@ -14,6 +14,7 @@ Page {
     readonly property bool compactLayout: availableWindowWidth < FluentTheme.compactBreakpoint
     readonly property bool treeVisible: !compactLayout
     readonly property bool showArticleContents: availableWindowWidth >= 1360
+    signal tweakRequested(string id)
 
     background: Rectangle { color: FluentTheme.canvas }
 
@@ -43,34 +44,89 @@ Page {
             Button {
                 id: backButton
                 objectName: "tweakopediaBackButton"
-                text: "‹"
                 enabled: root.encyclopedia && root.encyclopedia.canGoBack
                 implicitWidth: 38
                 implicitHeight: 38
                 Accessible.name: "Назад по истории статей"
                 onClicked: root.encyclopedia.goBack()
+
+                contentItem: Text {
+                    objectName: "tweakopediaBackGlyph"
+                    text: "\uE72B"
+                    color: backButton.enabled
+                        ? FluentTheme.textPrimary : FluentTheme.disabledText
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    font.family: "Segoe MDL2 Assets"
+                    font.pixelSize: 14
+                }
+
+                background: Rectangle {
+                    radius: 6
+                    color: backButton.down ? FluentTheme.selected
+                        : (backButton.hovered ? FluentTheme.hover : FluentTheme.surface)
+                    border.width: backButton.activeFocus ? 2 : 1
+                    border.color: backButton.activeFocus
+                        ? FluentTheme.accent : FluentTheme.stroke
+                }
             }
 
             Button {
                 id: forwardButton
                 objectName: "tweakopediaForwardButton"
-                text: "›"
                 enabled: root.encyclopedia && root.encyclopedia.canGoForward
                 implicitWidth: 38
                 implicitHeight: 38
                 Accessible.name: "Вперёд по истории статей"
                 onClicked: root.encyclopedia.goForward()
+
+                contentItem: Text {
+                    objectName: "tweakopediaForwardGlyph"
+                    text: "\uE72A"
+                    color: forwardButton.enabled
+                        ? FluentTheme.textPrimary : FluentTheme.disabledText
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    font.family: "Segoe MDL2 Assets"
+                    font.pixelSize: 14
+                }
+
+                background: Rectangle {
+                    radius: 6
+                    color: forwardButton.down ? FluentTheme.selected
+                        : (forwardButton.hovered ? FluentTheme.hover : FluentTheme.surface)
+                    border.width: forwardButton.activeFocus ? 2 : 1
+                    border.color: forwardButton.activeFocus
+                        ? FluentTheme.accent : FluentTheme.stroke
+                }
             }
 
             Button {
                 id: treeButton
                 objectName: "tweakopediaTreeButton"
                 visible: root.compactLayout
-                text: "☰"
                 implicitWidth: 38
                 implicitHeight: 38
                 Accessible.name: "Открыть дерево статей"
                 onClicked: treeDrawer.open()
+
+                contentItem: Text {
+                    text: "\uE700"
+                    color: FluentTheme.textPrimary
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    font.family: "Segoe MDL2 Assets"
+                    font.pixelSize: 15
+                }
+
+                background: Rectangle {
+                    radius: 6
+                    color: treeButton.down ? FluentTheme.selected
+                        : (treeButton.hovered ? FluentTheme.hover : FluentTheme.surface)
+                    border.width: treeButton.activeFocus ? 2 : 1
+                    border.color: treeButton.activeFocus
+                        ? FluentTheme.accent : FluentTheme.stroke
+                }
             }
 
             FluentSearchField {
@@ -195,6 +251,7 @@ Page {
                     singleColumnSections: !root.showArticleContents
                     stackRelated: root.compactLayout
                     onSectionRequested: sectionId => root.lastRequestedSection = sectionId
+                    onTweakRequested: id => root.tweakRequested(id)
                 }
             }
         }

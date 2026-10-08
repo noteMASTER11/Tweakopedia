@@ -18,6 +18,22 @@ Page {
         infoPane.show(controller.openExplanation(tweakId), trigger)
     }
 
+    function openTweak(tweakId) {
+        const row = controller.revealTweak(tweakId)
+        if (row < 0)
+            return
+        searchField.text = ""
+        tweakList.positionViewAtIndex(row, ListView.Center)
+        tweakList.currentIndex = row
+        Qt.callLater(function() {
+            const item = tweakList.itemAtIndex(row)
+            if (!item)
+                return
+            item.forceActiveFocus()
+            root.showExplanation(tweakId, item)
+        })
+    }
+
     background: Rectangle { color: FluentTheme.canvas }
 
     Text {

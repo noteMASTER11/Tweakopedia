@@ -42,6 +42,10 @@ Rectangle {
                 objectName: "articleContents_" + modelData.id
                 Layout.fillWidth: true
                 implicitHeight: 34
+                leftPadding: 10
+                rightPadding: 10
+                topPadding: 6
+                bottomPadding: 6
                 focusPolicy: Qt.StrongFocus
                 Accessible.name: "Перейти к разделу: " + modelData.title
                 Accessible.description: current ? "Текущий раздел" : ""
