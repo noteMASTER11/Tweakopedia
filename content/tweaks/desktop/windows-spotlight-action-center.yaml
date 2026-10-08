@@ -1,0 +1,59 @@
+id: desktop.windows-spotlight-action-center
+title: 'Windows Spotlight в центре уведомлений'
+category: desktop
+subcategory: spotlight
+kind: setting
+summary: 'Показывает или скрывает рекомендации Windows Spotlight в центре уведомлений.'
+explanation:
+  purpose: 'Управляет предложениями Spotlight, отображаемыми вместе с системными уведомлениями.'
+  mechanism: 'Windows читает DWORD DisableWindowsSpotlightOnActionCenter в профиле текущего пользователя и применяет выбранный режим.'
+  effect: 'При выключении рекомендации Spotlight не выводятся через центр уведомлений.'
+  tradeoffs: 'Ознакомительные подсказки Windows в этом месте также исчезнут.'
+  recommendation: 'Отключайте, если центр уведомлений должен содержать только события приложений и системы.'
+  technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows\CloudContent\DisableWindowsSpotlightOnActionCenter: 0 — показывать, 1 — не показывать.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 15063
+states:
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\CloudContent'
+        value_name: 'DisableWindowsSpotlightOnActionCenter'
+        view: registry64
+        value: 0
+  disabled:
+    title: 'Не показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\CloudContent'
+        value_name: 'DisableWindowsSpotlightOnActionCenter'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [15063, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\CloudContent'
+  value_name: 'DisableWindowsSpotlightOnActionCenter'
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

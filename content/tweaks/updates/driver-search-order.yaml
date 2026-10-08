@@ -1,0 +1,69 @@
+id: updates.driver-search-order
+title: 'Поиск драйверов через Windows Update'
+category: updates
+subcategory: drivers
+kind: setting
+summary: 'Определяет, когда Windows обращается к Windows Update при поиске драйвера.'
+explanation:
+  purpose: 'Настраивает порядок поиска драйверов для новых и обновлённых устройств.'
+  mechanism: 'Windows применяет параметр через DWORD SearchOrderConfig.'
+  effect: 'Можно всегда проверять Windows Update, обращаться к нему только при отсутствии локального драйвера или никогда не использовать его для поиска.'
+  tradeoffs: 'Запрет поиска повышает предсказуемость, но подходящий драйвер придётся устанавливать вручную.'
+  recommendation: 'Выбирайте поиск при необходимости для обычного компьютера.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\DriverSearching\SearchOrderConfig: 0 — никогда, 1 — всегда, 2 — только при необходимости.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  never:
+    title: 'Никогда'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\DriverSearching'
+        value_name: 'SearchOrderConfig'
+        view: registry64
+        value: 0
+  always:
+    title: 'Всегда'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\DriverSearching'
+        value_name: 'SearchOrderConfig'
+        view: registry64
+        value: 1
+  when_needed:
+    title: 'Только при необходимости'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\DriverSearching'
+        value_name: 'SearchOrderConfig'
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: when_needed
+  - os: windows11
+    builds: [22000, 26200]
+    state: when_needed
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\DriverSearching'
+  value_name: 'SearchOrderConfig'
+  view: registry64
+  states:
+    0: never
+    1: always
+    2: when_needed
+  missing_state: when_needed
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,59 @@
+id: desktop.file-copy-details
+title: 'Подробности в окне копирования файлов'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Определяет начальный вид окна копирования файлов: подробный или компактный.'
+explanation:
+  purpose: 'Управляет автоматическим раскрытием графика скорости и дополнительных сведений при копировании.'
+  mechanism: 'Windows читает DWORD EnthusiastMode и применяет выбранный режим.'
+  effect: 'В подробном режиме окно сразу показывает скорость, оставшееся время и список операций.'
+  tradeoffs: 'Подробное окно занимает больше места на экране.'
+  recommendation: 'Включайте, если часто контролируете длительные файловые операции.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager\EnthusiastMode: 0 — компактный вид, 1 — подробный вид.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  compact:
+    title: 'Компактный вид'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager'
+        value_name: 'EnthusiastMode'
+        view: registry64
+        value: 0
+  detailed:
+    title: 'Подробный вид'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager'
+        value_name: 'EnthusiastMode'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: compact
+  - os: windows11
+    builds: [22000, 26200]
+    state: compact
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager'
+  value_name: 'EnthusiastMode'
+  view: registry64
+  states:
+    0: compact
+    1: detailed
+  missing_state: compact
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

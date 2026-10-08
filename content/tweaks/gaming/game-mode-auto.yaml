@@ -1,0 +1,59 @@
+id: gaming.game-mode-auto
+title: 'Автоматическое включение игрового режима'
+category: gaming
+subcategory: performance
+kind: setting
+summary: 'Разрешает Windows автоматически включать игровой режим для распознанных игр.'
+explanation:
+  purpose: 'Управляет автоматическим выбором игрового режима для приложений.'
+  mechanism: 'Windows читает DWORD AllowAutoGameMode и применяет выбранный режим.'
+  effect: 'При включении Windows может сама активировать игровой режим для обнаруженной игры.'
+  tradeoffs: 'Автоматическое распознавание не всегда соответствует предпочтениям пользователя.'
+  recommendation: 'Включайте, если игровой режим должен применяться без ручной настройки.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\GameBar\AllowAutoGameMode: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 15063
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\GameBar'
+        value_name: 'AllowAutoGameMode'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\GameBar'
+        value_name: 'AllowAutoGameMode'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [15063, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\GameBar'
+  value_name: 'AllowAutoGameMode'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,59 @@
+id: network.multimedia-network-throttling
+title: 'Ограничение сетевой обработки мультимедиа'
+category: network
+subcategory: performance
+kind: setting
+summary: 'Включает стандартное ограничение частоты сетевой обработки MMCSS или снимает его.'
+explanation:
+  purpose: 'Управляет NetworkThrottlingIndex системного мультимедийного профиля.'
+  mechanism: 'Windows читает DWORD NetworkThrottlingIndex и применяет выбранный режим.'
+  effect: 'При снятии ограничения Windows не применяет стандартный интервал ограничения сетевых пакетов для мультимедийных задач.'
+  tradeoffs: 'Снятие ограничения не гарантирует меньшую задержку и может увеличить нагрузку процессора при интенсивном трафике.'
+  recommendation: 'Оставляйте стандартный режим, если измерения не показывают улучшения без ограничения.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\NetworkThrottlingIndex: 10 — стандартное ограничение, 4294967295 — без ограничения.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  enabled:
+    title: 'Стандартное ограничение'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile'
+        value_name: 'NetworkThrottlingIndex'
+        view: registry64
+        value: 10
+  disabled:
+    title: 'Без ограничения'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile'
+        value_name: 'NetworkThrottlingIndex'
+        view: registry64
+        value: 4294967295
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile'
+  value_name: 'NetworkThrottlingIndex'
+  view: registry64
+  states:
+    10: enabled
+    4294967295: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

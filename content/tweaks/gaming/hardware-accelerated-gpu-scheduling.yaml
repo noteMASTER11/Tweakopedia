@@ -1,0 +1,59 @@
+id: gaming.hardware-accelerated-gpu-scheduling
+title: 'Аппаратное планирование графического процессора'
+category: gaming
+subcategory: performance
+kind: setting
+summary: 'Включает или выключает аппаратное планирование графического процессора Windows.'
+explanation:
+  purpose: 'Управляет передачей части планирования видеопамяти и очередей поддерживаемому графическому процессору.'
+  mechanism: 'Windows читает DWORD HwSchMode и применяет выбранный режим.'
+  effect: 'При включении поддерживаемый драйвер и GPU выполняют больше работы по планированию непосредственно на устройстве.'
+  tradeoffs: 'Результат зависит от драйвера и конкретной игры; возможны как улучшения, так и регрессии.'
+  recommendation: 'Сравните стабильность и задержки в используемых приложениях после перезагрузки.'
+  technical_details: 'DWORD HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\HwSchMode: 1 — выключено, 2 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 19041
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\GraphicsDrivers'
+        value_name: 'HwSchMode'
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\GraphicsDrivers'
+        value_name: 'HwSchMode'
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [19041, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\GraphicsDrivers'
+  value_name: 'HwSchMode'
+  view: registry64
+  states:
+    1: disabled
+    2: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

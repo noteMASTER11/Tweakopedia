@@ -1,0 +1,59 @@
+id: gaming.game-task-priority
+title: 'Приоритет игровых задач MMCSS'
+category: gaming
+subcategory: performance
+kind: setting
+summary: 'Выбирает стандартный или повышенный приоритет профиля игровых задач MMCSS.'
+explanation:
+  purpose: 'Управляет числовым приоритетом задач, зарегистрированных в мультимедийном профиле Games.'
+  mechanism: 'Windows читает DWORD Priority и применяет выбранный режим.'
+  effect: 'Повышенное значение даёт игровым задачам более высокий приоритет внутри правил MMCSS.'
+  tradeoffs: 'Слишком высокий приоритет способен ухудшить отзывчивость других мультимедийных и фоновых задач.'
+  recommendation: 'Используйте стандартное значение, пока измерения не показывают пользу повышенного.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games\Priority: 2 — стандартный, 6 — повышенный.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  normal:
+    title: 'Стандартный'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games'
+        value_name: 'Priority'
+        view: registry64
+        value: 2
+  high:
+    title: 'Повышенный'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games'
+        value_name: 'Priority'
+        view: registry64
+        value: 6
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: normal
+  - os: windows11
+    builds: [22000, 26200]
+    state: normal
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games'
+  value_name: 'Priority'
+  view: registry64
+  states:
+    2: normal
+    6: high
+  missing_state: normal
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

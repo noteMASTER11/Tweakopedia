@@ -88,6 +88,8 @@ categories:
         title: Сетевая проверка подлинности
       - id: routing
         title: Маршрутизация IP
+      - id: performance
+        title: Производительность сети
   - id: apps
     title: Компоненты и приложения Windows
     subcategories:
@@ -135,6 +137,8 @@ categories:
     subcategories:
       - id: capture
         title: Запись игр и приложений
+      - id: performance
+        title: Игровой режим и графика
   - id: power
     title: Питание и режимы работы
     subcategories:

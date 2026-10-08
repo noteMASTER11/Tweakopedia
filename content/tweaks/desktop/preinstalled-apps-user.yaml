@@ -1,0 +1,59 @@
+id: desktop.preinstalled-apps-user
+title: 'Предложения предустановленных приложений'
+category: desktop
+subcategory: start
+kind: setting
+summary: 'Управляет предложениями дополнительных предустановленных приложений для текущего пользователя.'
+explanation:
+  purpose: 'Разрешает или запрещает канал предложений приложений, включённых в конфигурацию Windows.'
+  mechanism: 'Windows читает DWORD PreInstalledAppsEnabled в профиле текущего пользователя и применяет выбранный режим.'
+  effect: 'При выключении Windows не предлагает такие приложения через Content Delivery Manager.'
+  tradeoffs: 'Некоторые рекомендуемые Microsoft приложения не появятся автоматически.'
+  recommendation: 'Отключайте для минимального набора приложений.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager\PreInstalledAppsEnabled: 0 — не предлагать, 1 — предлагать.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не предлагать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+        value_name: 'PreInstalledAppsEnabled'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Предлагать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+        value_name: 'PreInstalledAppsEnabled'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+  value_name: 'PreInstalledAppsEnabled'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

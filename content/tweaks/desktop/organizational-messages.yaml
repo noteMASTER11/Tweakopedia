@@ -1,0 +1,59 @@
+id: desktop.organizational-messages
+title: 'Организационные сообщения Windows'
+category: desktop
+subcategory: notifications
+kind: setting
+summary: 'Разрешает или запрещает сообщения, настроенные организацией через службы Microsoft.'
+explanation:
+  purpose: 'Управляет показом организационных сообщений на поддерживаемых поверхностях Windows.'
+  mechanism: 'Windows читает DWORD EnableOrganizationalMessages в профиле текущего пользователя и применяет выбранный режим.'
+  effect: 'При выключении Windows не показывает сообщения организации, доставляемые через этот механизм.'
+  tradeoffs: 'На управляемом компьютере можно пропустить объявления администратора.'
+  recommendation: 'Оставляйте включённым на рабочем компьютере; отключайте на личном, если канал не используется.'
+  technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows\CloudContent\EnableOrganizationalMessages: 0 — запрещены, 1 — разрешены.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 19041
+states:
+  disabled:
+    title: 'Запрещены'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\CloudContent'
+        value_name: 'EnableOrganizationalMessages'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Разрешены'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\CloudContent'
+        value_name: 'EnableOrganizationalMessages'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [19041, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\CloudContent'
+  value_name: 'EnableOrganizationalMessages'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

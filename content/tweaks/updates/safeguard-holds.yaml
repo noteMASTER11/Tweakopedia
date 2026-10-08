@@ -1,0 +1,59 @@
+id: updates.safeguard-holds
+title: 'Блокировки совместимости при обновлении функций'
+category: updates
+subcategory: automatic
+kind: setting
+summary: 'Разрешает учитывать или обходить блокировки совместимости при обновлении Windows.'
+explanation:
+  purpose: 'Управляет safeguard holds, которыми Microsoft задерживает обновление на устройствах с известными проблемами совместимости.'
+  mechanism: 'Windows применяет параметр через DWORD DisableWUfBSafeguards.'
+  effect: 'При обходе Windows Update может предложить новую версию несмотря на зарегистрированную блокировку.'
+  tradeoffs: 'Обход увеличивает вероятность столкнуться с известной проблемой драйвера или приложения.'
+  recommendation: 'Оставляйте блокировки включёнными, если нет конкретной причины обновляться немедленно.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\DisableWUfBSafeguards: 0 — учитывать, 1 — обходить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 18362
+states:
+  enabled:
+    title: 'Учитывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+        value_name: 'DisableWUfBSafeguards'
+        view: registry64
+        value: 0
+  disabled:
+    title: 'Обходить'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+        value_name: 'DisableWUfBSafeguards'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [18362, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+  value_name: 'DisableWUfBSafeguards'
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

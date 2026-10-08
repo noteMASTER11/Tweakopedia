@@ -1,0 +1,59 @@
+id: desktop.oem-preinstalled-apps-user
+title: 'Предложения приложений производителя ПК'
+category: desktop
+subcategory: start
+kind: setting
+summary: 'Управляет предложениями предустановленных приложений от производителя устройства.'
+explanation:
+  purpose: 'Разрешает или запрещает пользовательский канал предложений OEM-приложений.'
+  mechanism: 'Windows читает DWORD OemPreInstalledAppsEnabled в профиле текущего пользователя и применяет выбранный режим.'
+  effect: 'При выключении Windows не использует этот параметр для предложения приложений производителя.'
+  tradeoffs: 'Полезные фирменные утилиты также перестанут предлагаться через данный канал.'
+  recommendation: 'Отключайте, если приложения производителя устанавливаются вручную.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager\OemPreInstalledAppsEnabled: 0 — не предлагать, 1 — предлагать.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не предлагать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+        value_name: 'OemPreInstalledAppsEnabled'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Предлагать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+        value_name: 'OemPreInstalledAppsEnabled'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+  value_name: 'OemPreInstalledAppsEnabled'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

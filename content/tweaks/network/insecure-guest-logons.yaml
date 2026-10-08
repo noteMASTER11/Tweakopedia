@@ -1,0 +1,59 @@
+id: network.insecure-guest-logons
+title: 'Гостевой доступ SMB без проверки подлинности'
+category: network
+subcategory: authentication
+kind: setting
+summary: 'Разрешает или запрещает гостевые подключения SMB без проверки подлинности.'
+explanation:
+  purpose: 'Управляет подключением клиента SMB к общим папкам, допускающим только гостевой вход.'
+  mechanism: 'Windows применяет параметр через DWORD AllowInsecureGuestAuth.'
+  effect: 'При запрете Windows отклоняет такие подключения; при разрешении старые NAS и устройства могут снова стать доступны.'
+  tradeoffs: 'Гостевой режим не подтверждает личность удалённого сервера и пользователя.'
+  recommendation: 'Разрешайте только для конкретного старого устройства в доверенной сети.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\LanmanWorkstation\AllowInsecureGuestAuth: 0 — запрещён, 1 — разрешён.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Запрещён'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\LanmanWorkstation'
+        value_name: 'AllowInsecureGuestAuth'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Разрешён'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\LanmanWorkstation'
+        value_name: 'AllowInsecureGuestAuth'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\LanmanWorkstation'
+  value_name: 'AllowInsecureGuestAuth'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

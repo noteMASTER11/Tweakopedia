@@ -1,0 +1,59 @@
+id: updates.internet-locations
+title: 'Публичные службы Windows Update'
+category: updates
+subcategory: automatic
+kind: setting
+summary: 'Разрешает или запрещает обращение к публичным службам Windows Update.'
+explanation:
+  purpose: 'Управляет прямыми подключениями клиента обновлений к службам Microsoft при использовании управляемой инфраструктуры.'
+  mechanism: 'Windows применяет параметр через DWORD DoNotConnectToWindowsUpdateInternetLocations.'
+  effect: 'При запрете клиент не обращается к публичным расположениям Windows Update.'
+  tradeoffs: 'Без корпоративного сервера обновлений поиск и загрузка могут перестать работать.'
+  recommendation: 'Запрещайте только на компьютере с настроенной внутренней службой обновлений.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\DoNotConnectToWindowsUpdateInternetLocations: 0 — разрешены, 1 — запрещены.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  enabled:
+    title: 'Разрешены'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+        value_name: 'DoNotConnectToWindowsUpdateInternetLocations'
+        view: registry64
+        value: 0
+  disabled:
+    title: 'Запрещены'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+        value_name: 'DoNotConnectToWindowsUpdateInternetLocations'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+  value_name: 'DoNotConnectToWindowsUpdateInternetLocations'
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

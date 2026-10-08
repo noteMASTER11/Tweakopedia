@@ -1,0 +1,59 @@
+id: updates.metered-downloads
+title: 'Обновления через лимитное подключение'
+category: updates
+subcategory: automatic
+kind: setting
+summary: 'Разрешает или запрещает автоматическую загрузку обновлений через лимитные сети.'
+explanation:
+  purpose: 'Управляет использованием подключений с учётом трафика службой Windows Update.'
+  mechanism: 'Windows применяет параметр через DWORD AllowAutoWindowsUpdateDownloadOverMeteredNetwork.'
+  effect: 'При запрете автоматические загрузки ожидают обычного подключения, если обновление не относится к исключительным случаям.'
+  tradeoffs: 'Обновления могут устанавливаться позже при длительной работе только через лимитную сеть.'
+  recommendation: 'Запрещайте при ограниченном тарифе.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AllowAutoWindowsUpdateDownloadOverMeteredNetwork: 0 — запрещена, 1 — разрешена.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Запрещена'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+        value_name: 'AllowAutoWindowsUpdateDownloadOverMeteredNetwork'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Разрешена'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+        value_name: 'AllowAutoWindowsUpdateDownloadOverMeteredNetwork'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+  value_name: 'AllowAutoWindowsUpdateDownloadOverMeteredNetwork'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

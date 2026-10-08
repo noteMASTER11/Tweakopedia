@@ -1,0 +1,59 @@
+id: desktop.subscribed-content-master-user
+title: 'Подписанное содержимое Windows'
+category: desktop
+subcategory: spotlight
+kind: setting
+summary: 'Управляет общей обработкой каналов подписанного содержимого Windows.'
+explanation:
+  purpose: 'Разрешает или запрещает Content Delivery Manager использовать набор каналов SubscribedContent.'
+  mechanism: 'Windows читает DWORD SubscribedContentEnabled в профиле текущего пользователя и применяет выбранный режим.'
+  effect: 'При выключении несколько видов рекомендаций и подсказок могут быть отключены общим переключателем.'
+  tradeoffs: 'Параметр действует шире отдельных переключателей каналов и может скрыть полезные ознакомительные материалы.'
+  recommendation: 'Отключайте для централизованного отказа от подписанного содержимого.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager\SubscribedContentEnabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+        value_name: 'SubscribedContentEnabled'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+        value_name: 'SubscribedContentEnabled'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+  value_name: 'SubscribedContentEnabled'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

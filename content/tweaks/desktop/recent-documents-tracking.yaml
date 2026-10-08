@@ -1,0 +1,59 @@
+id: desktop.recent-documents-tracking
+title: 'Недавние документы и списки переходов'
+category: desktop
+subcategory: start
+kind: setting
+summary: 'Управляет сохранением недавно открытых документов для меню «Пуск» и списков переходов.'
+explanation:
+  purpose: 'Определяет, будет ли Windows вести пользовательскую историю открытых документов.'
+  mechanism: 'Windows читает DWORD Start_TrackDocs и применяет выбранный режим.'
+  effect: 'При выключении новые документы не добавляются в соответствующие списки истории.'
+  tradeoffs: 'Быстрый возврат к недавно открытым файлам станет менее удобным.'
+  recommendation: 'Отключайте на общих компьютерах или если история документов не нужна.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\Start_TrackDocs: 0 — не сохранять, 1 — сохранять.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не сохранять'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: 'Start_TrackDocs'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Сохранять'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: 'Start_TrackDocs'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: 'Start_TrackDocs'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

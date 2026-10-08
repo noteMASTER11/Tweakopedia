@@ -1,0 +1,59 @@
+id: updates.settings-access
+title: 'Доступ к странице Windows Update'
+category: updates
+subcategory: automatic
+kind: setting
+summary: 'Разрешает или запрещает пользователю открывать интерфейс поиска и установки обновлений.'
+explanation:
+  purpose: 'Управляет доступностью пользовательского интерфейса Windows Update.'
+  mechanism: 'Windows применяет параметр через DWORD SetDisableUXWUAccess.'
+  effect: 'При запрете элементы поиска, загрузки и установки обновлений скрываются или становятся недоступными.'
+  tradeoffs: 'Управлять обновлениями через «Параметры» будет нельзя, хотя фоновые политики продолжают действовать.'
+  recommendation: 'Оставляйте доступным на личном компьютере.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\SetDisableUXWUAccess: 0 — разрешён, 1 — запрещён.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  enabled:
+    title: 'Разрешён'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+        value_name: 'SetDisableUXWUAccess'
+        view: registry64
+        value: 0
+  disabled:
+    title: 'Запрещён'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+        value_name: 'SetDisableUXWUAccess'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+  value_name: 'SetDisableUXWUAccess'
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

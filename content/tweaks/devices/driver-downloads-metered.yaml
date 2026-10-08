@@ -1,0 +1,59 @@
+id: devices.driver-downloads-metered
+title: 'Драйверы через лимитные подключения'
+category: devices
+subcategory: metadata
+kind: setting
+summary: 'Разрешает или запрещает загрузку драйверов через подключения с учётом трафика.'
+explanation:
+  purpose: 'Управляет использованием лимитной сети при автоматическом получении драйверов устройств.'
+  mechanism: 'Windows читает DWORD CostedNetworkPolicy и применяет выбранный режим загрузки драйверов.'
+  effect: 'При запрете загрузка драйверов ожидает подключения без ограничения трафика.'
+  tradeoffs: 'Новое устройство может дольше оставаться на базовом драйвере, если компьютер постоянно использует лимитную сеть.'
+  recommendation: 'Запрещайте при ограниченном тарифе; разрешайте, если приоритетом является быстрая установка устройств.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\DeviceSetup\CostedNetworkPolicy: 0 — запрещена, 1 — разрешена.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Запрещена'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\DeviceSetup'
+        value_name: CostedNetworkPolicy
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Разрешена'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\DeviceSetup'
+        value_name: CostedNetworkPolicy
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\DeviceSetup'
+  value_name: CostedNetworkPolicy
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

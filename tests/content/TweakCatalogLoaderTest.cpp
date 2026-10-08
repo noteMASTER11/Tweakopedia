@@ -192,7 +192,7 @@ private slots:
 
         QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 335);
+        QCOMPARE(result.catalog->size(), 385);
 
         const QStringList expectedIds{
             u"apps.windows-ink-workspace"_s,
@@ -465,6 +465,56 @@ private slots:
             u"desktop.explorer-gallery-navigation"_s,
             u"desktop.explorer-home-navigation"_s,
             u"desktop.onedrive-navigation"_s,
+            u"desktop.explorer-hub-mode"_s,
+            u"desktop.taskbar-people"_s,
+            u"desktop.thumbnail-cache"_s,
+            u"desktop.network-thumbnail-cache"_s,
+            u"desktop.recent-documents-tracking"_s,
+            u"behavior.autoplay-user"_s,
+            u"desktop.file-copy-details"_s,
+            u"desktop.auto-tray-icons"_s,
+            u"desktop.classic-bing-search"_s,
+            u"desktop.classic-cortana-search"_s,
+            u"desktop.lock-screen-rotating-images-user"_s,
+            u"desktop.content-delivery-master-user"_s,
+            u"desktop.feature-management-content-user"_s,
+            u"desktop.oem-preinstalled-apps-user"_s,
+            u"desktop.preinstalled-apps-user"_s,
+            u"desktop.silent-app-installation-user"_s,
+            u"desktop.subscribed-content-master-user"_s,
+            u"desktop.windows-spotlight-action-center"_s,
+            u"desktop.windows-spotlight-settings"_s,
+            u"desktop.organizational-messages"_s,
+            u"privacy.device-name-diagnostic-data"_s,
+            u"privacy.telemetry-opt-in-change-notification"_s,
+            u"privacy.diagnostic-settings-page"_s,
+            u"privacy.diagnostic-data-viewer"_s,
+            u"privacy.onesettings-downloads"_s,
+            u"privacy.onesettings-auditing"_s,
+            u"behavior.application-impact-telemetry"_s,
+            u"behavior.program-compatibility-assistant"_s,
+            u"behavior.user-action-recorder"_s,
+            u"behavior.16-bit-applications"_s,
+            u"devices.driver-downloads-metered"_s,
+            u"updates.driver-search-order"_s,
+            u"updates.metered-downloads"_s,
+            u"updates.pause-access"_s,
+            u"updates.safeguard-holds"_s,
+            u"updates.internet-locations"_s,
+            u"updates.restart-notifications"_s,
+            u"updates.wake-for-installation"_s,
+            u"updates.settings-access"_s,
+            u"network.insecure-guest-logons"_s,
+            u"gaming.hardware-accelerated-gpu-scheduling"_s,
+            u"gaming.game-mode-auto"_s,
+            u"gaming.game-mode-enabled"_s,
+            u"network.multimedia-network-throttling"_s,
+            u"gaming.game-task-priority"_s,
+            u"network.rdp-hardware-gpu"_s,
+            u"network.rdp-avc-hardware-encoding"_s,
+            u"network.rdp-wddm-driver"_s,
+            u"network.rdp-client-hardware-mode"_s,
+            u"network.rdp-avc444-mode"_s,
         };
         for (const auto& expectedId : expectedIds) {
             const auto id = TweakId::parse(expectedId);
@@ -559,6 +609,31 @@ private slots:
         QCOMPARE(allAppsView->detection->statesByValue.value(0), u"category"_s);
         QCOMPARE(allAppsView->detection->statesByValue.value(1), u"grid"_s);
         QCOMPARE(allAppsView->detection->statesByValue.value(2), u"list"_s);
+
+        const auto driverSearchId = *TweakId::parse(u"updates.driver-search-order"_s);
+        const auto* driverSearch = result.catalog->find(driverSearchId);
+        QVERIFY(driverSearch != nullptr);
+        QCOMPARE(driverSearch->states.size(), 3);
+        QCOMPARE(driverSearch->detection->statesByValue.value(0), u"never"_s);
+        QCOMPARE(driverSearch->detection->statesByValue.value(1), u"always"_s);
+        QCOMPARE(driverSearch->detection->statesByValue.value(2), u"when_needed"_s);
+
+        const auto throttlingId = *TweakId::parse(u"network.multimedia-network-throttling"_s);
+        const auto* throttling = result.catalog->find(throttlingId);
+        QVERIFY(throttling != nullptr);
+        QCOMPARE(throttling->detection->statesByValue.value(10), u"enabled"_s);
+        QCOMPARE(throttling->detection->statesByValue.value(4294967295U), u"disabled"_s);
+
+        const auto rdpHardwareId = *TweakId::parse(u"network.rdp-client-hardware-mode"_s);
+        const auto* rdpHardware = result.catalog->find(rdpHardwareId);
+        QVERIFY(rdpHardware != nullptr);
+        QCOMPARE(rdpHardware->detection->statesByValue.value(0), u"disabled"_s);
+        QCOMPARE(rdpHardware->detection->statesByValue.value(1), u"enabled"_s);
+
+        const auto orgMessagesId = *TweakId::parse(u"desktop.organizational-messages"_s);
+        const auto* orgMessages = result.catalog->find(orgMessagesId);
+        QVERIFY(orgMessages != nullptr);
+        QCOMPARE(orgMessages->compatibility.minimumBuild, 19041U);
     }
 };
 

@@ -1,0 +1,59 @@
+id: privacy.telemetry-opt-in-change-notification
+title: 'Уведомления об изменении уровня диагностики'
+category: privacy
+subcategory: diagnostics
+kind: setting
+summary: 'Показывает или скрывает уведомление при изменении параметра диагностических данных.'
+explanation:
+  purpose: 'Управляет уведомлением пользователя об изменении выбранного уровня диагностики.'
+  mechanism: 'Windows применяет групповую политику через DWORD DisableTelemetryOptInChangeNotification.'
+  effect: 'При выключении Windows не сообщает пользователю об изменении уровня диагностических данных.'
+  tradeoffs: 'Изменение параметра администратором может пройти незаметно для пользователя.'
+  recommendation: 'Оставляйте включённым, если важно видеть такие изменения.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\DataCollection\DisableTelemetryOptInChangeNotification: 0 — показывать, 1 — не показывать.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 17134
+states:
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\DataCollection'
+        value_name: 'DisableTelemetryOptInChangeNotification'
+        view: registry64
+        value: 0
+  disabled:
+    title: 'Не показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\DataCollection'
+        value_name: 'DisableTelemetryOptInChangeNotification'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [17134, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\DataCollection'
+  value_name: 'DisableTelemetryOptInChangeNotification'
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

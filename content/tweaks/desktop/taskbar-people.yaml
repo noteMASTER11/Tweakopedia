@@ -1,0 +1,57 @@
+id: desktop.taskbar-people
+title: 'Кнопка «Люди» на панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Показывает или скрывает устаревшую кнопку «Люди» на панели задач Windows 10.'
+explanation:
+  purpose: 'Управляет кнопкой быстрого доступа к контактам на панели задач Windows 10.'
+  mechanism: 'Windows читает DWORD PeopleBand и применяет выбранный режим.'
+  effect: 'При выключении кнопка «Люди» исчезает с панели задач.'
+  tradeoffs: 'Быстрый доступ к закреплённым контактам через панель задач станет недоступен.'
+  recommendation: 'Отключайте, если функция «Люди» не используется.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People\PeopleBand: 0 — скрыта, 1 — показана.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 10240
+  max_build: 19045
+states:
+  disabled:
+    title: 'Скрыта'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People'
+        value_name: 'PeopleBand'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показана'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People'
+        value_name: 'PeopleBand'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People'
+  value_name: 'PeopleBand'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

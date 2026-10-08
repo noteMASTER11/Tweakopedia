@@ -1,0 +1,59 @@
+id: network.rdp-avc-hardware-encoding
+title: 'Аппаратное кодирование AVC в RDP'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Предпочитает аппаратное кодирование H.264/AVC для удалённых сеансов.'
+explanation:
+  purpose: 'Управляет выбором аппаратного кодировщика AVC сервером удалённого рабочего стола.'
+  mechanism: 'Windows читает DWORD AVCHardwareEncodePreferred и применяет выбранный режим.'
+  effect: 'При включении RDP использует совместимый аппаратный кодировщик в приоритетном порядке.'
+  tradeoffs: 'Результат зависит от видеодрайвера и возможностей графического адаптера.'
+  recommendation: 'Включайте при наличии поддерживаемого GPU и высокой графической нагрузке RDP.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\AVCHardwareEncodePreferred: 0 — не предпочитать, 1 — предпочитать.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не предпочитать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
+        value_name: 'AVCHardwareEncodePreferred'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Предпочитать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
+        value_name: 'AVCHardwareEncodePreferred'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
+  value_name: 'AVCHardwareEncodePreferred'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: low
+reversibility: reversible
+requires_network: false

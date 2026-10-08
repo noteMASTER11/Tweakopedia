@@ -1,0 +1,59 @@
+id: network.rdp-client-hardware-mode
+title: 'Аппаратное ускорение клиента RDP'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Разрешает или запрещает аппаратный режим отрисовки в клиенте удалённого рабочего стола.'
+explanation:
+  purpose: 'Управляет использованием аппаратного графического режима клиентом RDP.'
+  mechanism: 'Windows читает DWORD EnableHardwareMode и применяет выбранный режим.'
+  effect: 'При включении клиент может использовать совместимое графическое оборудование для отрисовки.'
+  tradeoffs: 'На проблемном драйвере аппаратный режим способен вызвать визуальные артефакты.'
+  recommendation: 'Оставляйте включённым; отключайте только для диагностики проблем отображения.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Client\EnableHardwareMode: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Client'
+        value_name: 'EnableHardwareMode'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Client'
+        value_name: 'EnableHardwareMode'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Client'
+  value_name: 'EnableHardwareMode'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: low
+reversibility: reversible
+requires_network: false

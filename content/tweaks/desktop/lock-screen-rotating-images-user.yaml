@@ -1,0 +1,59 @@
+id: desktop.lock-screen-rotating-images-user
+title: 'Смена изображений экрана блокировки'
+category: desktop
+subcategory: spotlight
+kind: setting
+summary: 'Разрешает или запрещает автоматическую смену изображений экрана блокировки.'
+explanation:
+  purpose: 'Управляет динамическими изображениями экрана блокировки для текущего пользователя.'
+  mechanism: 'Windows читает DWORD RotatingLockScreenEnabled в профиле текущего пользователя и применяет выбранный режим.'
+  effect: 'При выключении Windows не переключает фон экрана блокировки через этот канал содержимого.'
+  tradeoffs: 'Автоматически обновляемые изображения перестанут появляться.'
+  recommendation: 'Отключайте, если используется собственный постоянный фон.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager\RotatingLockScreenEnabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+        value_name: 'RotatingLockScreenEnabled'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+        value_name: 'RotatingLockScreenEnabled'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+  value_name: 'RotatingLockScreenEnabled'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,59 @@
+id: network.rdp-wddm-driver
+title: 'Графический драйвер WDDM для RDP'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Включает или выключает использование WDDM в удалённых сеансах.'
+explanation:
+  purpose: 'Управляет графическим драйвером WDDM для подключений Remote Desktop Services.'
+  mechanism: 'Windows читает DWORD fEnableWddmDriver и применяет выбранный режим.'
+  effect: 'При включении удалённые сеансы используют современную модель графического драйвера WDDM.'
+  tradeoffs: 'Отключение переводит сеансы на устаревший путь и требует перезагрузки.'
+  recommendation: 'Оставляйте включённым на современных версиях Windows.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\fEnableWddmDriver: 0 — выключен, 1 — включён.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 18362
+states:
+  disabled:
+    title: 'Выключен'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
+        value_name: 'fEnableWddmDriver'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включён'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
+        value_name: 'fEnableWddmDriver'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [18362, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
+  value_name: 'fEnableWddmDriver'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: low
+reversibility: reversible
+requires_network: false

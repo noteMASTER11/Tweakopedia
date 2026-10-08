@@ -1,0 +1,59 @@
+id: desktop.network-thumbnail-cache
+title: 'Файлы Thumbs.db в сетевых папках'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Разрешает или запрещает создание Thumbs.db в сетевых папках.'
+explanation:
+  purpose: 'Управляет сохранением кэша миниатюр непосредственно в общих сетевых каталогах.'
+  mechanism: 'Windows читает DWORD DisableThumbsDBOnNetworkFolders и применяет выбранный режим.'
+  effect: 'При отключении Проводник не создаёт Thumbs.db в сетевых папках.'
+  tradeoffs: 'Без сетевого кэша миниатюры могут строиться повторно, зато в общих папках не появляются служебные файлы.'
+  recommendation: 'Отключайте для общих папок, где Thumbs.db мешают работе или синхронизации.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Policies\Microsoft\Windows\Explorer\DisableThumbsDBOnNetworkFolders: 0 — создавать, 1 — не создавать.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  enabled:
+    title: 'Создавать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Explorer'
+        value_name: 'DisableThumbsDBOnNetworkFolders'
+        view: registry64
+        value: 0
+  disabled:
+    title: 'Не создавать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Explorer'
+        value_name: 'DisableThumbsDBOnNetworkFolders'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Policies\Microsoft\Windows\Explorer'
+  value_name: 'DisableThumbsDBOnNetworkFolders'
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

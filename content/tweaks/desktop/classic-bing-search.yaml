@@ -1,0 +1,57 @@
+id: desktop.classic-bing-search
+title: 'Bing в классическом поиске Windows 10'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Управляет веб-результатами Bing в классической реализации поиска Windows 10.'
+explanation:
+  purpose: 'Разрешает или запрещает добавление результатов Bing к локальному поиску.'
+  mechanism: 'Windows читает DWORD BingSearchEnabled и применяет выбранный режим.'
+  effect: 'При выключении классический поиск ориентируется на локальные приложения, настройки и файлы.'
+  tradeoffs: 'Веб-ответы и предложения Bing перестанут отображаться в затрагиваемых выпусках Windows 10.'
+  recommendation: 'Отключайте для преимущественно локального поиска.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search\BingSearchEnabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 10240
+  max_build: 19045
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Search'
+        value_name: 'BingSearchEnabled'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Search'
+        value_name: 'BingSearchEnabled'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Search'
+  value_name: 'BingSearchEnabled'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

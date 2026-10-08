@@ -1,0 +1,57 @@
+id: desktop.classic-cortana-search
+title: 'Cortana в классическом поиске Windows 10'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Управляет согласием на использование Cortana в классической реализации поиска Windows 10.'
+explanation:
+  purpose: 'Разрешает или запрещает интеграцию Cortana с пользовательским поиском.'
+  mechanism: 'Windows читает DWORD CortanaConsent и применяет выбранный режим.'
+  effect: 'При выключении классический поиск не активирует функции Cortana через этот параметр.'
+  tradeoffs: 'Голосовые и персонализированные сценарии Cortana в затрагиваемых выпусках станут недоступны.'
+  recommendation: 'Отключайте, если Cortana не используется.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search\CortanaConsent: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 10240
+  max_build: 19045
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Search'
+        value_name: 'CortanaConsent'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Search'
+        value_name: 'CortanaConsent'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Search'
+  value_name: 'CortanaConsent'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

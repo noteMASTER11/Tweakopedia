@@ -1,0 +1,59 @@
+id: desktop.explorer-hub-mode
+title: 'Боковая панель быстрого доступа Проводника'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Показывает или скрывает основной узел быстрого доступа в Проводнике.'
+explanation:
+  purpose: 'Управляет присутствием быстрого доступа в навигации Проводника.'
+  mechanism: 'Windows читает DWORD HubMode и применяет выбранный режим.'
+  effect: 'При скрытии основной узел быстрого доступа убирается, но закреплённые папки и недавние элементы не удаляются.'
+  tradeoffs: 'Доступ к закреплённым расположениям через этот узел станет менее прямым.'
+  recommendation: 'Скрывайте, если Проводник используется преимущественно через «Этот компьютер».'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HubMode: 0 — показан, 1 — скрыт.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  enabled:
+    title: 'Показан'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: 'HubMode'
+        view: registry64
+        value: 0
+  disabled:
+    title: 'Скрыт'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: 'HubMode'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer'
+  value_name: 'HubMode'
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

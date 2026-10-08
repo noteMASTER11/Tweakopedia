@@ -1,0 +1,59 @@
+id: desktop.content-delivery-master-user
+title: 'Доставка рекомендуемого содержимого'
+category: desktop
+subcategory: spotlight
+kind: setting
+summary: 'Управляет общим пользовательским каналом доставки рекомендаций Windows.'
+explanation:
+  purpose: 'Разрешает или запрещает Content Delivery Manager получать и показывать поддерживаемое содержимое.'
+  mechanism: 'Windows читает DWORD ContentDeliveryAllowed в профиле текущего пользователя и применяет выбранный режим.'
+  effect: 'При выключении зависящие от этого канала рекомендации и автоматически подбираемые материалы не доставляются.'
+  tradeoffs: 'Некоторые персонализированные подсказки и оформительские материалы могут исчезнуть вместе с рекламными предложениями.'
+  recommendation: 'Отключайте, если рекомендации Windows не нужны.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager\ContentDeliveryAllowed: 0 — запрещено, 1 — разрешено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Запрещено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+        value_name: 'ContentDeliveryAllowed'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Разрешено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+        value_name: 'ContentDeliveryAllowed'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+  value_name: 'ContentDeliveryAllowed'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

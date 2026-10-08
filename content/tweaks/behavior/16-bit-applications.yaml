@@ -1,0 +1,59 @@
+id: behavior.16-bit-applications
+title: 'Запуск 16-битных приложений'
+category: behavior
+subcategory: windows
+kind: setting
+summary: 'Разрешает или запрещает запуск 16-битных приложений через NTVDM на поддерживаемых системах.'
+explanation:
+  purpose: 'Управляет доступностью подсистемы старых 16-битных приложений.'
+  mechanism: 'Windows применяет групповую политику через DWORD VDMDisallowed.'
+  effect: 'При запрете Windows блокирует запуск 16-битных программ даже при наличии совместимого компонента.'
+  tradeoffs: 'Очень старые программы перестанут запускаться.'
+  recommendation: 'Запрещайте, если 16-битные приложения не используются.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\AppCompat\VDMDisallowed: 0 — разрешён, 1 — запрещён.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  enabled:
+    title: 'Разрешён'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\AppCompat'
+        value_name: 'VDMDisallowed'
+        view: registry64
+        value: 0
+  disabled:
+    title: 'Запрещён'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\AppCompat'
+        value_name: 'VDMDisallowed'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\AppCompat'
+  value_name: 'VDMDisallowed'
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

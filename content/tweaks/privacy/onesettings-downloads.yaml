@@ -1,0 +1,59 @@
+id: privacy.onesettings-downloads
+title: 'Загрузка конфигурации OneSettings'
+category: privacy
+subcategory: diagnostics
+kind: setting
+summary: 'Разрешает или запрещает Windows загружать параметры конфигурации OneSettings.'
+explanation:
+  purpose: 'Управляет получением облачной конфигурации для поддерживаемых компонентов Windows.'
+  mechanism: 'Windows применяет групповую политику через DWORD DisableOneSettingsDownloads.'
+  effect: 'При запрете система не загружает новые настройки через механизм OneSettings.'
+  tradeoffs: 'Некоторые управляемые облаком изменения поведения и эксперименты не будут получать свежую конфигурацию.'
+  recommendation: 'Запрещайте, если требуется максимально стабильная локальная конфигурация.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\DataCollection\DisableOneSettingsDownloads: 0 — разрешена, 1 — запрещена.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 19041
+states:
+  enabled:
+    title: 'Разрешена'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\DataCollection'
+        value_name: 'DisableOneSettingsDownloads'
+        view: registry64
+        value: 0
+  disabled:
+    title: 'Запрещена'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\DataCollection'
+        value_name: 'DisableOneSettingsDownloads'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [19041, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\DataCollection'
+  value_name: 'DisableOneSettingsDownloads'
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

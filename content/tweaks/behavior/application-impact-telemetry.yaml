@@ -1,0 +1,59 @@
+id: behavior.application-impact-telemetry
+title: 'Телеметрия влияния приложений'
+category: behavior
+subcategory: windows
+kind: setting
+summary: 'Разрешает или запрещает сбор сведений о влиянии приложений для оценки совместимости.'
+explanation:
+  purpose: 'Управляет Application Impact Telemetry, используемой средствами совместимости Windows.'
+  mechanism: 'Windows применяет групповую политику через DWORD AITEnable.'
+  effect: 'При выключении Windows не собирает соответствующие данные о запуске и работе приложений.'
+  tradeoffs: 'Средствам оценки совместимости будет доступно меньше данных для диагностики проблем.'
+  recommendation: 'Отключайте, если эта диагностика не используется.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\AppCompat\AITEnable: 0 — выключена, 1 — включена.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключена'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\AppCompat'
+        value_name: 'AITEnable'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включена'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\AppCompat'
+        value_name: 'AITEnable'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\AppCompat'
+  value_name: 'AITEnable'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,59 @@
+id: network.rdp-hardware-gpu
+title: 'Аппаратный GPU для сеансов RDP'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Предпочитает аппаратный графический процессор программному рендереру в сеансах удалённого рабочего стола.'
+explanation:
+  purpose: 'Управляет выбором графического адаптера для компонентов Remote Desktop Services.'
+  mechanism: 'Windows читает DWORD bEnumerateHWBeforeSW и применяет выбранный режим.'
+  effect: 'При включении RDP сначала пытается использовать аппаратный GPU.'
+  tradeoffs: 'Требуется совместимый драйвер; на сервере с несколькими адаптерами результат зависит от конфигурации.'
+  recommendation: 'Включайте для графически насыщенных удалённых сеансов после проверки драйвера.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\bEnumerateHWBeforeSW: 0 — не предпочитать, 1 — предпочитать.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не предпочитать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
+        value_name: 'bEnumerateHWBeforeSW'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Предпочитать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
+        value_name: 'bEnumerateHWBeforeSW'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
+  value_name: 'bEnumerateHWBeforeSW'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: low
+reversibility: reversible
+requires_network: false

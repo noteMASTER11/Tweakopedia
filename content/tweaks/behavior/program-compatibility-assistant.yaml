@@ -1,0 +1,59 @@
+id: behavior.program-compatibility-assistant
+title: 'Помощник по совместимости программ'
+category: behavior
+subcategory: windows
+kind: setting
+summary: 'Включает или выключает Помощник по совместимости программ.'
+explanation:
+  purpose: 'Управляет автоматическим обнаружением известных проблем совместимости настольных приложений.'
+  mechanism: 'Windows применяет групповую политику через DWORD DisablePCA.'
+  effect: 'При выключении Windows не предлагает автоматически повторить запуск программы с исправленными параметрами.'
+  tradeoffs: 'Проблемы старых программ придётся диагностировать вручную.'
+  recommendation: 'Оставляйте включённым, если используются старые приложения.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\AppCompat\DisablePCA: 0 — включён, 1 — выключен.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  enabled:
+    title: 'Включён'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\AppCompat'
+        value_name: 'DisablePCA'
+        view: registry64
+        value: 0
+  disabled:
+    title: 'Выключен'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\AppCompat'
+        value_name: 'DisablePCA'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\AppCompat'
+  value_name: 'DisablePCA'
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

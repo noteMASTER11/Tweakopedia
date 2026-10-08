@@ -1,0 +1,59 @@
+id: privacy.onesettings-auditing
+title: 'Журналирование OneSettings'
+category: privacy
+subcategory: diagnostics
+kind: setting
+summary: 'Включает или выключает журналирование обращений механизма OneSettings.'
+explanation:
+  purpose: 'Управляет созданием дополнительных событий аудита для облачной конфигурации OneSettings.'
+  mechanism: 'Windows применяет групповую политику через DWORD EnableOneSettingsAuditing.'
+  effect: 'При включении Windows записывает поддерживаемые сведения о работе OneSettings.'
+  tradeoffs: 'Журнал получает дополнительные события и может занимать больше места.'
+  recommendation: 'Включайте для диагностики работы облачной конфигурации.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\DataCollection\EnableOneSettingsAuditing: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 19041
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\DataCollection'
+        value_name: 'EnableOneSettingsAuditing'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\DataCollection'
+        value_name: 'EnableOneSettingsAuditing'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [19041, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\DataCollection'
+  value_name: 'EnableOneSettingsAuditing'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

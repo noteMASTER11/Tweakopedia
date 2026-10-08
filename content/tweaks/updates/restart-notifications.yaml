@@ -1,0 +1,59 @@
+id: updates.restart-notifications
+title: 'Уведомления о перезагрузке после обновлений'
+category: updates
+subcategory: restart
+kind: setting
+summary: 'Показывает или скрывает уведомления о необходимости перезагрузки после обновления.'
+explanation:
+  purpose: 'Управляет уведомлениями Windows Update о предстоящей или требуемой перезагрузке.'
+  mechanism: 'Windows применяет параметр через DWORD SetAutoRestartNotificationDisable.'
+  effect: 'При выключении уведомления о перезагрузке не показываются через этот механизм.'
+  tradeoffs: 'Пользователь может не заметить, что установка обновления ожидает перезапуска.'
+  recommendation: 'Оставляйте включёнными.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\SetAutoRestartNotificationDisable: 0 — показывать, 1 — не показывать.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+        value_name: 'SetAutoRestartNotificationDisable'
+        view: registry64
+        value: 0
+  disabled:
+    title: 'Не показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+        value_name: 'SetAutoRestartNotificationDisable'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\WindowsUpdate'
+  value_name: 'SetAutoRestartNotificationDisable'
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false
