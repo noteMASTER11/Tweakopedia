@@ -81,6 +81,21 @@ ApplicationWindow {
                     supported: true
                 }
 
+                TweakRow {
+                    Layout.fillWidth: true
+                    title: "Режим автоматического обновления Windows"
+                    summary: "Определяет способ загрузки и установки найденных обновлений."
+                    currentState: "notify_download"
+                    currentStateTitle: "Уведомлять перед загрузкой"
+                    availableStates: [
+                        {id: "notify_download", title: "Уведомлять перед загрузкой"},
+                        {id: "auto_download", title: "Загружать и уведомлять"},
+                        {id: "scheduled", title: "Загружать и ставить по расписанию"}
+                    ]
+                    binary: false
+                    supported: true
+                }
+
                 Item { Layout.fillHeight: true }
                 QueueCommandBar { Layout.fillWidth: true; queueCount: 1 }
             }

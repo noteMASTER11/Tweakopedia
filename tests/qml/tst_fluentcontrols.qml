@@ -106,19 +106,28 @@ TestCase {
         compare(spy.count, 1)
     }
 
-    function test_stateSelectorEmitsNamedState() {
+    function test_stateSelectorUsesCompactDropdownAndEmitsNamedState() {
         const selector = createTemporaryObject(selectorComponent, this)
         const spy = signalSpy.createObject(selector, {
             target: selector,
             signalName: "stateSelected"
         })
-        const automatic = findChild(selector, "stateButton_automatic")
-        verify(automatic)
-        verify(automatic.width > 0)
-        compare(automatic.height, 32)
-        mouseClick(automatic)
+
+        const combo = selector
+        compare(combo.objectName, "stateComboBox")
+        compare(combo.currentText, "Выключено")
+        verify(combo.width <= 280)
+
+        mouseClick(combo)
+        tryVerify(function() { return combo.popup.visible })
+        tryCompare(combo, "highlightedIndex", 0)
+        keyClick(Qt.Key_Down)
+        keyClick(Qt.Key_Down)
+        keyClick(Qt.Key_Return)
+
         compare(spy.count, 1)
         compare(spy.signalArguments[0][0], "automatic")
+        compare(combo.currentText, "Автоматически")
     }
 
     Component { id: signalSpy; SignalSpy {} }
