@@ -377,6 +377,10 @@ add_executable(EncyclopediaTreeModelTest app/EncyclopediaTreeModelTest.cpp)
 target_link_libraries(EncyclopediaTreeModelTest PRIVATE Qt6::Test TweakopediaApp)
 add_test(NAME EncyclopediaTreeModel COMMAND EncyclopediaTreeModelTest)
 
+add_executable(EncyclopediaArticleModelTest app/EncyclopediaArticleModelTest.cpp)
+target_link_libraries(EncyclopediaArticleModelTest PRIVATE Qt6::Test TweakopediaApp)
+add_test(NAME EncyclopediaArticleModel COMMAND EncyclopediaArticleModelTest)
+
 add_executable(QmlComponentTests qml/QmlTestMain.cpp)
 target_link_libraries(QmlComponentTests PRIVATE Qt6::QuickTest Qt6::QuickControls2)
 add_test(NAME QmlPlanPreviewHistory COMMAND QmlComponentTests -input ${PROJECT_SOURCE_DIR}/tests/qml)

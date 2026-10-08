@@ -3,6 +3,8 @@ add_library(TweakopediaApp STATIC
     AppController.h
     CategoryListModel.cpp
     CategoryListModel.h
+    EncyclopediaArticleModel.cpp
+    EncyclopediaArticleModel.h
     EncyclopediaTreeModel.cpp
     EncyclopediaTreeModel.h
     HistoryListModel.cpp
