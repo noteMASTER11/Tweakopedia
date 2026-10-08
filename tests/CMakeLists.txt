@@ -39,3 +39,28 @@ target_link_libraries(TweakCatalogLoaderTest
 
 add_test(NAME TweakCatalogLoader COMMAND TweakCatalogLoaderTest)
 add_test(NAME ContentCatalog COMMAND TweakCatalogLoaderTest loadsRealCatalog)
+
+add_executable(CompatibilityEvaluatorTest
+    detection/CompatibilityEvaluatorTest.cpp
+)
+
+target_link_libraries(CompatibilityEvaluatorTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaDetection
+)
+
+add_test(NAME CompatibilityEvaluator COMMAND CompatibilityEvaluatorTest)
+
+add_executable(WindowsSystemProfileProviderTest
+    platform/WindowsSystemProfileProviderTest.cpp
+)
+
+target_link_libraries(WindowsSystemProfileProviderTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaPlatform
+        advapi32
+)
+
+add_test(NAME WindowsSystemProfile COMMAND WindowsSystemProfileProviderTest)

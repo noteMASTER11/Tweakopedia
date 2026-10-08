@@ -17,6 +17,8 @@ set(CMAKE_AUTOUIC ON)
 
 add_subdirectory(src/domain)
 add_subdirectory(src/content)
+add_subdirectory(src/platform)
+add_subdirectory(src/detection)
 
 if(BUILD_TESTING)
     add_subdirectory(tests)
