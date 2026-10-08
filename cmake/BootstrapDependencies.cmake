@@ -2,7 +2,7 @@ include(FetchContent)
 
 FetchContent_Declare(
     tweakopedia_miniz
-    URL https://github.com/richgel999/miniz/archive/refs/tags/3.1.2.zip
+    URL https://github.com/richgel999/miniz/releases/download/3.1.2/miniz-3.1.2.zip
     URL_HASH SHA256=F0446D863F9C19926AD9483C523FDC42E42B8D4A6A431D27E09D49C79A140D9A
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
@@ -35,9 +35,6 @@ function(tweakopedia_prepare_bootstrap_dependencies)
 
     add_library(TweakopediaMiniz STATIC
         ${tweakopedia_miniz_SOURCE_DIR}/miniz.c
-        ${tweakopedia_miniz_SOURCE_DIR}/miniz_tdef.c
-        ${tweakopedia_miniz_SOURCE_DIR}/miniz_tinfl.c
-        ${tweakopedia_miniz_SOURCE_DIR}/miniz_zip.c
     )
     target_include_directories(TweakopediaMiniz PUBLIC ${tweakopedia_miniz_SOURCE_DIR})
 

@@ -13,6 +13,10 @@ add_executable(PackageFooterTest package/PackageFooterTest.cpp)
 target_link_libraries(PackageFooterTest PRIVATE Qt6::Test TweakopediaPackage)
 add_test(NAME PackageFooter COMMAND PackageFooterTest)
 
+add_executable(PayloadManifestTest package/PayloadManifestTest.cpp)
+target_link_libraries(PayloadManifestTest PRIVATE Qt6::Test TweakopediaPackage)
+add_test(NAME PayloadManifest COMMAND PayloadManifestTest)
+
 add_executable(DomainTweakDefinitionTest
     domain/TweakDefinitionTest.cpp
 )
