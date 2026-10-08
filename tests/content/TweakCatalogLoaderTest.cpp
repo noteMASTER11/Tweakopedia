@@ -31,6 +31,19 @@ bool hasErrorCode(const CatalogLoadResult& result, QStringView code)
     });
 }
 
+QString formatErrors(const CatalogLoadResult& result)
+{
+    QStringList lines;
+    for (const auto& error : result.errors) {
+        lines.append(u"%1:%2:%3 [%4] %5"_s
+                         .arg(error.filePath)
+                         .arg(error.line)
+                         .arg(error.column)
+                         .arg(error.code, error.message));
+    }
+    return lines.join(u'\n');
+}
+
 CatalogLoadResult loadSingleFixture(const QString& relative)
 {
     QTemporaryDir directory;
@@ -52,7 +65,7 @@ private slots:
     {
         const auto result = loadSingleFixture(u"valid/win32-long-paths.yaml"_s);
 
-        QVERIFY(result.errors.isEmpty());
+        QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
         QVERIFY(result.catalog.has_value());
         QCOMPARE(result.catalog->size(), 1);
 
@@ -133,14 +146,16 @@ private slots:
         const auto tweaksDirectory = QDir(QString::fromUtf8(TWEAKOPEDIA_CONTENT_ROOT)).filePath(u"tweaks"_s);
         const auto result = TweakCatalogLoader{}.loadDirectory(tweaksDirectory);
 
-        QVERIFY(result.errors.isEmpty());
+        QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 20);
+        QCOMPARE(result.catalog->size(), 30);
 
         const QStringList expectedIds{
             u"apps.windows-ink-workspace"_s,
             u"behavior.disable-aero-shake"_s,
             u"behavior.download-zone-information"_s,
+            u"behavior.clipboard-history"_s,
+            u"behavior.cross-device-clipboard"_s,
             u"behavior.new-app-notification"_s,
             u"behavior.store-app-lookup"_s,
             u"boot.hide-last-user-name"_s,
@@ -151,11 +166,19 @@ private slots:
             u"boot.password-reveal-button"_s,
             u"boot.require-ctrl-alt-delete"_s,
             u"boot.verbose-logon-messages"_s,
+            u"desktop.account-notifications"_s,
             u"desktop.notification-center"_s,
+            u"desktop.unsupported-hardware-notifications"_s,
             u"filesystem.removable-disk-write-access"_s,
             u"filesystem.win32-long-paths"_s,
             u"network.administrative-shares"_s,
             u"network.elevated-mapped-drives"_s,
+            u"privacy.activity-feed"_s,
+            u"privacy.advertising-id-block"_s,
+            u"privacy.feedback-prompts"_s,
+            u"privacy.first-logon-privacy-screen"_s,
+            u"privacy.online-speech-recognition"_s,
+            u"privacy.tailored-experiences"_s,
             u"updates.exclude-driver-updates"_s,
             u"updates.prevent-auto-reboot-signed-in"_s,
         };

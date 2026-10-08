@@ -1,0 +1,59 @@
+id: privacy.first-logon-privacy-screen
+title: Экран параметров конфиденциальности при входе
+category: privacy
+subcategory: prompts
+kind: setting
+summary: Управляет экраном выбора параметров при первом входе нового пользователя и после некоторых обновлений.
+explanation:
+  purpose: Позволяет показывать пользователю первоначальный выбор параметров либо пропускать этот этап в заранее настроенной системе.
+  mechanism: Политика DisablePrivacyExperience подавляет серию экранов, которая обычно появляется при первом входе новой учётной записи или после отдельных обновлений Windows.
+  effect: При выключении экрана пользователь сразу переходит дальше без отдельного мастера выбора параметров.
+  tradeoffs: Пользователь не увидит собранный в одном месте первоначальный выбор и будет менять соответствующие параметры позднее по отдельности.
+  recommendation: Оставляйте экран включённым на личном компьютере; отключайте в заранее настроенных средах, где значения уже заданы.
+  technical_details: Изменяется 32-битный DWORD HKLM\Software\Policies\Microsoft\Windows\OOBE\DisablePrivacyExperience. Значение 1 подавляет экран, 0 разрешает стандартный показ.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 17763
+states:
+  disabled:
+    title: Выключен
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\OOBE'
+        value_name: DisablePrivacyExperience
+        view: registry64
+        value: 1
+  enabled:
+    title: Включён
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\OOBE'
+        value_name: DisablePrivacyExperience
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [17763, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\OOBE'
+  value_name: DisablePrivacyExperience
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

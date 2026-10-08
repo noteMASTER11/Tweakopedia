@@ -1,0 +1,59 @@
+id: privacy.advertising-id-block
+title: Блокировка рекламного идентификатора
+category: privacy
+subcategory: personalization
+kind: setting
+summary: Запрещает приложениям использовать системный рекламный идентификатор между приложениями.
+explanation:
+  purpose: Позволяет централизованно отключить рекламный идентификатор Windows для приложений.
+  mechanism: Политика DisabledByGroupPolicy блокирует использование идентификатора приложениями для персонализации между приложениями.
+  effect: При включённой блокировке приложения не могут использовать системный рекламный идентификатор; это не убирает всю рекламу и не управляет идентификаторами сайтов.
+  tradeoffs: Рекомендации и реклама внутри поддерживающих эту функцию приложений могут стать менее персонализированными.
+  recommendation: Включайте блокировку, если персонализация между приложениями не нужна.
+  technical_details: Изменяется 32-битный DWORD HKLM\Software\Policies\Microsoft\Windows\AdvertisingInfo\DisabledByGroupPolicy. Значение 1 блокирует идентификатор, 0 возвращает управление пользователю.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14393
+states:
+  disabled:
+    title: Выключена
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\AdvertisingInfo'
+        value_name: DisabledByGroupPolicy
+        view: registry64
+        value: 0
+  enabled:
+    title: Включена
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\AdvertisingInfo'
+        value_name: DisabledByGroupPolicy
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [14393, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\AdvertisingInfo'
+  value_name: DisabledByGroupPolicy
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

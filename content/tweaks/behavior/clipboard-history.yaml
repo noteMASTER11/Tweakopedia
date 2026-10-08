@@ -1,0 +1,59 @@
+id: behavior.clipboard-history
+title: Журнал буфера обмена
+category: behavior
+subcategory: clipboard
+kind: setting
+summary: Управляет хранением нескольких ранее скопированных элементов и окном Win+V.
+explanation:
+  purpose: Позволяет пользоваться журналом буфера обмена либо ограничить буфер только текущим элементом.
+  mechanism: Политика AllowClipboardHistory разрешает или запрещает Windows сохранять историю скопированного содержимого в памяти.
+  effect: При выключении Win+V не показывает ранее скопированные элементы, а параметр журнала в приложении «Параметры» блокируется политикой.
+  tradeoffs: Без журнала нельзя повторно вставлять старые элементы и закреплять часто используемые фрагменты.
+  recommendation: Отключайте на общих компьютерах или если хранение предыдущих фрагментов не требуется; в остальных случаях оставляйте включённым.
+  technical_details: Изменяется 32-битный DWORD HKLM\Software\Policies\Microsoft\Windows\System\AllowClipboardHistory. Значение 1 разрешает журнал, 0 запрещает. Политика применяется сразу.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 17763
+states:
+  disabled:
+    title: Выключен
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\System'
+        value_name: AllowClipboardHistory
+        view: registry64
+        value: 0
+  enabled:
+    title: Включён
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\System'
+        value_name: AllowClipboardHistory
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [17763, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\System'
+  value_name: AllowClipboardHistory
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

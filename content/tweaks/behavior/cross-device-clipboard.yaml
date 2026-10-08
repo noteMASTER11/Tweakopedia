@@ -1,0 +1,59 @@
+id: behavior.cross-device-clipboard
+title: Синхронизация буфера обмена между устройствами
+category: behavior
+subcategory: clipboard
+kind: setting
+summary: Управляет передачей содержимого буфера между устройствами одной учётной записи.
+explanation:
+  purpose: Позволяет продолжать копирование и вставку на другом компьютере либо полностью запретить такую синхронизацию.
+  mechanism: Политика AllowCrossDeviceClipboard разрешает Windows передавать элементы буфера между устройствами, вошедшими в одну учётную запись Microsoft или Microsoft Entra.
+  effect: При выключении содержимое буфера не отправляется на другие устройства и не принимается от них.
+  tradeoffs: Копирование между компьютерами через облачный журнал работать не будет; локальный буфер и его журнал остаются отдельными функциями.
+  recommendation: Отключайте, если межустройственная вставка не используется; включайте только при осознанной работе с одной учётной записью на нескольких компьютерах.
+  technical_details: Изменяется 32-битный DWORD HKLM\Software\Policies\Microsoft\Windows\System\AllowCrossDeviceClipboard. Значение 1 разрешает синхронизацию, 0 запрещает. Политика применяется сразу.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 17763
+states:
+  disabled:
+    title: Выключена
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\System'
+        value_name: AllowCrossDeviceClipboard
+        view: registry64
+        value: 0
+  enabled:
+    title: Включена
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\System'
+        value_name: AllowCrossDeviceClipboard
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [17763, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\System'
+  value_name: AllowCrossDeviceClipboard
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

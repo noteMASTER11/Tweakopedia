@@ -1,0 +1,56 @@
+id: desktop.account-notifications
+title: Уведомления учётной записи в меню «Пуск»
+category: desktop
+subcategory: notifications
+kind: setting
+summary: Управляет предложениями по учётной записи, облачному хранилищу и подпискам в меню «Пуск».
+explanation:
+  purpose: Позволяет убрать уведомления учётной записи из плитки пользователя в меню «Пуск» Windows 11.
+  mechanism: Политика DisableAccountNotifications запрещает Windows показывать локальным пользователям и пользователям учётной записи Microsoft связанные с аккаунтом предложения.
+  effect: При выключении уведомлений меню «Пуск» не предлагает повторно войти, настроить резервное копирование, управлять местом в облаке или подписками Microsoft 365 и Xbox.
+  tradeoffs: Полезные напоминания о проблемах входа или заполненном облачном хранилище также исчезнут из этого места.
+  recommendation: Отключайте, если эти предложения не используются и состояние учётной записи проверяется отдельно.
+  technical_details: Изменяется 32-битный DWORD HKCU\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\AccountNotifications\DisableAccountNotifications. Значение 1 скрывает уведомления, 0 разрешает. Перезапуск не требуется.
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 26100
+states:
+  disabled:
+    title: Выключены
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\AccountNotifications'
+        value_name: DisableAccountNotifications
+        view: registry64
+        value: 1
+  enabled:
+    title: Включены
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\AccountNotifications'
+        value_name: DisableAccountNotifications
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows11
+    builds: [26100, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\AccountNotifications'
+  value_name: DisableAccountNotifications
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

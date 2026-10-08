@@ -1,0 +1,59 @@
+id: privacy.activity-feed
+title: Журнал действий Windows
+category: privacy
+subcategory: activity
+kind: setting
+summary: Управляет публикацией действий приложений и их облачной синхронизацией между устройствами.
+explanation:
+  purpose: Позволяет запретить компоненту Activity Feed публиковать действия приложений и переносить их между устройствами.
+  mechanism: Политика EnableActivityFeed определяет, могут ли Windows и приложения публиковать поддерживаемые типы действий и синхронизировать их через граф устройств пользователя.
+  effect: При выключении новые действия не публикуются, а облачная синхронизация Activity Feed прекращается.
+  tradeoffs: Функции продолжения работы между устройствами, которые ещё используют Activity Feed, перестанут получать эти данные; прежний интерфейс «Временная шкала» в новых версиях Windows отсутствует.
+  recommendation: Отключайте, если межустройственное продолжение действий не используется.
+  technical_details: Изменяется 32-битный DWORD HKLM\Software\Policies\Microsoft\Windows\System\EnableActivityFeed. Значение 1 включает публикацию, 0 отключает. Политика применяется сразу.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 16299
+states:
+  disabled:
+    title: Выключен
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\System'
+        value_name: EnableActivityFeed
+        view: registry64
+        value: 0
+  enabled:
+    title: Включён
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\System'
+        value_name: EnableActivityFeed
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [16299, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\System'
+  value_name: EnableActivityFeed
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

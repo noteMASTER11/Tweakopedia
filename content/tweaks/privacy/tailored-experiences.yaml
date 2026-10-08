@@ -1,0 +1,59 @@
+id: privacy.tailored-experiences
+title: Персонализированные рекомендации по диагностическим данным
+category: privacy
+subcategory: personalization
+kind: setting
+summary: Управляет использованием диагностических данных для советов, предложений и другого персонализированного содержимого Windows.
+explanation:
+  purpose: Позволяет отказаться от подбора рекомендаций Windows на основе сведений об использовании функций и приложений.
+  mechanism: Пользовательская политика DisableTailoredExperiencesWithDiagnosticData запрещает использовать диагностические данные для настройки советов, предложений и связанного содержимого.
+  effect: При выключении персонализации рекомендации могут остаться, но не должны подбираться по диагностическим данным этого устройства.
+  tradeoffs: Параметр не отключает сами подсказки и предложения и не управляет сбором диагностических данных; он меняет только их использование для персонализации.
+  recommendation: Отключайте, если персонализированные предложения не нужны; для полного управления подсказками используйте отдельные параметры соответствующих функций.
+  technical_details: Изменяется 32-битный DWORD HKCU\Software\Policies\Microsoft\Windows\CloudContent\DisableTailoredExperiencesWithDiagnosticData. Значение 1 запрещает персонализацию, 0 разрешает стандартное поведение.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 15063
+states:
+  disabled:
+    title: Выключены
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\CloudContent'
+        value_name: DisableTailoredExperiencesWithDiagnosticData
+        view: registry64
+        value: 1
+  enabled:
+    title: Включены
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\CloudContent'
+        value_name: DisableTailoredExperiencesWithDiagnosticData
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [15063, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\CloudContent'
+  value_name: DisableTailoredExperiencesWithDiagnosticData
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

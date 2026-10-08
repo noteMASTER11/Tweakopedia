@@ -1,0 +1,59 @@
+id: privacy.online-speech-recognition
+title: Облачное распознавание речи
+category: privacy
+subcategory: personalization
+kind: setting
+summary: Разрешает или запрещает пользователю включать сетевые службы распознавания речи.
+explanation:
+  purpose: Управляет доступностью облачного распознавания речи для диктовки и приложений, использующих речевые службы Microsoft.
+  mechanism: Политика AllowInputPersonalization либо оставляет выбор пользователю, либо принудительно запрещает сетевые речевые службы на устройстве.
+  effect: При запрете пользователь не сможет включить облачное распознавание речи; локальные возможности, не использующие эту службу, остаются отдельными.
+  tradeoffs: Диктовка и приложения, зависящие от облачного распознавания, могут потерять часть функций.
+  recommendation: Запрещайте, если сетевое распознавание речи не используется; оставляйте выбор пользователю при работе с диктовкой.
+  technical_details: Изменяется 32-битный DWORD HKLM\Software\Policies\Microsoft\InputPersonalization\AllowInputPersonalization. Значение 0 запрещает службу, 1 возвращает выбор пользователю.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Запрещено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\InputPersonalization'
+        value_name: AllowInputPersonalization
+        view: registry64
+        value: 0
+  enabled:
+    title: Выбор пользователя
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\InputPersonalization'
+        value_name: AllowInputPersonalization
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\InputPersonalization'
+  value_name: AllowInputPersonalization
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

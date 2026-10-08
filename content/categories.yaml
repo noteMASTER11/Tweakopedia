@@ -6,6 +6,8 @@ categories:
         title: Окна и запуск программ
       - id: attachments
         title: Загруженные файлы и вложения
+      - id: clipboard
+        title: Буфер обмена
   - id: boot
     title: Загрузка и вход
     subcategories:
@@ -18,6 +20,17 @@ categories:
     subcategories:
       - id: taskbar
         title: Панель задач и уведомления
+      - id: notifications
+        title: Системные уведомления
+  - id: privacy
+    title: Конфиденциальность и облачные функции
+    subcategories:
+      - id: personalization
+        title: Персонализация и распознавание
+      - id: activity
+        title: Журнал действий
+      - id: prompts
+        title: Системные запросы и экраны
   - id: filesystem
     title: Накопители, NTFS и файловая система
     subcategories:

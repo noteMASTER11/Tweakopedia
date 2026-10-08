@@ -1,0 +1,56 @@
+id: desktop.unsupported-hardware-notifications
+title: Сообщения о несоответствии требованиям Windows
+category: desktop
+subcategory: notifications
+kind: setting
+summary: Управляет предупреждениями на рабочем столе и в «Параметрах», если устройство не соответствует требованиям Windows.
+explanation:
+  purpose: Позволяет скрыть повторяющиеся сообщения на системе, уже установленной на неподдерживаемом оборудовании.
+  mechanism: Политика HideUnsupportedHardwareNotifications запрещает Windows выводить сообщения о несоответствии минимальным системным требованиям.
+  effect: При выключении сообщений предупреждения не показываются на рабочем столе и в приложении «Параметры».
+  tradeoffs: 'Параметр только скрывает уведомления: он не меняет характеристики устройства, совместимость системы или доступность обновлений.'
+  recommendation: Отключайте сообщения только если причина несоответствия уже известна и постоянное напоминание не нужно.
+  technical_details: Изменяется 32-битный DWORD HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\HideUnsupportedHardwareNotifications. Значение 1 скрывает сообщения, 0 разрешает стандартный показ.
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 26100
+states:
+  disabled:
+    title: Выключены
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: HideUnsupportedHardwareNotifications
+        view: registry64
+        value: 1
+  enabled:
+    title: Включены
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: HideUnsupportedHardwareNotifications
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows11
+    builds: [26100, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System'
+  value_name: HideUnsupportedHardwareNotifications
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: low
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,59 @@
+id: privacy.feedback-prompts
+title: Запросы отзыва о Windows
+category: privacy
+subcategory: prompts
+kind: setting
+summary: Управляет системными уведомлениями с предложением отправить отзыв Microsoft.
+explanation:
+  purpose: Позволяет убрать периодические вопросы об опыте использования Windows.
+  mechanism: Политика DoNotShowFeedbackNotifications запрещает приложению «Центр отзывов» показывать системные запросы отзыва.
+  effect: При выключении запросов Windows больше не выводит уведомления с предложением оценить работу системы.
+  tradeoffs: Отзыв по собственной инициативе по-прежнему можно отправить вручную, но система не будет напоминать об этом.
+  recommendation: Отключайте запросы, если не планируете отвечать на них.
+  technical_details: Изменяется 32-битный DWORD HKLM\Software\Policies\Microsoft\Windows\DataCollection\DoNotShowFeedbackNotifications. Значение 1 скрывает запросы, 0 разрешает стандартное поведение.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14393
+states:
+  disabled:
+    title: Выключены
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\DataCollection'
+        value_name: DoNotShowFeedbackNotifications
+        view: registry64
+        value: 1
+  enabled:
+    title: Включены
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\DataCollection'
+        value_name: DoNotShowFeedbackNotifications
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [14393, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\DataCollection'
+  value_name: DoNotShowFeedbackNotifications
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false
