@@ -69,6 +69,16 @@ void ExecutorClient::handleMessage(const QJsonObject& message)
             QByteArray::fromBase64(message.value(u"plan_base64"_s).toString().toLatin1()),
             message.value(u"data_root"_s).toString(),
             message.value(u"transaction_directory"_s).toString());
+    } else if (type == u"rollback") {
+        const QUuid id(message.value(u"transaction_id"_s).toString());
+        if (id.isNull()) {
+            emit failed(u"transaction.invalid_id"_s);
+            return;
+        }
+        emit rollbackReceived(
+            id,
+            message.value(u"data_root"_s).toString(),
+            message.value(u"transaction_directory"_s).toString());
     } else if (type == u"error") {
         emit failed(message.value(u"code"_s).toString());
     } else {

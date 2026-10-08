@@ -73,6 +73,20 @@ bool ExecutorServer::sendPlan(
     });
 }
 
+bool ExecutorServer::sendRollback(
+    const QUuid& transactionId,
+    const QString& dataRoot,
+    const QString& transactionDirectory)
+{
+    if (!authenticated_ || !client_ || transactionId.isNull()) return false;
+    return send(client_, {
+        {u"type"_s, u"rollback"_s},
+        {u"transaction_id"_s, transactionId.toString(QUuid::WithoutBraces)},
+        {u"data_root"_s, dataRoot},
+        {u"transaction_directory"_s, transactionDirectory},
+    });
+}
+
 void ExecutorServer::acceptConnections()
 {
     while (server_->hasPendingConnections()) {
@@ -84,7 +98,10 @@ void ExecutorServer::acceptConnections()
         claimed_ = true;
         client_ = socket;
         connect(socket, &QLocalSocket::readyRead, this, [this, socket] { readMessages(socket); });
-        connect(socket, &QLocalSocket::disconnected, socket, &QObject::deleteLater);
+        connect(socket, &QLocalSocket::disconnected, this, [this, socket] {
+            if (socket == client_) emit clientDisconnected();
+            socket->deleteLater();
+        });
     }
 }
 

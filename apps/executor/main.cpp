@@ -1,6 +1,8 @@
 #include "execution/ExecutionProtocol.h"
 #include "execution/ExecutorClient.h"
 #include "execution/PlanValidator.h"
+#include "execution/RegistryDwordExecutor.h"
+#include "execution/RegistrySnapshot.h"
 #include "execution/TransactionRunner.h"
 #include "persistence/AppPaths.h"
 #include "persistence/Database.h"
@@ -14,9 +16,12 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QHash>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QTimer>
 #include <QtEndian>
+
+#include <memory>
 
 using namespace tweakopedia;
 using namespace Qt::StringLiterals;
@@ -211,6 +216,78 @@ int main(int argc, char* argv[])
                 {u"code"_s, result.code},
                 {u"message"_s, result.message},
             }, result.success ? 0 : 10);
+        });
+
+    QObject::connect(
+        &client,
+        &execution::ExecutorClient::rollbackReceived,
+        &app,
+        [&](const QUuid& transactionId, const QString& dataRoot, const QString& transactionDirectory) {
+            persistence::AppPaths paths(QCoreApplication::applicationDirPath(), dataRoot);
+            persistence::TransactionFiles files(paths.transactionsRoot());
+            const auto expectedDirectory = QDir::cleanPath(files.directory(transactionId));
+            if (expectedDirectory.compare(QDir::cleanPath(transactionDirectory), Qt::CaseInsensitive) != 0) {
+                sendAndQuit(client, errorResult(u"transaction.path_invalid"_s, u"Каталог транзакции отклонён."_s), 11);
+                return;
+            }
+            const auto before = files.readBefore(transactionId);
+            if (!before || !before->value(u"operations"_s).isArray()) {
+                sendAndQuit(client, errorResult(u"rollback.snapshot_missing"_s, u"Полный снимок исходных значений отсутствует."_s), 12);
+                return;
+            }
+            persistence::Database database;
+            if (!database.open(paths.databasePath())) {
+                sendAndQuit(client, errorResult(u"database.open_failed"_s, database.lastError()), 13);
+                return;
+            }
+            persistence::TransactionRepository repository(database);
+            if (!repository.find(transactionId)) {
+                sendAndQuit(client, errorResult(u"transaction.not_found"_s, u"Транзакция отсутствует в истории."_s), 14);
+                return;
+            }
+
+#ifdef TWEAKOPEDIA_TESTING
+            std::unique_ptr<platform::IRegistryBackend> backend;
+            if (parser.isSet(u"test-mode"_s)) backend = std::make_unique<MemoryRegistryBackend>();
+            else backend = std::make_unique<platform::WindowsRegistryBackend>();
+#else
+            auto backend = std::make_unique<platform::WindowsRegistryBackend>();
+#endif
+            execution::RegistryDwordExecutor executor(*backend);
+            const auto operations = before->value(u"operations"_s).toArray();
+            if (operations.isEmpty()) {
+                sendAndQuit(client, errorResult(u"rollback.snapshot_incomplete"_s, u"Снимок не содержит операций."_s), 15);
+                return;
+            }
+            (void)client.sendProgress(10, u"Чтение снимка"_s);
+            for (qsizetype index = operations.size() - 1; index >= 0; --index) {
+                const auto snapshot = execution::RegistrySnapshot::fromJson(operations.at(index).toObject());
+                if (!snapshot) {
+                    (void)repository.updateStatus(
+                        transactionId, persistence::TransactionStatus::Failed,
+                        u"Снимок содержит некорректную операцию."_s);
+                    sendAndQuit(client, errorResult(u"rollback.snapshot_invalid"_s, u"Снимок содержит некорректную операцию."_s), 15);
+                    return;
+                }
+                const auto restored = executor.restore(*snapshot);
+                if (!restored.success) {
+                    (void)repository.updateStatus(
+                        transactionId, persistence::TransactionStatus::Failed, restored.message);
+                    sendAndQuit(client, errorResult(restored.code, restored.message), 16);
+                    return;
+                }
+                (void)client.sendProgress(
+                    10 + static_cast<int>((index + 1) * 80 / operations.size()),
+                    u"Восстановление исходных значений"_s);
+            }
+            if (!repository.updateStatus(transactionId, persistence::TransactionStatus::RolledBack)) {
+                sendAndQuit(client, errorResult(u"transaction.status_failed"_s, repository.lastError()), 17);
+                return;
+            }
+            const QJsonObject result{{u"status"_s, u"rolled_back"_s}};
+            (void)files.writeResult(transactionId, result);
+            (void)client.sendProgress(100, u"Исходные значения восстановлены"_s);
+            sendAndQuit(client, result, 0);
         });
 
     client.connectToServer(serverName, nonce);

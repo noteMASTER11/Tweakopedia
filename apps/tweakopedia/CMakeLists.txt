@@ -16,5 +16,7 @@ target_link_libraries(Tweakopedia PRIVATE
     TweakopediaApp
     TweakopediaContent
     TweakopediaDetection
+    TweakopediaExecution
+    TweakopediaPersistence
     TweakopediaPlatform
 )

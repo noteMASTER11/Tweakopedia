@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "../components"
 
 Page {
     id: root
@@ -17,14 +18,25 @@ Page {
             Layout.fillHeight: true
             model: root.controller.queue
             delegate: ItemDelegate {
-                required property string id
-                required property string title
-                required property string currentState
-                required property string targetState
                 width: ListView.view.width
-                text: title + "   " + currentState + " → " + targetState
-                onClicked: root.controller.removeFromQueue(id)
+                text: model.title + "   " + model.currentState + " → " + model.targetState
+                onClicked: root.controller.removeFromQueue(model.id)
             }
+        }
+        PlanPreview {
+            Layout.fillWidth: true
+            previewReady: root.controller.previewReady
+            summary: root.controller.previewSummary
+            operations: root.controller.previewOperations
+            onPreviewRequested: root.controller.buildPreview()
+            onApplyConfirmed: packageName => root.controller.applyQueue(packageName)
+        }
+        ApplyProgress {
+            Layout.fillWidth: true
+            visible: root.controller.applyStatus !== "idle"
+            progress: root.controller.applyProgress
+            status: root.controller.applyStatus
+            message: root.controller.applyMessage
         }
     }
 }

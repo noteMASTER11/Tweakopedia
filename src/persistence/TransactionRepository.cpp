@@ -83,6 +83,47 @@ std::optional<TransactionRecord> TransactionRepository::find(const QUuid& id) co
     };
 }
 
+QVector<TransactionRecord> TransactionRepository::list() const
+{
+    QVector<TransactionRecord> records;
+    QSqlQuery query(database_->connection());
+    if (!query.exec(QStringLiteral(
+            "SELECT id, package_name, status, created_at, updated_at, directory, error "
+            "FROM transactions ORDER BY updated_at DESC"))) {
+        lastError_ = query.lastError().text();
+        return records;
+    }
+    while (query.next()) {
+        const auto status = transactionStatusFromName(query.value(2).toString());
+        const QUuid id(query.value(0).toString());
+        if (!status || id.isNull()) continue;
+        records.append({
+            .id = id,
+            .packageName = query.value(1).toString(),
+            .status = *status,
+            .createdAtUtc = QDateTime::fromString(query.value(3).toString(), Qt::ISODateWithMs),
+            .updatedAtUtc = QDateTime::fromString(query.value(4).toString(), Qt::ISODateWithMs),
+            .directory = query.value(5).toString(),
+            .error = query.value(6).toString(),
+        });
+    }
+    return records;
+}
+
+int TransactionRepository::markRunningAsInterrupted()
+{
+    QSqlQuery query(database_->connection());
+    query.prepare(QStringLiteral(
+        "UPDATE transactions SET status = 'interrupted', updated_at = :updated_at "
+        "WHERE status = 'running'"));
+    query.bindValue(QStringLiteral(":updated_at"), QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs));
+    if (!query.exec()) {
+        lastError_ = query.lastError().text();
+        return -1;
+    }
+    return static_cast<int>(query.numRowsAffected());
+}
+
 QString TransactionRepository::lastError() const
 {
     return lastError_;

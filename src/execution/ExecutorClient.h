@@ -3,6 +3,7 @@
 #include <QByteArray>
 #include <QJsonObject>
 #include <QObject>
+#include <QUuid>
 
 class QLocalSocket;
 
@@ -24,6 +25,10 @@ signals:
     void authenticated();
     void planReceived(
         const QByteArray& encodedPlan,
+        const QString& dataRoot,
+        const QString& transactionDirectory);
+    void rollbackReceived(
+        const QUuid& transactionId,
         const QString& dataRoot,
         const QString& transactionDirectory);
     void failed(const QString& code);

@@ -2,6 +2,8 @@
 
 #include <QCryptographicHash>
 
+#include <limits>
+
 using namespace Qt::StringLiterals;
 
 namespace tweakopedia::execution {
@@ -55,6 +57,42 @@ QJsonObject RegistrySnapshot::toJson() const
         {u"rawBase64"_s, QString::fromLatin1(rawValue.toBase64())},
         {u"fingerprint"_s, QString::fromLatin1(fingerprint())},
     };
+}
+
+std::optional<RegistrySnapshot> RegistrySnapshot::fromJson(const QJsonObject& object)
+{
+    const auto hive = object.value(u"hive"_s).toInt(-1);
+    const auto view = object.value(u"view"_s).toInt(-1);
+    const auto presence = object.value(u"presence"_s).toInt(-1);
+    const auto type = object.value(u"type"_s).toInt(-1);
+    const auto nativeType = object.value(u"nativeType"_s).toInteger(-1);
+    const auto key = object.value(u"key"_s).toString();
+    const auto valueName = object.value(u"valueName"_s).toString();
+    if (hive < 0 || hive > static_cast<int>(domain::RegistryHive::LocalMachine)
+        || view < 0 || view > static_cast<int>(domain::RegistryView::Registry64)
+        || presence < 0 || presence > static_cast<int>(platform::RegistryPresence::Error)
+        || type < 0 || type > static_cast<int>(platform::RegistryValueType::Unknown)
+        || nativeType < 0 || nativeType > std::numeric_limits<quint32>::max()
+        || key.isEmpty() || valueName.isEmpty()) {
+        return std::nullopt;
+    }
+    const auto raw = QByteArray::fromBase64(object.value(u"rawBase64"_s).toString().toLatin1());
+    RegistrySnapshot snapshot{
+        .location = {
+            .hive = static_cast<domain::RegistryHive>(hive),
+            .key = key,
+            .valueName = valueName,
+            .view = static_cast<domain::RegistryView>(view),
+        },
+        .presence = static_cast<platform::RegistryPresence>(presence),
+        .type = static_cast<platform::RegistryValueType>(type),
+        .nativeType = static_cast<quint32>(nativeType),
+        .rawValue = raw,
+    };
+    if (object.value(u"fingerprint"_s).toString().toLatin1() != snapshot.fingerprint()) {
+        return std::nullopt;
+    }
+    return snapshot;
 }
 
 } // namespace tweakopedia::execution

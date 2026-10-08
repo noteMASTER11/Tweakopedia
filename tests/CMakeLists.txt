@@ -235,7 +235,22 @@ add_test(NAME TweakListModel COMMAND TweakListModelTest)
 
 add_executable(QmlComponentTests qml/QmlTestMain.cpp)
 target_link_libraries(QmlComponentTests PRIVATE Qt6::QuickTest Qt6::QuickControls2)
-add_test(NAME QmlComponents COMMAND QmlComponentTests -input ${PROJECT_SOURCE_DIR}/tests/qml)
-set_tests_properties(QmlComponents PROPERTIES
+add_test(NAME QmlPlanPreviewHistory COMMAND QmlComponentTests -input ${PROJECT_SOURCE_DIR}/tests/qml)
+set_tests_properties(QmlPlanPreviewHistory PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QML_DISABLE_DISK_CACHE=1"
 )
+
+add_executable(VerticalSliceWorkflowTest
+    integration/VerticalSliceWorkflowTest.cpp
+    fakes/FakeRegistryBackend.cpp
+    fakes/FakeRegistryBackend.h
+)
+target_include_directories(VerticalSliceWorkflowTest PRIVATE ${PROJECT_SOURCE_DIR}/tests)
+target_compile_definitions(VerticalSliceWorkflowTest PRIVATE
+    TWEAKOPEDIA_TEST_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content/tweaks"
+)
+target_link_libraries(VerticalSliceWorkflowTest PRIVATE
+    Qt6::Test TweakopediaContent TweakopediaDetection TweakopediaExecution
+    TweakopediaPersistence TweakopediaPlanning TweakopediaPlatform
+)
+add_test(NAME VerticalSliceWorkflow COMMAND VerticalSliceWorkflowTest)

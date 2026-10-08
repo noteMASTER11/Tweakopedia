@@ -3,6 +3,7 @@
 #include <QByteArray>
 #include <QJsonObject>
 #include <QObject>
+#include <QUuid>
 
 class QLocalServer;
 class QLocalSocket;
@@ -24,12 +25,17 @@ public:
         const QByteArray& encodedPlan,
         const QString& dataRoot,
         const QString& transactionDirectory);
+    [[nodiscard]] bool sendRollback(
+        const QUuid& transactionId,
+        const QString& dataRoot,
+        const QString& transactionDirectory);
 
 signals:
     void authenticated(qint64 processId);
     void progressReceived(int percent, const QString& message);
     void completed(const QJsonObject& result);
     void clientRejected(const QString& code);
+    void clientDisconnected();
 
 private:
     void acceptConnections();

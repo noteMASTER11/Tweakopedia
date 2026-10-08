@@ -25,18 +25,17 @@ Page {
             spacing: 10
             model: root.controller.tweaks
             delegate: TweakRow {
-                required property string id
-                required property string title
-                required property string summary
-                required property string currentState
-                required property string targetState
-                required property bool supported
-                required property string impact
-                required property string restart
                 width: ListView.view.width
-                onTargetSelected: state => root.controller.selectTarget(id, state)
+                title: model.title
+                summary: model.summary
+                currentState: model.currentState
+                targetState: model.targetState
+                supported: model.supported
+                impact: model.impact
+                restart: model.restart
+                onTargetSelected: state => root.controller.selectTarget(model.id, state)
                 onExplanationRequested: {
-                    explanationDrawer.explanation = root.controller.openExplanation(id)
+                    explanationDrawer.explanation = root.controller.openExplanation(model.id)
                     explanationDrawer.open()
                 }
             }

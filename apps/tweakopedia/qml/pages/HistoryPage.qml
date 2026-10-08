@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "../components"
 
 Page {
     id: root
@@ -15,12 +16,14 @@ Page {
             Layout.fillWidth: true
             Layout.fillHeight: true
             model: root.controller.history
-            delegate: ItemDelegate {
-                required property string packageName
-                required property string status
-                required property date updatedAt
+            delegate: TransactionDetails {
                 width: ListView.view.width
-                text: packageName + " · " + status + " · " + updatedAt.toLocaleString()
+                transactionId: model.transactionId
+                packageName: model.packageName
+                status: model.status
+                error: model.error
+                canRollback: model.canRollback
+                onRollbackRequested: id => root.controller.rollback(id)
             }
         }
     }

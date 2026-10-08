@@ -9,6 +9,7 @@ namespace tweakopedia::app {
 class HistoryListModel final : public QAbstractListModel
 {
     Q_OBJECT
+    Q_PROPERTY(int interruptedCount READ interruptedCount NOTIFY interruptedCountChanged)
 
 public:
     enum Role { TransactionIdRole = Qt::UserRole + 1, PackageNameRole, StatusRole,
@@ -20,9 +21,14 @@ public:
     [[nodiscard]] QVariant data(const QModelIndex& index, int role) const override;
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
     void reset(QVector<persistence::TransactionRecord> records);
+    [[nodiscard]] int interruptedCount() const noexcept;
+
+signals:
+    void interruptedCountChanged();
 
 private:
     QVector<persistence::TransactionRecord> records_;
+    int interruptedCount_{};
 };
 
 } // namespace tweakopedia::app

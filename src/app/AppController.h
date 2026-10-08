@@ -8,8 +8,10 @@
 #include "planning/ExecutionPlan.h"
 
 #include <QObject>
+#include <QVariantList>
 #include <QVariantMap>
 
+#include <functional>
 #include <optional>
 
 namespace tweakopedia::app {
@@ -23,6 +25,8 @@ struct AppOperationResult {
     QUuid transactionId;
 };
 
+using ProgressCallback = std::function<void(int, const QString&)>;
+
 class IAppServices
 {
 public:
@@ -34,8 +38,11 @@ public:
         const domain::SystemProfile& profile) const = 0;
     [[nodiscard]] virtual AppOperationResult apply(
         const planning::ExecutionPlan& plan,
-        const QString& packageName) = 0;
-    [[nodiscard]] virtual AppOperationResult rollback(const QUuid& transactionId) = 0;
+        const QString& packageName,
+        const ProgressCallback& progress) = 0;
+    [[nodiscard]] virtual AppOperationResult rollback(
+        const QUuid& transactionId,
+        const ProgressCallback& progress) = 0;
     [[nodiscard]] virtual QVector<persistence::TransactionRecord> history() const = 0;
 };
 
@@ -46,7 +53,12 @@ class AppController final : public QObject
     Q_PROPERTY(QueueListModel* queue READ queue CONSTANT)
     Q_PROPERTY(HistoryListModel* history READ history CONSTANT)
     Q_PROPERTY(QString previewSummary READ previewSummary NOTIFY previewChanged)
+    Q_PROPERTY(bool previewReady READ previewReady NOTIFY previewChanged)
+    Q_PROPERTY(QVariantList previewOperations READ previewOperations NOTIFY previewChanged)
     Q_PROPERTY(QString lastErrorCode READ lastErrorCode NOTIFY errorChanged)
+    Q_PROPERTY(int applyProgress READ applyProgress NOTIFY operationChanged)
+    Q_PROPERTY(QString applyStatus READ applyStatus NOTIFY operationChanged)
+    Q_PROPERTY(QString applyMessage READ applyMessage NOTIFY operationChanged)
 
 public:
     explicit AppController(IAppServices& services, QObject* parent = nullptr);
@@ -55,7 +67,12 @@ public:
     [[nodiscard]] QueueListModel* queue() noexcept;
     [[nodiscard]] HistoryListModel* history() noexcept;
     [[nodiscard]] QString previewSummary() const;
+    [[nodiscard]] bool previewReady() const noexcept;
+    [[nodiscard]] QVariantList previewOperations() const;
     [[nodiscard]] QString lastErrorCode() const;
+    [[nodiscard]] int applyProgress() const noexcept;
+    [[nodiscard]] QString applyStatus() const;
+    [[nodiscard]] QString applyMessage() const;
 
     Q_INVOKABLE bool startup();
     Q_INVOKABLE bool selectTarget(const QString& id, const QString& state);
@@ -68,6 +85,7 @@ public:
 signals:
     void previewChanged();
     void errorChanged();
+    void operationChanged();
 
 private:
     void refreshDetectedStates();
@@ -86,6 +104,9 @@ private:
     HistoryListModel historyModel_;
     QString lastErrorCode_;
     QString lastErrorMessage_;
+    int applyProgress_{};
+    QString applyStatus_{QStringLiteral("idle")};
+    QString applyMessage_;
 };
 
 } // namespace tweakopedia::app

@@ -5,6 +5,8 @@
 
 #include <QJsonObject>
 
+#include <optional>
+
 namespace tweakopedia::execution {
 
 struct RegistrySnapshot {
@@ -20,6 +22,7 @@ struct RegistrySnapshot {
     [[nodiscard]] static QByteArray fingerprint(const platform::RegistryReadResult& value);
     [[nodiscard]] QByteArray fingerprint() const;
     [[nodiscard]] QJsonObject toJson() const;
+    [[nodiscard]] static std::optional<RegistrySnapshot> fromJson(const QJsonObject& object);
 };
 
 } // namespace tweakopedia::execution

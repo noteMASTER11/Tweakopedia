@@ -38,9 +38,11 @@ public:
 
     app::AppOperationResult apply(
         const planning::ExecutionPlan& plan,
-        const QString& packageName) override
+        const QString& packageName,
+        const app::ProgressCallback& progress) override
     {
         ++applyCalls;
+        progress(50, u"Выполнение"_s);
         if (nextApply.status == app::AppOperationStatus::Succeeded) {
             detected.stateId = u"enabled"_s;
             auto record = persistence::TransactionRecord::pending(
@@ -52,9 +54,12 @@ public:
         return nextApply;
     }
 
-    app::AppOperationResult rollback(const QUuid& transactionId) override
+    app::AppOperationResult rollback(
+        const QUuid& transactionId,
+        const app::ProgressCallback& progress) override
     {
         ++rollbackCalls;
+        progress(50, u"Возврат"_s);
         detected.stateId = u"disabled"_s;
         for (auto& record : records) {
             if (record.id == transactionId) record.status = persistence::TransactionStatus::RolledBack;

@@ -4,6 +4,7 @@
 #include "persistence/TransactionRecord.h"
 
 #include <optional>
+#include <QVector>
 
 namespace tweakopedia::persistence {
 
@@ -18,6 +19,8 @@ public:
         TransactionStatus status,
         const QString& error = {});
     [[nodiscard]] std::optional<TransactionRecord> find(const QUuid& id) const;
+    [[nodiscard]] QVector<TransactionRecord> list() const;
+    [[nodiscard]] int markRunningAsInterrupted();
     [[nodiscard]] QString lastError() const;
 
 private:

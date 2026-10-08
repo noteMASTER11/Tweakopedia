@@ -16,6 +16,15 @@ Page {
         }
         Frame {
             Layout.fillWidth: true
+            visible: controller.history.interruptedCount > 0
+            Label {
+                anchors.fill: parent
+                text: "Обнаружены незавершённые транзакции: " + controller.history.interruptedCount
+                color: "#9A5B00"
+            }
+        }
+        Frame {
+            Layout.fillWidth: true
             RowLayout {
                 anchors.fill: parent
                 Label { text: "Твиков в каталоге"; Layout.fillWidth: true }

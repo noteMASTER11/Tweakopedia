@@ -6,6 +6,27 @@
 using namespace Qt::StringLiterals;
 
 namespace tweakopedia::app {
+namespace {
+
+QString restartName(domain::RestartRequirement restart)
+{
+    switch (restart) {
+    case domain::RestartRequirement::None: return u"none"_s;
+    case domain::RestartRequirement::Explorer: return u"explorer"_s;
+    case domain::RestartRequirement::Service: return u"service"_s;
+    case domain::RestartRequirement::SignOut: return u"sign_out"_s;
+    case domain::RestartRequirement::Reboot: return u"reboot"_s;
+    }
+    return {};
+}
+
+QString registryObject(const domain::RegistryLocation& location)
+{
+    return (location.hive == domain::RegistryHive::LocalMachine ? u"HKLM\\"_s : u"HKCU\\"_s)
+        + location.key + u"\\"_s + location.valueName;
+}
+
+} // namespace
 
 AppController::AppController(IAppServices& services, QObject* parent)
     : QObject(parent), services_(&services), tweaksModel_(this), queueModel_(this), historyModel_(this)
@@ -16,7 +37,28 @@ TweakListModel* AppController::tweaks() noexcept { return &tweaksModel_; }
 QueueListModel* AppController::queue() noexcept { return &queueModel_; }
 HistoryListModel* AppController::history() noexcept { return &historyModel_; }
 QString AppController::previewSummary() const { return preview_ ? preview_->summary : QString{}; }
+bool AppController::previewReady() const noexcept { return preview_.has_value() && !preview_->operations.isEmpty(); }
+QVariantList AppController::previewOperations() const
+{
+    QVariantList result;
+    if (!preview_) return result;
+    for (const auto& variant : preview_->operations) {
+        const auto& operation = std::get<planning::PlannedRegistryDwordChange>(variant);
+        const auto* tweak = catalog_.find(operation.tweakId);
+        result.append(QVariantMap{
+            {u"title"_s, tweak ? tweak->title : operation.tweakId.toString()},
+            {u"beforeState"_s, detected_.value(operation.tweakId).stateId},
+            {u"targetState"_s, operation.targetState},
+            {u"registryObject"_s, registryObject(operation.change.location)},
+            {u"restart"_s, restartName(operation.restart)},
+        });
+    }
+    return result;
+}
 QString AppController::lastErrorCode() const { return lastErrorCode_; }
+int AppController::applyProgress() const noexcept { return applyProgress_; }
+QString AppController::applyStatus() const { return applyStatus_; }
+QString AppController::applyMessage() const { return applyMessage_; }
 
 bool AppController::startup()
 {
@@ -114,11 +156,29 @@ bool AppController::applyQueue(const QString& packageName)
         return false;
     }
     if (!buildPreview() || !preview_ || preview_->operations.isEmpty()) return false;
-    const auto result = services_->apply(*preview_, packageName.trimmed());
+    applyProgress_ = 0;
+    applyStatus_ = u"running"_s;
+    applyMessage_ = u"Запуск Executor"_s;
+    emit operationChanged();
+    const auto result = services_->apply(
+        *preview_,
+        packageName.trimmed(),
+        [this](int progress, const QString& message) {
+            applyProgress_ = progress;
+            applyMessage_ = message;
+            emit operationChanged();
+        });
     if (result.status != AppOperationStatus::Succeeded) {
+        applyStatus_ = result.status == AppOperationStatus::Cancelled ? u"cancelled"_s : u"failed"_s;
+        applyMessage_ = result.message;
+        emit operationChanged();
         setError(result.code, result.message);
         return false;
     }
+    applyProgress_ = 100;
+    applyStatus_ = u"succeeded"_s;
+    applyMessage_ = u"Пакет применён и проверен."_s;
+    emit operationChanged();
     const auto queued = queueData_.items();
     for (const auto& item : queued) (void)queueData_.remove(item.tweakId);
     preview_.reset();
@@ -137,11 +197,26 @@ bool AppController::rollback(const QString& transactionId)
         setError(u"transaction.invalid_id"_s);
         return false;
     }
-    const auto result = services_->rollback(id);
+    applyProgress_ = 0;
+    applyStatus_ = u"running"_s;
+    applyMessage_ = u"Запуск возврата"_s;
+    emit operationChanged();
+    const auto result = services_->rollback(id, [this](int progress, const QString& message) {
+        applyProgress_ = progress;
+        applyMessage_ = message;
+        emit operationChanged();
+    });
     if (result.status != AppOperationStatus::Succeeded) {
+        applyStatus_ = result.status == AppOperationStatus::Cancelled ? u"cancelled"_s : u"failed"_s;
+        applyMessage_ = result.message;
+        emit operationChanged();
         setError(result.code, result.message);
         return false;
     }
+    applyProgress_ = 100;
+    applyStatus_ = u"rolled_back"_s;
+    applyMessage_ = u"Исходные значения восстановлены."_s;
+    emit operationChanged();
     refreshDetectedStates();
     refreshModels();
     historyModel_.reset(services_->history());
