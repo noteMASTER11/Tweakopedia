@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import "../style"
 
 Rectangle {
@@ -8,9 +9,16 @@ Rectangle {
     property int currentIndex: 0
     property int queueCount: 0
     readonly property bool compact: availableWidth < FluentTheme.compactBreakpoint
+    readonly property int effectiveWidth: compact
+        ? FluentTheme.navigationCompactWidth
+        : FluentTheme.navigationExpandedWidth
     signal destinationRequested(int index)
 
-    width: compact ? FluentTheme.navigationCompactWidth : FluentTheme.navigationExpandedWidth
+    implicitWidth: effectiveWidth
+    width: effectiveWidth
+    Layout.minimumWidth: effectiveWidth
+    Layout.preferredWidth: effectiveWidth
+    Layout.maximumWidth: effectiveWidth
     color: FluentTheme.surfaceInset
     border.width: 1
     border.color: FluentTheme.stroke
@@ -30,18 +38,19 @@ Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         height: 32
-        text: root.compact ? "T" : "Tweakopedia"
+        visible: !root.compact
+        text: "Tweakopedia"
         color: FluentTheme.textPrimary
         font.family: FluentTheme.fontFamily
-        font.pixelSize: root.compact ? 20 : 18
+        font.pixelSize: 18
         font.weight: Font.DemiBold
-        horizontalAlignment: root.compact ? Text.AlignHCenter : Text.AlignLeft
-        leftPadding: root.compact ? 0 : 16
+        horizontalAlignment: Text.AlignLeft
+        leftPadding: 16
     }
 
     Column {
-        anchors.top: brand.bottom
-        anchors.topMargin: 16
+        anchors.top: root.compact ? parent.top : brand.bottom
+        anchors.topMargin: root.compact ? 12 : 16
         anchors.left: parent.left
         anchors.right: parent.right
         spacing: 2

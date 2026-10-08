@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import QtTest
 import "../../apps/tweakopedia/qml/components"
 import "../../apps/tweakopedia/qml/style"
@@ -19,6 +20,27 @@ TestCase {
         }
     }
 
+    Component {
+        id: compactLayoutComponent
+        Item {
+            width: 1200
+            height: 680
+
+            RowLayout {
+                anchors.fill: parent
+                spacing: 0
+
+                FluentNavigation {
+                    objectName: "compactNavigation"
+                    Layout.fillHeight: true
+                    availableWidth: parent.parent.width
+                }
+
+                Item { Layout.fillWidth: true; Layout.fillHeight: true }
+            }
+        }
+    }
+
     function test_breakpointAndWidths() {
         const navigation = createTemporaryObject(navigationComponent, this)
         compare(navigation.compact, false)
@@ -31,6 +53,23 @@ TestCase {
         navigation.availableWidth = 1100
         compare(navigation.compact, false)
         compare(navigation.width, FluentTheme.navigationExpandedWidth)
+    }
+
+    function test_compactWidthIsEnforcedInsideLayout() {
+        const shell = createTemporaryObject(compactLayoutComponent, this)
+        const navigation = findChild(shell, "compactNavigation")
+        verify(navigation)
+        wait(0)
+        compare(navigation.compact, false)
+        compare(navigation.width, FluentTheme.navigationExpandedWidth)
+
+        shell.width = 900
+        wait(0)
+        compare(navigation.compact, true)
+        compare(navigation.width, FluentTheme.navigationCompactWidth)
+        compare(navigation.Layout.minimumWidth, FluentTheme.navigationCompactWidth)
+        compare(navigation.Layout.preferredWidth, FluentTheme.navigationCompactWidth)
+        compare(navigation.Layout.maximumWidth, FluentTheme.navigationCompactWidth)
     }
 
     function test_orderSettingsPlacementBadgeAndAccessibleNames() {

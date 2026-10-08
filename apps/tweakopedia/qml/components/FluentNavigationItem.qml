@@ -27,7 +27,7 @@ AbstractButton {
             spacing: 12
 
             Text {
-                width: root.compact ? 44 : 24
+                width: root.compact ? parent.width : 24
                 text: root.glyph
                 color: root.selected ? FluentTheme.accent : FluentTheme.textPrimary
                 font.family: FluentTheme.fontFamily
@@ -60,9 +60,9 @@ AbstractButton {
     }
 
     background: Rectangle {
-        anchors.leftMargin: 4
-        anchors.rightMargin: 4
-        radius: 4
+        anchors.leftMargin: root.compact ? 8 : 4
+        anchors.rightMargin: root.compact ? 8 : 4
+        radius: 6
         color: root.selected
             ? FluentTheme.selected
             : root.hovered ? FluentTheme.hover : "transparent"
