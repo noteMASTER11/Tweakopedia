@@ -24,7 +24,13 @@
 #include <QQuickStyle>
 #include <QTimer>
 #include <QTemporaryDir>
+#include <QWindow>
 #include <QUuid>
+
+#ifdef Q_OS_WIN
+#include <dwmapi.h>
+#include <windows.h>
+#endif
 
 #include <functional>
 #include <memory>
@@ -33,6 +39,26 @@ using namespace tweakopedia;
 using namespace Qt::StringLiterals;
 
 namespace {
+
+#ifdef Q_OS_WIN
+void applyLightTitleBar(QWindow* window)
+{
+    if (!window) return;
+    const auto handle = reinterpret_cast<HWND>(window->winId());
+    const BOOL useDarkMode = FALSE;
+    constexpr DWORD useImmersiveDarkMode = 20;
+    (void)DwmSetWindowAttribute(
+        handle, useImmersiveDarkMode, &useDarkMode, sizeof(useDarkMode));
+    const COLORREF captionColor = RGB(247, 248, 252);
+    constexpr DWORD captionColorAttribute = 35;
+    (void)DwmSetWindowAttribute(
+        handle, captionColorAttribute, &captionColor, sizeof(captionColor));
+}
+#else
+void applyLightTitleBar(QWindow*)
+{
+}
+#endif
 
 class DesktopServices final : public app::IAppServices
 {
@@ -285,6 +311,7 @@ int main(int argc, char* argv[])
     engine.rootContext()->setContextProperty(u"appController"_s, &controller);
     engine.load(QUrl(u"qrc:/qml/Main.qml"_s));
     if (engine.rootObjects().isEmpty()) return 1;
+    applyLightTitleBar(qobject_cast<QWindow*>(engine.rootObjects().constFirst()));
     if (selfCheck) {
         const auto profile = services.currentProfile();
         const auto loaded = services.loadCatalog();

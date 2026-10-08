@@ -22,3 +22,7 @@ target_link_libraries(Tweakopedia PRIVATE
     TweakopediaPersistence
     TweakopediaPlatform
 )
+
+if(WIN32)
+    target_link_libraries(Tweakopedia PRIVATE dwmapi)
+endif()

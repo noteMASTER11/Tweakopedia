@@ -1,52 +1,53 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtQuick.Layouts
+import "components"
 import "pages"
+import "style"
 
 ApplicationWindow {
     id: window
+
     width: 1180
     height: 760
     minimumWidth: 900
     minimumHeight: 620
     visible: true
     title: "Tweakopedia"
-    color: palette.window
+    color: FluentTheme.canvas
 
-    header: ToolBar {
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 20
-            anchors.rightMargin: 20
-            Label {
-                text: "Tweakopedia"
-                font.pixelSize: 22
-                font.weight: Font.DemiBold
-                Layout.rightMargin: 24
-            }
-            TabBar {
-                id: tabs
-                Layout.fillWidth: true
-                TabButton { text: "Обзор" }
-                TabButton { text: "Твики" }
-                TabButton { text: "Справочник · позже"; enabled: false }
-                TabButton { text: "Очередь" }
-                TabButton { text: "История" }
-                TabButton { text: "Диагностика · позже"; enabled: false }
-                TabButton { text: "Настройки · позже"; enabled: false }
-            }
-        }
+    function openQueue() {
+        navigation.currentIndex = 3
     }
 
-    StackLayout {
+    RowLayout {
         anchors.fill: parent
-        currentIndex: tabs.currentIndex
-        OverviewPage { controller: appController }
-        TweaksPage { controller: appController }
-        Item {}
-        QueuePage { controller: appController }
-        HistoryPage { controller: appController }
-        Item {}
-        Item {}
+        spacing: 0
+
+        FluentNavigation {
+            id: navigation
+            Layout.fillHeight: true
+            availableWidth: window.width
+            queueCount: appController.queue.rowCount()
+        }
+
+        StackLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            currentIndex: navigation.currentIndex
+
+            OverviewPage { controller: appController }
+            TweaksPage { controller: appController }
+            PlaceholderPage {
+                pageTitle: "Справочник"
+                description: "Обучающие материалы будут добавляться вместе с тематическими разделами каталога."
+            }
+            QueuePage { controller: appController }
+            HistoryPage { controller: appController }
+            PlaceholderPage {
+                pageTitle: "Настройки"
+                description: "Здесь появятся параметры интерфейса, журналов и хранения локальных данных."
+            }
+        }
     }
 }

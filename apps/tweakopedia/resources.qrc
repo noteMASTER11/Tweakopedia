@@ -7,12 +7,15 @@
     <file alias="qml/pages/TweaksPage.qml">qml/pages/TweaksPage.qml</file>
     <file alias="qml/pages/QueuePage.qml">qml/pages/QueuePage.qml</file>
     <file alias="qml/pages/HistoryPage.qml">qml/pages/HistoryPage.qml</file>
+    <file alias="qml/pages/PlaceholderPage.qml">qml/pages/PlaceholderPage.qml</file>
     <file alias="qml/components/TweakRow.qml">qml/components/TweakRow.qml</file>
     <file alias="qml/components/FluentToggle.qml">qml/components/FluentToggle.qml</file>
     <file alias="qml/components/StateLabel.qml">qml/components/StateLabel.qml</file>
     <file alias="qml/components/FluentBadge.qml">qml/components/FluentBadge.qml</file>
     <file alias="qml/components/InfoButton.qml">qml/components/InfoButton.qml</file>
     <file alias="qml/components/FluentStateSelector.qml">qml/components/FluentStateSelector.qml</file>
+    <file alias="qml/components/FluentNavigation.qml">qml/components/FluentNavigation.qml</file>
+    <file alias="qml/components/FluentNavigationItem.qml">qml/components/FluentNavigationItem.qml</file>
     <file alias="qml/components/ExplanationDrawer.qml">qml/components/ExplanationDrawer.qml</file>
     <file alias="qml/components/StatusBadge.qml">qml/components/StatusBadge.qml</file>
     <file alias="qml/components/PlanPreview.qml">qml/components/PlanPreview.qml</file>
