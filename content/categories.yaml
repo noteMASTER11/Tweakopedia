@@ -4,6 +4,8 @@ categories:
     subcategories:
       - id: windows
         title: Окна и запуск программ
+      - id: attachments
+        title: Загруженные файлы и вложения
   - id: boot
     title: Загрузка и вход
     subcategories:
@@ -11,6 +13,11 @@ categories:
         title: Сообщения и диагностика входа
       - id: sign-in
         title: Экран блокировки и входа
+  - id: desktop
+    title: Рабочий стол и панель задач
+    subcategories:
+      - id: taskbar
+        title: Панель задач и уведомления
   - id: filesystem
     title: Накопители, NTFS и файловая система
     subcategories:
@@ -35,3 +42,5 @@ categories:
     subcategories:
       - id: drivers
         title: Драйверы через Windows Update
+      - id: restart
+        title: Перезагрузка после обновлений

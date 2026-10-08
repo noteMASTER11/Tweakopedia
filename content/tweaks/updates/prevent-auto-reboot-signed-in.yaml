@@ -1,0 +1,59 @@
+id: updates.prevent-auto-reboot-signed-in
+title: Не перезагружать при активном сеансе
+category: updates
+subcategory: restart
+kind: setting
+summary: Запрещает автоматическую перезагрузку после плановой установки обновлений, пока пользователь вошёл в Windows.
+explanation:
+  purpose: Не позволяет плановой установке обновлений самостоятельно перезагрузить компьютер при активном пользовательском сеансе.
+  mechanism: Политика NoAutoRebootWithLoggedOnUsers изменяет поведение клиента автоматических обновлений после установки по расписанию.
+  effect: При включении Windows ожидает, пока вошедший пользователь сам инициирует перезагрузку.
+  tradeoffs: Перезагрузка и завершение установки могут откладываться надолго; выбранная пользователем запланированная перезагрузка имеет приоритет.
+  recommendation: Используйте вместе с контролируемым графиком перезагрузок и не откладывайте завершение установки бессрочно.
+  technical_details: Изменяется 32-битный DWORD HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU\NoAutoRebootWithLoggedOnUsers. Значение 1 запрещает автоматическую перезагрузку при активном сеансе, 0 разрешает. Политика действует для плановой установки, когда Configure Automatic Updates использует режим 4.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Ограничение выключено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\WindowsUpdate\AU'
+        value_name: NoAutoRebootWithLoggedOnUsers
+        view: registry64
+        value: 0
+  enabled:
+    title: Ограничение включено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\WindowsUpdate\AU'
+        value_name: NoAutoRebootWithLoggedOnUsers
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\WindowsUpdate\AU'
+  value_name: NoAutoRebootWithLoggedOnUsers
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

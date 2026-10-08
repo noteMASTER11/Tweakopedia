@@ -135,23 +135,29 @@ private slots:
 
         QVERIFY(result.errors.isEmpty());
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 14);
+        QCOMPARE(result.catalog->size(), 20);
 
         const QStringList expectedIds{
             u"apps.windows-ink-workspace"_s,
             u"behavior.disable-aero-shake"_s,
+            u"behavior.download-zone-information"_s,
+            u"behavior.new-app-notification"_s,
             u"behavior.store-app-lookup"_s,
             u"boot.hide-last-user-name"_s,
             u"boot.last-logon-info"_s,
             u"boot.lock-screen"_s,
             u"boot.login-network-icon"_s,
             u"boot.login-power-button"_s,
+            u"boot.password-reveal-button"_s,
+            u"boot.require-ctrl-alt-delete"_s,
             u"boot.verbose-logon-messages"_s,
+            u"desktop.notification-center"_s,
             u"filesystem.removable-disk-write-access"_s,
             u"filesystem.win32-long-paths"_s,
             u"network.administrative-shares"_s,
             u"network.elevated-mapped-drives"_s,
             u"updates.exclude-driver-updates"_s,
+            u"updates.prevent-auto-reboot-signed-in"_s,
         };
         for (const auto& expectedId : expectedIds) {
             const auto id = TweakId::parse(expectedId);

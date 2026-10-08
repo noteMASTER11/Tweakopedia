@@ -1,0 +1,59 @@
+id: behavior.new-app-notification
+title: Уведомление о новом приложении
+category: behavior
+subcategory: windows
+kind: setting
+summary: Управляет уведомлением о новом приложении, способном открывать вызванный тип файла или протокол.
+explanation:
+  purpose: Позволяет показывать или скрывать предложение пересмотреть приложение по умолчанию после установки новой программы.
+  mechanism: Политика NoNewAppAlert подавляет уведомления оболочки о новых сопоставлениях файлов и протоколов.
+  effect: При выключении уведомления Windows не сообщает, что недавно установленное приложение может обработать открываемый тип данных.
+  tradeoffs: Пользователь может не узнать, что появилась новая альтернатива текущему приложению по умолчанию.
+  recommendation: Оставляйте включённым, если регулярно устанавливаете приложения; отключайте при централизованно заданных сопоставлениях.
+  technical_details: Изменяется 32-битный DWORD HKLM\Software\Policies\Microsoft\Windows\Explorer\NoNewAppAlert. Значение 1 скрывает уведомление, 0 показывает.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Выключено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: NoNewAppAlert
+        view: registry64
+        value: 1
+  enabled:
+    title: Включено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: NoNewAppAlert
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\Explorer'
+  value_name: NoNewAppAlert
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

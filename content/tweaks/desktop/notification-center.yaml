@@ -1,0 +1,59 @@
+id: desktop.notification-center
+title: Центр уведомлений
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: Управляет значком и историей уведомлений в области панели задач.
+explanation:
+  purpose: Позволяет убрать центр уведомлений либо вернуть доступ к пропущенным сообщениям приложений.
+  mechanism: Политика DisableNotificationCenter скрывает системный центр уведомлений и его значок.
+  effect: При выключении всплывающие уведомления ещё могут появляться, но открыть список пропущенных уведомлений нельзя.
+  tradeoffs: Пропущенные сообщения приложений перестают быть доступны в общей истории.
+  recommendation: Оставляйте включённым, если используете уведомления; отключайте только при намеренном отказе от их истории.
+  technical_details: Изменяется 32-битный DWORD HKCU\Software\Policies\Microsoft\Windows\Explorer\DisableNotificationCenter. Значение 1 скрывает центр, 0 показывает.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Выключен
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: DisableNotificationCenter
+        view: registry64
+        value: 1
+  enabled:
+    title: Включён
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: DisableNotificationCenter
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\Explorer'
+  value_name: DisableNotificationCenter
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

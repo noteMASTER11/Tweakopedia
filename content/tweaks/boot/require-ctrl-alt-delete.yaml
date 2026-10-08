@@ -1,0 +1,59 @@
+id: boot.require-ctrl-alt-delete
+title: Ctrl+Alt+Delete перед входом
+category: boot
+subcategory: sign-in
+kind: setting
+summary: Требует нажать Ctrl+Alt+Delete перед вводом данных учётной записи.
+explanation:
+  purpose: Добавляет обязательный системный шаг перед отображением формы входа.
+  mechanism: Параметр DisableCAD управляет требованием Winlogon обработать Ctrl+Alt+Delete до приёма данных учётной записи.
+  effect: При включении пользователь сначала нажимает Ctrl+Alt+Delete и только затем вводит имя и пароль.
+  tradeoffs: Вход получает дополнительный шаг; на сенсорном устройстве без физической клавиатуры это может быть неудобно.
+  recommendation: Включайте на стационарных рабочих местах; на планшетах и трансформерах учитывайте доступность клавиатуры.
+  technical_details: Изменяется 32-битный DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\DisableCAD. Значение 0 требует Ctrl+Alt+Delete, 1 отменяет требование.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Не требуется
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: DisableCAD
+        view: registry64
+        value: 1
+  enabled:
+    title: Требуется
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: DisableCAD
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+  value_name: DisableCAD
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

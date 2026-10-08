@@ -1,0 +1,59 @@
+id: behavior.download-zone-information
+title: Метка происхождения загруженных файлов
+category: behavior
+subcategory: attachments
+kind: setting
+summary: Управляет сохранением зоны происхождения в файлах, полученных из Интернета или других зон.
+explanation:
+  purpose: Позволяет сохранить стандартную маркировку загруженных файлов либо отказаться от неё.
+  mechanism: Диспетчер вложений записывает сведения о зоне происхождения в альтернативный поток NTFS, если политика SaveZoneInformation не запрещает это.
+  effect: При включённом сохранении Windows может отличать загруженные файлы и показывать соответствующие предупреждения при открытии.
+  tradeoffs: Если отключить сохранение, SmartScreen и другие компоненты получают меньше контекста о происхождении файла; на FAT32 метка всё равно не поддерживается.
+  recommendation: Оставляйте сохранение включённым; отключайте только для контролируемого процесса обработки файлов, где метка зоны мешает работе.
+  technical_details: Изменяется 32-битный DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments\SaveZoneInformation. Значение 2 сохраняет сведения о зоне, 1 не сохраняет.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 15063
+states:
+  disabled:
+    title: Не сохранять
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Attachments'
+        value_name: SaveZoneInformation
+        view: registry64
+        value: 1
+  enabled:
+    title: Сохранять
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Attachments'
+        value_name: SaveZoneInformation
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [15063, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Attachments'
+  value_name: SaveZoneInformation
+  view: registry64
+  states:
+    1: disabled
+    2: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false
