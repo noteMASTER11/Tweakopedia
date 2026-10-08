@@ -91,6 +91,23 @@ TestCase {
         compare(queueBadge.text, "3")
     }
 
+    function test_brandUsesLogoExpandedAndIconCompact() {
+        const navigation = createTemporaryObject(navigationComponent, this)
+        const logo = findChild(navigation, "navigationBrandLogo")
+        const icon = findChild(navigation, "navigationBrandIcon")
+
+        verify(logo)
+        verify(icon)
+        compare(logo.source, "qrc:/images/tweakopedia-logo.png")
+        compare(icon.source, "qrc:/images/tweakopedia-icon.png")
+        compare(logo.visible, true)
+        compare(icon.visible, false)
+
+        navigation.availableWidth = 1099
+        tryCompare(logo, "visible", false)
+        tryCompare(icon, "visible", true)
+    }
+
     function test_activationChangesCurrentDestination() {
         const navigation = createTemporaryObject(navigationComponent, this)
         const spy = signalSpy.createObject(navigation, {

@@ -25,6 +25,7 @@
 #include <QFileInfo>
 #include <QFont>
 #include <QGuiApplication>
+#include <QIcon>
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QProcess>
@@ -361,6 +362,7 @@ int main(int argc, char* argv[])
     QGuiApplication app(argc, argv);
     QCoreApplication::setApplicationName(u"Tweakopedia"_s);
     QCoreApplication::setOrganizationName(u"Tweakopedia"_s);
+    app.setWindowIcon(QIcon(u":/images/tweakopedia-icon.png"_s));
     const auto uiFontFamily = ui::loadBundledUiFont();
     if (uiFontFamily.isEmpty()) return 4;
     app.setFont(QFont(uiFontFamily));

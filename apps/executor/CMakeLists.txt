@@ -1,4 +1,7 @@
-add_executable(TweakopediaExecutor WIN32 main.cpp)
+add_executable(TweakopediaExecutor WIN32
+    main.cpp
+    ${PROJECT_SOURCE_DIR}/assets/branding/tweakopedia.rc
+)
 set_target_properties(TweakopediaExecutor PROPERTIES OUTPUT_NAME "Tweakopedia.Executor")
 
 target_link_libraries(TweakopediaExecutor PRIVATE

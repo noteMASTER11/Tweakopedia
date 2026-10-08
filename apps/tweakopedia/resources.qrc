@@ -26,5 +26,7 @@
     <file alias="images/windows-10.svg">images/windows-10.svg</file>
     <file alias="images/windows-11.svg">images/windows-11.svg</file>
     <file alias="images/windows.svg">images/windows.svg</file>
+    <file alias="images/tweakopedia-logo.png">../../assets/branding/tweakopedia-logo.png</file>
+    <file alias="images/tweakopedia-icon.png">../../assets/branding/tweakopedia-icon.png</file>
   </qresource>
 </RCC>

@@ -31,26 +31,47 @@ Rectangle {
         {title: "История", glyph: "↶"}
     ]
 
-    Text {
-        id: brand
+    Image {
+        id: brandLogo
+        objectName: "navigationBrandLogo"
         anchors.top: parent.top
-        anchors.topMargin: 18
+        anchors.topMargin: 12
         anchors.left: parent.left
         anchors.right: parent.right
-        height: 32
+        anchors.leftMargin: 16
+        anchors.rightMargin: 16
+        height: 62
         visible: !root.compact
-        text: "Tweakopedia"
-        color: FluentTheme.textPrimary
-        font.family: FluentTheme.fontFamily
-        font.pixelSize: 18
-        font.weight: Font.DemiBold
-        horizontalAlignment: Text.AlignLeft
-        leftPadding: 16
+        source: "qrc:/images/tweakopedia-logo.png"
+        fillMode: Image.PreserveAspectFit
+        horizontalAlignment: Image.AlignLeft
+        verticalAlignment: Image.AlignVCenter
+        mipmap: true
+        smooth: true
+        Accessible.name: "Tweakopedia"
+        Accessible.role: Accessible.Graphic
+    }
+
+    Image {
+        id: brandIcon
+        objectName: "navigationBrandIcon"
+        anchors.top: parent.top
+        anchors.topMargin: 10
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: 44
+        height: 44
+        visible: root.compact
+        source: "qrc:/images/tweakopedia-icon.png"
+        fillMode: Image.PreserveAspectFit
+        mipmap: true
+        smooth: true
+        Accessible.name: "Tweakopedia"
+        Accessible.role: Accessible.Graphic
     }
 
     Column {
-        anchors.top: root.compact ? parent.top : brand.bottom
-        anchors.topMargin: root.compact ? 12 : 16
+        anchors.top: root.compact ? brandIcon.bottom : brandLogo.bottom
+        anchors.topMargin: 12
         anchors.left: parent.left
         anchors.right: parent.right
         spacing: 2

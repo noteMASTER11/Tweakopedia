@@ -8,7 +8,10 @@ add_library(TweakopediaBootstrapCore STATIC
 target_include_directories(TweakopediaBootstrapCore PUBLIC ${PROJECT_SOURCE_DIR}/apps)
 target_link_libraries(TweakopediaBootstrapCore PUBLIC TweakopediaPackage PRIVATE shell32)
 
-add_executable(TweakopediaBootstrap WIN32 main.cpp)
+add_executable(TweakopediaBootstrap WIN32
+    main.cpp
+    ${PROJECT_SOURCE_DIR}/assets/branding/tweakopedia.rc
+)
 set_target_properties(TweakopediaBootstrap PROPERTIES OUTPUT_NAME Tweakopedia)
 target_link_libraries(TweakopediaBootstrap PRIVATE TweakopediaBootstrapCore)
 if(MINGW)

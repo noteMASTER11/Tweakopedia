@@ -391,6 +391,20 @@ target_link_libraries(UiFontLoaderTest PRIVATE Qt6::Gui Qt6::Test)
 add_test(NAME UiFontLoader COMMAND UiFontLoaderTest)
 set_tests_properties(UiFontLoader PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+add_executable(BrandingAssetsTest
+    ui/BrandingAssetsTest.cpp
+    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/resources.qrc
+)
+target_compile_definitions(BrandingAssetsTest PRIVATE
+    TWEAKOPEDIA_TEST_CONTAINER="$<TARGET_FILE:TweakopediaBootstrap>"
+    TWEAKOPEDIA_TEST_GUI="$<TARGET_FILE:Tweakopedia>"
+    TWEAKOPEDIA_TEST_EXECUTOR="$<TARGET_FILE:TweakopediaExecutor>"
+)
+target_link_libraries(BrandingAssetsTest PRIVATE Qt6::Gui Qt6::Test)
+add_dependencies(BrandingAssetsTest TweakopediaBootstrap Tweakopedia TweakopediaExecutor)
+add_test(NAME BrandingAssets COMMAND BrandingAssetsTest)
+set_tests_properties(BrandingAssets PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 add_executable(TweakopediaVisualCapture
     visual/VisualCaptureMain.cpp
     ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiFontLoader.cpp

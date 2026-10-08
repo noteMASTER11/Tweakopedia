@@ -4,6 +4,7 @@ qt_add_executable(Tweakopedia WIN32
     UiFontLoader.h
     fonts.qrc
     resources.qrc
+    ${PROJECT_SOURCE_DIR}/assets/branding/tweakopedia.rc
 )
 set_target_properties(Tweakopedia PROPERTIES OUTPUT_NAME "Tweakopedia.App")
 
