@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.30)
 
-project(Tweakopedia VERSION 0.9.1 LANGUAGES C CXX RC)
+project(Tweakopedia VERSION 0.9.2 LANGUAGES C CXX RC)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

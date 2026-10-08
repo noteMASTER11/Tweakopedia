@@ -241,7 +241,7 @@ TestCase {
         compare(findChild(page, "aboutBackground").color, FluentTheme.canvas)
         compare(findChild(page, "aboutTitle").text, "О программе")
         compare(findChild(page, "aboutProductName").text, "Tweakopedia")
-        compare(findChild(page, "aboutVersion").text, "Версия 0.9.1 · x64 · Portable")
+        compare(findChild(page, "aboutVersion").text, "Версия 0.9.2 · x64 · Portable")
         verify(findChild(page, "aboutDescription").text.indexOf("офлайн-энциклопедия") >= 0)
 
         const libraries = findChild(page, "aboutLibraries")

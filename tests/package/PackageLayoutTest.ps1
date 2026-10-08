@@ -17,8 +17,8 @@ if ($entries.Count -ne 1 -or $entries[0].PSIsContainer `
 }
 
 $version = $entries[0].VersionInfo.ProductVersion
-if ($version -ne '0.9.1.0') {
-    throw "Версия Tweakopedia.exe должна быть 0.9.1.0, фактически: $version"
+if ($version -ne '0.9.2.0') {
+    throw "Версия Tweakopedia.exe должна быть 0.9.2.0, фактически: $version"
 }
 
-Write-Output "PASS: single-file layout and version 0.9.1 verified at $packageRoot"
+Write-Output "PASS: single-file layout and version 0.9.2 verified at $packageRoot"
