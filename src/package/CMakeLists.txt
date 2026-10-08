@@ -4,6 +4,10 @@ add_library(TweakopediaPackage STATIC
     PackageTypes.h
     PayloadManifest.cpp
     PayloadManifest.h
+    RuntimeCache.cpp
+    RuntimeCache.h
+    RuntimeLease.cpp
+    RuntimeLease.h
     Sha256.cpp
     Sha256.h
     ZipPayload.cpp

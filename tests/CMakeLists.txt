@@ -21,6 +21,20 @@ add_executable(ZipPayloadTest package/ZipPayloadTest.cpp)
 target_link_libraries(ZipPayloadTest PRIVATE Qt6::Test TweakopediaPackage TweakopediaMiniz)
 add_test(NAME ZipPayload COMMAND ZipPayloadTest)
 
+add_executable(RuntimeCacheProbe package/RuntimeCacheProbe.cpp)
+target_link_libraries(RuntimeCacheProbe PRIVATE TweakopediaPackage)
+if(MINGW)
+    target_link_options(RuntimeCacheProbe PRIVATE -municode)
+endif()
+
+add_executable(RuntimeCacheTest package/RuntimeCacheTest.cpp)
+target_compile_definitions(RuntimeCacheTest PRIVATE
+    TWEAKOPEDIA_RUNTIME_CACHE_PROBE="$<TARGET_FILE:RuntimeCacheProbe>"
+)
+target_link_libraries(RuntimeCacheTest PRIVATE Qt6::Test TweakopediaPackage)
+add_dependencies(RuntimeCacheTest RuntimeCacheProbe)
+add_test(NAME RuntimeCache COMMAND RuntimeCacheTest)
+
 add_executable(DomainTweakDefinitionTest
     domain/TweakDefinitionTest.cpp
 )

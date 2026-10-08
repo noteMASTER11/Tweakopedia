@@ -95,4 +95,34 @@ Result<Digest> sha256File(
     return Result<Digest>::success(digest);
 }
 
+std::string digestToHex(const Digest& digest)
+{
+    constexpr char digits[] = "0123456789abcdef";
+    std::string encoded(digest.size() * 2, '0');
+    for (std::size_t index = 0; index < digest.size(); ++index) {
+        const auto value = std::to_integer<unsigned char>(digest[index]);
+        encoded[index * 2] = digits[value >> 4];
+        encoded[index * 2 + 1] = digits[value & 0x0f];
+    }
+    return encoded;
+}
+
+std::optional<Digest> digestFromHex(std::string_view encoded)
+{
+    Digest digest{};
+    if (encoded.size() != digest.size() * 2) return std::nullopt;
+    auto nibble = [](char value) -> int {
+        if (value >= '0' && value <= '9') return value - '0';
+        if (value >= 'a' && value <= 'f') return 10 + value - 'a';
+        return -1;
+    };
+    for (std::size_t index = 0; index < digest.size(); ++index) {
+        const auto high = nibble(encoded[index * 2]);
+        const auto low = nibble(encoded[index * 2 + 1]);
+        if (high < 0 || low < 0) return std::nullopt;
+        digest[index] = static_cast<std::byte>((high << 4) | low);
+    }
+    return digest;
+}
+
 }
