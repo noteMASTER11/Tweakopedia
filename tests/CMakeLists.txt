@@ -17,6 +17,10 @@ add_executable(PayloadManifestTest package/PayloadManifestTest.cpp)
 target_link_libraries(PayloadManifestTest PRIVATE Qt6::Test TweakopediaPackage)
 add_test(NAME PayloadManifest COMMAND PayloadManifestTest)
 
+add_executable(ZipPayloadTest package/ZipPayloadTest.cpp)
+target_link_libraries(ZipPayloadTest PRIVATE Qt6::Test TweakopediaPackage TweakopediaMiniz)
+add_test(NAME ZipPayload COMMAND ZipPayloadTest)
+
 add_executable(DomainTweakDefinitionTest
     domain/TweakDefinitionTest.cpp
 )

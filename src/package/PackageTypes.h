@@ -47,4 +47,22 @@ struct Result {
     }
 };
 
+template<>
+struct Result<void> {
+    bool succeeded{};
+    Error error;
+
+    [[nodiscard]] bool ok() const { return succeeded; }
+
+    static Result success()
+    {
+        return {.succeeded = true, .error = {}};
+    }
+
+    static Result failure(ErrorCode code, std::string message)
+    {
+        return {.succeeded = false, .error = {code, std::move(message)}};
+    }
+};
+
 }

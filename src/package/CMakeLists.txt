@@ -6,8 +6,12 @@ add_library(TweakopediaPackage STATIC
     PayloadManifest.h
     Sha256.cpp
     Sha256.h
+    ZipPayload.cpp
+    ZipPayload.h
 )
 
 tweakopedia_prepare_bootstrap_dependencies()
 target_include_directories(TweakopediaPackage PUBLIC ${PROJECT_SOURCE_DIR}/src)
-target_link_libraries(TweakopediaPackage PRIVATE bcrypt nlohmann_json::nlohmann_json)
+target_link_libraries(TweakopediaPackage
+    PRIVATE bcrypt nlohmann_json::nlohmann_json TweakopediaMiniz
+)
