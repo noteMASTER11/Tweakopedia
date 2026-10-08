@@ -1,12 +1,14 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
+import "../components"
 import "../style"
 
 Page {
     id: root
 
     required property var controller
+    property bool wideLayout: width >= 900
     readonly property bool applying: controller.applyStatus === "running"
     readonly property bool showSuccess: controller.applyStatus === "succeeded"
         && controller.queue.count === 0
@@ -15,11 +17,16 @@ Page {
         return "Изменения Windows — " + Qt.formatDateTime(new Date(), "dd.MM.yyyy HH:mm")
     }
 
+    function showExplanation(tweakId, trigger) {
+        infoPane.show(controller.openExplanation(tweakId), trigger)
+    }
+
     padding: 24
     background: Rectangle { objectName: "queueBackground"; color: FluentTheme.canvas }
 
     ColumnLayout {
         anchors.fill: parent
+        anchors.rightMargin: infoPane.opened && infoPane.docked ? infoPane.width : 0
         spacing: 12
         visible: !root.showSuccess
 
@@ -60,11 +67,42 @@ Page {
                 model: root.controller.queue
 
                 delegate: Rectangle {
+                    id: queueItemCard
+                    objectName: "queueItemCard"
                     width: ListView.view.width
                     height: 64
                     radius: 8
                     color: FluentTheme.surface
-                    border.color: FluentTheme.stroke
+                    border.color: queueItemHover.hovered ? FluentTheme.accent : FluentTheme.stroke
+                    activeFocusOnTab: true
+                    Accessible.role: Accessible.Button
+                    Accessible.name: "Открыть справку: " + model.title
+
+                    function openExplanation() {
+                        forceActiveFocus()
+                        root.showExplanation(model.id, queueItemCard)
+                    }
+
+                    Keys.onReturnPressed: event => {
+                        openExplanation()
+                        event.accepted = true
+                    }
+                    Keys.onEnterPressed: event => {
+                        openExplanation()
+                        event.accepted = true
+                    }
+                    Keys.onSpacePressed: event => {
+                        openExplanation()
+                        event.accepted = true
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: queueItemCard.openExplanation()
+                    }
+
+                    HoverHandler { id: queueItemHover }
 
                     RowLayout {
                         anchors.fill: parent
@@ -239,5 +277,15 @@ Page {
                 }
             }
         }
+    }
+
+    InfoPane {
+        id: infoPane
+        objectName: "queueInfoPane"
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        width: 420
+        docked: root.wideLayout
     }
 }

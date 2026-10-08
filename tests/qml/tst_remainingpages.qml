@@ -52,8 +52,10 @@ TestCase {
             ]
         })
         property int applyCalls: 0
+        property int explanationCalls: 0
         property int restartCalls: 0
         property string lastPackageName: ""
+        property string lastExplanationId: ""
         property string lastRemovedId: ""
         function buildPreview() { return false }
         function applyQueue(name) {
@@ -63,6 +65,21 @@ TestCase {
             return true
         }
         function removeFromQueue(id) { lastRemovedId = id; return true }
+        function openExplanation(id) {
+            ++explanationCalls
+            lastExplanationId = id
+            return {
+                title: "Подробные сообщения входа",
+                purpose: "Показывает подробные этапы входа.",
+                mechanism: "Изменяет системную политику.",
+                effect: "Windows выводит больше сведений.",
+                tradeoffs: "Экран входа становится подробнее.",
+                recommendation: "Использовать при диагностике.",
+                technicalDetails: "VerboseStatus",
+                registryObject: "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\VerboseStatus",
+                rollback: "Возвращается исходное значение."
+            }
+        }
         function restartComputer() { ++restartCalls; return true }
         function rollback(id) { return false }
     }
@@ -79,8 +96,10 @@ TestCase {
         fakeController.applyMessage = ""
         fakeController.rebootRequired = false
         fakeController.applyCalls = 0
+        fakeController.explanationCalls = 0
         fakeController.restartCalls = 0
         fakeController.lastPackageName = ""
+        fakeController.lastExplanationId = ""
         fakeController.lastRemovedId = ""
     }
 
@@ -139,6 +158,21 @@ TestCase {
         compare(apply.enabled, false)
         compare(findChild(page, "applySpinner").visible, true)
         compare(findChild(page, "applySpinner").running, true)
+    }
+
+    function test_queueCardOpensExplanationWithoutCancellingChange() {
+        addQueuedChange()
+        const page = createTemporaryObject(queueComponent, this)
+
+        const card = findChild(page, "queueItemCard")
+        verify(card !== null)
+        mouseClick(card, 24, card.height / 2)
+
+        compare(fakeController.explanationCalls, 1)
+        compare(fakeController.lastExplanationId, "boot.verbose-logon-messages")
+        compare(fakeController.lastRemovedId, "")
+        compare(findChild(page, "queueInfoPane").visible, true)
+        compare(findChild(page, "infoTitle").text, "Подробные сообщения входа")
     }
 
     function test_failedApplyRestoresButtonAndShowsMessage() {

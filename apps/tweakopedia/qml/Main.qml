@@ -46,7 +46,10 @@ ApplicationWindow {
                 pageTitle: "Справочник"
                 description: "Обучающие материалы будут добавляться вместе с тематическими разделами каталога."
             }
-            QueuePage { controller: appController }
+            QueuePage {
+                controller: appController
+                wideLayout: window.width >= 1180
+            }
             HistoryPage { controller: appController }
             PlaceholderPage {
                 pageTitle: "Настройки"
