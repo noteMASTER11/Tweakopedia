@@ -108,7 +108,7 @@ Rectangle {
         visible: !root.compact
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.bottom: settingsItem.top
+        anchors.bottom: aboutItem.top
         anchors.bottomMargin: 8
         height: 58
         checked: root.hideUnsupportedTweaks
@@ -172,7 +172,7 @@ Rectangle {
         objectName: "unsupportedTweaksCompactButton"
         visible: root.compact
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: settingsItem.top
+        anchors.bottom: aboutItem.top
         anchors.bottomMargin: 8
         width: 44
         height: 44
@@ -205,14 +205,14 @@ Rectangle {
     }
 
     FluentNavigationItem {
-        id: settingsItem
+        id: aboutItem
         objectName: "navItem_5"
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 12
-        title: "Настройки"
-        glyph: "\uE713"
+        title: "О программе"
+        glyph: "\uE946"
         compact: root.compact
         selected: root.currentIndex === 5
         destinationIndex: 5

@@ -60,10 +60,7 @@ ApplicationWindow {
                 wideLayout: window.width >= 1180
             }
             HistoryPage { controller: appController }
-            PlaceholderPage {
-                pageTitle: "Настройки"
-                description: "Здесь появятся параметры интерфейса, журналов и хранения локальных данных."
-            }
+            AboutPage {}
         }
     }
 }

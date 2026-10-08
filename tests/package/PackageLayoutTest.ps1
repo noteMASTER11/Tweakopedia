@@ -16,4 +16,9 @@ if ($entries.Count -ne 1 -or $entries[0].PSIsContainer `
     throw "В каталоге выпуска должен находиться ровно один файл Tweakopedia.exe."
 }
 
-Write-Output "PASS: single-file layout verified at $packageRoot"
+$version = $entries[0].VersionInfo.ProductVersion
+if ($version -ne '0.9.0.0') {
+    throw "Версия Tweakopedia.exe должна быть 0.9.0.0, фактически: $version"
+}
+
+Write-Output "PASS: single-file layout and version 0.9 verified at $packageRoot"

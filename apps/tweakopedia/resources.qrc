@@ -8,7 +8,7 @@
     <file alias="qml/pages/TweakopediaPage.qml">qml/pages/TweakopediaPage.qml</file>
     <file alias="qml/pages/QueuePage.qml">qml/pages/QueuePage.qml</file>
     <file alias="qml/pages/HistoryPage.qml">qml/pages/HistoryPage.qml</file>
-    <file alias="qml/pages/PlaceholderPage.qml">qml/pages/PlaceholderPage.qml</file>
+    <file alias="qml/pages/AboutPage.qml">qml/pages/AboutPage.qml</file>
     <file alias="qml/components/TweakRow.qml">qml/components/TweakRow.qml</file>
     <file alias="qml/components/FluentToggle.qml">qml/components/FluentToggle.qml</file>
     <file alias="qml/components/StateLabel.qml">qml/components/StateLabel.qml</file>

@@ -218,4 +218,31 @@ TestCase {
         verify(description.text.indexOf("раскройте пакет") >= 0)
         verify(description.text.indexOf("Вернуть исходное") >= 0)
     }
+
+    function test_aboutPageDescribesBuildLibrariesAndCredits() {
+        const component = Qt.createComponent(Qt.resolvedUrl(
+            "../../apps/tweakopedia/qml/pages/AboutPage.qml"))
+        compare(component.status, Component.Ready, component.errorString())
+        const page = createTemporaryObject(component, this, {width: 900, height: 620})
+
+        compare(findChild(page, "aboutBackground").color, FluentTheme.canvas)
+        compare(findChild(page, "aboutTitle").text, "О программе")
+        compare(findChild(page, "aboutProductName").text, "Tweakopedia")
+        compare(findChild(page, "aboutVersion").text, "Версия 0.9 · x64 · Portable")
+        verify(findChild(page, "aboutDescription").text.indexOf("офлайн-энциклопедия") >= 0)
+
+        const libraries = findChild(page, "aboutLibraries")
+        verify(libraries.text.indexOf("Qt 6.8.3") >= 0)
+        verify(libraries.text.indexOf("yaml-cpp 0.8.0") >= 0)
+        verify(libraries.text.indexOf("nlohmann/json 3.12.0") >= 0)
+        verify(libraries.text.indexOf("miniz 3.1.2") >= 0)
+        verify(libraries.text.indexOf("SQLite") >= 0)
+
+        const credits = findChild(page, "aboutCredits")
+        verify(credits.text.indexOf("Raphire") >= 0)
+        verify(credits.text.indexOf("Plínio Larrubia / LeDragoX") >= 0)
+        verify(credits.text.indexOf("thebookisclosed") >= 0)
+        verify(credits.text.indexOf("Sergey Tkachenko") >= 0)
+        verify(credits.text.indexOf("SanLex") < 0)
+    }
 }
