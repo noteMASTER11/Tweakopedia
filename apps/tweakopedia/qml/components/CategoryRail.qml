@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Layouts
 import "../style"
 
 Item {
@@ -9,6 +10,27 @@ Item {
     property bool wide: true
     property string currentCategory: ""
     signal categorySelected(string categoryId)
+
+    function categoryGlyph(categoryId) {
+        const glyphs = {
+            "": "\uE8FD",
+            "behavior": "\uE8AB",
+            "boot": "\uE7E8",
+            "accounts": "\uE77B",
+            "desktop": "\uE7F4",
+            "privacy": "\uE72E",
+            "filesystem": "\uE8B7",
+            "network": "\uE774",
+            "apps": "\uECAA",
+            "app-removal": "\uE74D",
+            "devices": "\uE772",
+            "experimental": "\uE943",
+            "gaming": "\uE7FC",
+            "power": "\uE945",
+            "updates": "\uE895"
+        }
+        return glyphs[categoryId] || "\uE8A5"
+    }
 
     implicitWidth: wide ? 220 : 400
     implicitHeight: wide ? 400 : 44
@@ -39,16 +61,33 @@ Item {
                 root.categorySelected(categoryId)
             }
 
-            contentItem: Text {
-                text: categoryButton.text
-                color: FluentTheme.textPrimary
-                elide: Text.ElideRight
-                horizontalAlignment: root.wide ? Text.AlignLeft : Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-                font.family: FluentTheme.fontFamily
-                font.pixelSize: 13
-                font.weight: categoryButton.categoryId === root.currentCategory
-                    ? Font.DemiBold : Font.Normal
+            contentItem: RowLayout {
+                spacing: 10
+
+                Text {
+                    objectName: "categoryIcon_" + categoryButton.categoryId
+                    Layout.preferredWidth: 20
+                    text: root.categoryGlyph(categoryButton.categoryId)
+                    color: categoryButton.categoryId === root.currentCategory
+                        ? FluentTheme.accent : FluentTheme.textSecondary
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    font.family: "Segoe MDL2 Assets"
+                    font.pixelSize: 16
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: categoryButton.text
+                    color: FluentTheme.textPrimary
+                    elide: Text.ElideRight
+                    horizontalAlignment: Text.AlignLeft
+                    verticalAlignment: Text.AlignVCenter
+                    font.family: FluentTheme.fontFamily
+                    font.pixelSize: 13
+                    font.weight: categoryButton.categoryId === root.currentCategory
+                        ? Font.DemiBold : Font.Normal
+                }
             }
 
             background: Rectangle {

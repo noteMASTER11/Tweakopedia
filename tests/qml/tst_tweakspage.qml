@@ -10,7 +10,10 @@ TestCase {
     width: 1300
     height: 760
 
-    ListModel { id: tweaksModel }
+    ListModel {
+        id: tweaksModel
+        property string categoryId: ""
+    }
     ListModel { id: categoriesModel }
     QtObject {
         id: queueModel
@@ -29,7 +32,10 @@ TestCase {
         property string appRemovalScanError: ""
         property int scanCalls: 0
         function setTweakSearch(query) { lastSearch = query }
-        function setTweakCategory(category) { lastCategory = category }
+        function setTweakCategory(category) {
+            lastCategory = category
+            tweaksModel.categoryId = category
+        }
         function selectTarget(id, state) { lastTarget = id + ":" + state; return true }
         function openExplanation(id) {
             return {
@@ -75,6 +81,7 @@ TestCase {
         fakeController.appRemovalScanStatus = "idle"
         fakeController.appRemovalScanError = ""
         fakeController.scanCalls = 0
+        tweaksModel.categoryId = ""
         queueModel.count = 2
     }
 
@@ -165,6 +172,45 @@ TestCase {
 
         queueModel.count = 0
         tryCompare(bar, "visible", false)
+    }
+
+    function test_eachTopLevelCategoryHasItsOwnIcon() {
+        const additionalCategories = [
+            ["behavior", "Поведение Windows"],
+            ["boot", "Загрузка и вход"],
+            ["accounts", "Учётные записи"],
+            ["desktop", "Рабочий стол"],
+            ["privacy", "Конфиденциальность"],
+            ["network", "Сеть"],
+            ["apps", "Приложения"],
+            ["app-removal", "Удаление приложений"],
+            ["devices", "Устройства"],
+            ["experimental", "Экспериментальные функции"],
+            ["gaming", "Игры"],
+            ["power", "Питание"],
+            ["updates", "Обновления"]
+        ]
+        for (const category of additionalCategories)
+            categoriesModel.append({id: category[0], title: category[1], subcategories: []})
+
+        const page = createTemporaryObject(pageComponent, this)
+        page.height = 1100
+        const categoryIds = [
+            "", "filesystem", "behavior", "boot", "accounts", "desktop", "privacy",
+            "network", "apps", "app-removal", "devices", "experimental", "gaming",
+            "power", "updates"
+        ]
+        const glyphs = []
+        for (const categoryId of categoryIds) {
+            const icon = findChild(page, "categoryIcon_" + categoryId)
+            verify(icon)
+            verify(icon.text.length > 0)
+            compare(icon.font.family, "Segoe MDL2 Assets")
+            verify(glyphs.indexOf(icon.text) === -1)
+            glyphs.push(icon.text)
+        }
+
+        categoriesModel.remove(2, additionalCategories.length)
     }
 
     Component { id: signalSpy; SignalSpy {} }

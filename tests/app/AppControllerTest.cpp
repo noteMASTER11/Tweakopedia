@@ -148,6 +148,48 @@ private slots:
         QCOMPARE(controller.filteredTweaks()->rowCount(), 1);
     }
 
+    void hidingUnsupportedTweaksRemovesEmptyCategoriesAndResetsSelection()
+    {
+        auto backend = services();
+        auto supported = backend.catalog.tweaks().first();
+        auto unsupported = supported;
+        unsupported.id = *domain::TweakId::parse(u"experimental.future-feature"_s);
+        unsupported.title = u"Будущая функция"_s;
+        unsupported.category = u"experimental"_s;
+        unsupported.subcategory = u"feature-store"_s;
+        unsupported.compatibility.minimumBuild = 99999;
+        backend.catalog = content::TweakCatalog({supported, unsupported});
+        backend.categoryCatalog = content::CategoryCatalog({
+            {.id = u"filesystem"_s, .title = u"Файловая система"_s},
+            {.id = u"experimental"_s, .title = u"Экспериментальные функции"_s},
+            {.id = u"app-removal"_s, .title = u"Удаление приложений"_s},
+        });
+        app::AppController controller(backend);
+
+        QVERIFY(controller.startup());
+        QCOMPARE(controller.categories()->rowCount(), 4);
+        controller.setTweakCategory(u"experimental"_s);
+        QCOMPARE(controller.filteredTweaks()->rowCount(), 1);
+
+        controller.setHideUnsupportedTweaks(true);
+
+        QCOMPARE(controller.categories()->rowCount(), 3);
+        QCOMPARE(controller.categories()->data(
+                     controller.categories()->index(0), app::CategoryListModel::IdRole).toString(),
+                 QString{});
+        QCOMPARE(controller.categories()->data(
+                     controller.categories()->index(1), app::CategoryListModel::IdRole).toString(),
+                 u"filesystem"_s);
+        QCOMPARE(controller.categories()->data(
+                     controller.categories()->index(2), app::CategoryListModel::IdRole).toString(),
+                 u"app-removal"_s);
+        QCOMPARE(controller.filteredTweaks()->categoryId(), QString{});
+        QCOMPARE(controller.filteredTweaks()->rowCount(), 1);
+
+        controller.setHideUnsupportedTweaks(false);
+        QCOMPARE(controller.categories()->rowCount(), 4);
+    }
+
     void appRemovalCatalogIsLoadedOnlyAfterExplicitScan()
     {
         auto backend = services();

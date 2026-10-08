@@ -31,7 +31,7 @@ ApplicationWindow {
             queueCount: appController.queue.count
             hideUnsupportedTweaks: appController.filteredTweaks.hideUnsupported
             onHideUnsupportedTweaksRequested: function(hide) {
-                appController.filteredTweaks.hideUnsupported = hide
+                appController.setHideUnsupportedTweaks(hide)
             }
         }
 

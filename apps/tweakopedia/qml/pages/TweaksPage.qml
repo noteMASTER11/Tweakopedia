@@ -8,7 +8,7 @@ Page {
 
     required property var controller
     property bool wideLayout: width >= 1180
-    property string selectedCategory: ""
+    readonly property string selectedCategory: controller.filteredTweaks.categoryId || ""
     readonly property bool appRemovalSelected: selectedCategory === "app-removal"
     readonly property bool appRemovalPromptVisible:
         appRemovalSelected && controller.appRemovalScanStatus !== "succeeded"
@@ -68,8 +68,8 @@ Page {
             : 44
         model: root.controller.categories
         wide: root.wideLayout
+        currentCategory: root.selectedCategory
         onCategorySelected: categoryId => {
-            root.selectedCategory = categoryId
             root.controller.setTweakCategory(categoryId)
         }
     }

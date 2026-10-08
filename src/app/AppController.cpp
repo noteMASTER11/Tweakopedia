@@ -5,6 +5,7 @@
 #include "app/SystemOverviewPresenter.h"
 
 #include <QtConcurrentRun>
+#include <QSet>
 #include <algorithm>
 using namespace Qt::StringLiterals;
 
@@ -41,6 +42,10 @@ AppController::AppController(IAppServices& services, QObject* parent)
     , historyModel_(this)
 {
     filteredTweaksModel_.setSourceModel(&tweaksModel_);
+    connect(&filteredTweaksModel_,
+            &TweakFilterProxyModel::hideUnsupportedChanged,
+            this,
+            &AppController::refreshCategories);
     connect(&systemOverviewWatcher_,
             &QFutureWatcher<domain::SystemOverviewSnapshot>::finished,
             this,
@@ -75,6 +80,7 @@ AppController::AppController(IAppServices& services, QObject* parent)
                 catalog_ = content::TweakCatalog(std::move(definitions));
                 refreshDetectedStates();
                 refreshModels();
+                refreshCategories();
                 appRemovalScanStatus_ = u"succeeded"_s;
                 appRemovalScanError_.clear();
                 emit appRemovalScanChanged();
@@ -153,10 +159,10 @@ bool AppController::startup()
         return false;
     }
     categoryCatalog_ = *loadedCategories.catalog;
-    categoriesModel_.reset(categoryCatalog_);
     profile_ = services_->currentProfile();
     refreshDetectedStates();
     refreshModels();
+    refreshCategories();
     historyModel_.reset(services_->history());
     refreshSystemOverview();
     setError({});
@@ -171,6 +177,11 @@ void AppController::setTweakSearch(const QString& query)
 void AppController::setTweakCategory(const QString& categoryId)
 {
     filteredTweaksModel_.setCategoryId(categoryId);
+}
+
+void AppController::setHideUnsupportedTweaks(bool hide)
+{
+    filteredTweaksModel_.setHideUnsupported(hide);
 }
 
 bool AppController::selectTarget(const QString& id, const QString& state)
@@ -416,6 +427,34 @@ void AppController::refreshModels()
         (void)tweaksModel_.setTargetState(item.tweakId, item.targetState);
     }
     queueModel_.reset(catalog_, queueData_, detected_);
+}
+
+void AppController::refreshCategories()
+{
+    if (!filteredTweaksModel_.hideUnsupported()) {
+        categoriesModel_.reset(categoryCatalog_);
+        return;
+    }
+
+    QSet<QString> visibleCategoryIds;
+    for (const auto& tweak : catalog_.tweaks()) {
+        if (supported_.value(tweak.id)) visibleCategoryIds.insert(tweak.category);
+    }
+
+    QVector<content::CategoryDefinition> visibleCategories;
+    for (const auto& category : categoryCatalog_.categories()) {
+        if (category.id == u"app-removal"_s || visibleCategoryIds.contains(category.id)) {
+            visibleCategories.append(category);
+        }
+    }
+
+    const auto selectedCategory = filteredTweaksModel_.categoryId();
+    if (!selectedCategory.isEmpty()
+        && selectedCategory != u"app-removal"_s
+        && !visibleCategoryIds.contains(selectedCategory)) {
+        filteredTweaksModel_.setCategoryId({});
+    }
+    categoriesModel_.reset(content::CategoryCatalog(std::move(visibleCategories)));
 }
 
 void AppController::resetOperationState()
