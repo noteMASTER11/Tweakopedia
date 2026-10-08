@@ -8,3 +8,15 @@ target_link_libraries(BuildSmokeTest
 )
 
 add_test(NAME BuildSmoke COMMAND BuildSmokeTest)
+
+add_executable(DomainTweakDefinitionTest
+    domain/TweakDefinitionTest.cpp
+)
+
+target_link_libraries(DomainTweakDefinitionTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaDomain
+)
+
+add_test(NAME DomainTweakDefinition COMMAND DomainTweakDefinitionTest)

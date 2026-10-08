@@ -9,11 +9,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include(CTest)
 include(cmake/Dependencies.cmake)
 
-find_package(Qt6 6.8.3 REQUIRED COMPONENTS Test)
+find_package(Qt6 6.8.3 REQUIRED COMPONENTS Core Test)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+
+add_subdirectory(src/domain)
 
 if(BUILD_TESTING)
     add_subdirectory(tests)
