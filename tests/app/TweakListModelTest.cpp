@@ -17,7 +17,10 @@ private:
         const auto loaded = content::TweakCatalogLoader{}.loadDirectory(
             QStringLiteral(TWEAKOPEDIA_TEST_CONTENT_ROOT));
         Q_ASSERT(loaded.catalog.has_value());
-        return *loaded.catalog;
+        const auto id = *domain::TweakId::parse(u"filesystem.win32-long-paths");
+        const auto* tweak = loaded.catalog->find(id);
+        Q_ASSERT(tweak != nullptr);
+        return content::TweakCatalog({*tweak});
     }
 
 private slots:

@@ -1,6 +1,33 @@
 categories:
+  - id: behavior
+    title: Поведение Windows
+    subcategories:
+      - id: windows
+        title: Окна и запуск программ
+  - id: boot
+    title: Загрузка и вход
+    subcategories:
+      - id: diagnostics
+        title: Сообщения и диагностика входа
+  - id: desktop
+    title: Рабочий стол и панель задач
+    subcategories:
+      - id: desktop
+        title: Рабочий стол
   - id: filesystem
     title: Накопители, NTFS и файловая система
     subcategories:
       - id: paths
         title: Пути и совместимость приложений
+      - id: removable
+        title: Съёмные накопители
+  - id: network
+    title: Сеть и общий доступ
+    subcategories:
+      - id: mapped-drives
+        title: Подключённые сетевые диски
+  - id: updates
+    title: Обновления Windows
+    subcategories:
+      - id: drivers
+        title: Драйверы через Windows Update

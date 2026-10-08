@@ -1,0 +1,59 @@
+id: updates.exclude-driver-updates
+title: Исключение драйверов из Windows Update
+category: updates
+subcategory: drivers
+kind: setting
+summary: Не включает драйверы устройств в обычные обновления качества Windows.
+explanation:
+  purpose: Позволяет управлять драйверами отдельно и не получать их вместе с обычными обновлениями Windows.
+  mechanism: Политика ExcludeWUDriversInQualityUpdate указывает клиенту Windows Update исключать драйверы из обновлений качества.
+  effect: Windows Update продолжает искать системные обновления, но не устанавливает драйверы в составе этого канала.
+  tradeoffs: Новые версии драйверов придётся получать вручную, через производителя устройства или другим штатным способом.
+  recommendation: Включайте на системах с проверенным набором драйверов или при несовместимости автоматических обновлений драйверов.
+  technical_details: Изменяется 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\ExcludeWUDriversInQualityUpdate. Значение 1 исключает драйверы, 0 включает их обратно.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14328
+states:
+  disabled:
+    title: Выключено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
+        value_name: ExcludeWUDriversInQualityUpdate
+        view: registry64
+        value: 0
+  enabled:
+    title: Включено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
+        value_name: ExcludeWUDriversInQualityUpdate
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [14328, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
+  value_name: ExcludeWUDriversInQualityUpdate
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

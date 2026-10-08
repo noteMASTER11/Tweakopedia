@@ -1,0 +1,59 @@
+id: filesystem.usb-write-protection
+title: Защита USB-накопителей от записи
+category: filesystem
+subcategory: removable
+kind: setting
+summary: Переводит вновь подключаемые USB-накопители в режим только для чтения.
+explanation:
+  purpose: Запрещает изменение и удаление файлов на USB-накопителях средствами этой системы.
+  mechanism: Драйверы съёмных накопителей учитывают системный параметр WriteProtect при подключении устройства.
+  effect: Вновь подключённые USB-накопители доступны для чтения, но запись, удаление и форматирование блокируются.
+  tradeoffs: Параметр действует на все подходящие USB-накопители; уже подключённое устройство нужно переподключить.
+  recommendation: Включайте только при осознанной необходимости работать со съёмными носителями без записи.
+  technical_details: Изменяется 32-битный DWORD HKLM\SYSTEM\CurrentControlSet\Control\StorageDevicePolicies\WriteProtect. Значение 1 запрещает запись, 0 разрешает её.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Выключено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\StorageDevicePolicies'
+        value_name: WriteProtect
+        view: registry64
+        value: 0
+  enabled:
+    title: Включено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\StorageDevicePolicies'
+        value_name: WriteProtect
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\StorageDevicePolicies'
+  value_name: WriteProtect
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

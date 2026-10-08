@@ -135,8 +135,23 @@ private slots:
 
         QVERIFY(result.errors.isEmpty());
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 1);
-        QVERIFY(result.catalog->find(*TweakId::parse(u"filesystem.win32-long-paths")) != nullptr);
+        QCOMPARE(result.catalog->size(), 8);
+
+        const QStringList expectedIds{
+            u"behavior.disable-aero-shake"_s,
+            u"behavior.reduce-startup-delay"_s,
+            u"boot.verbose-logon-messages"_s,
+            u"desktop.show-windows-version"_s,
+            u"filesystem.usb-write-protection"_s,
+            u"filesystem.win32-long-paths"_s,
+            u"network.elevated-mapped-drives"_s,
+            u"updates.exclude-driver-updates"_s,
+        };
+        for (const auto& expectedId : expectedIds) {
+            const auto id = TweakId::parse(expectedId);
+            QVERIFY2(id.has_value(), qPrintable(expectedId));
+            QVERIFY2(result.catalog->find(*id) != nullptr, qPrintable(expectedId));
+        }
     }
 };
 

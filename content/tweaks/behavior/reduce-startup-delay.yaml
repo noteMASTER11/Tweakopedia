@@ -1,0 +1,59 @@
+id: behavior.reduce-startup-delay
+title: Ускоренный запуск программ после входа
+category: behavior
+subcategory: windows
+kind: setting
+summary: Убирает искусственную задержку перед запуском обычных программ после входа в систему.
+explanation:
+  purpose: Позволяет элементам автозапуска рабочего стола стартовать без дополнительной задержки Explorer.
+  mechanism: Значение StartupDelayInMSec равное 0 отключает задержку запуска элементов автозапуска.
+  effect: Программы из автозапуска могут появиться раньше после входа пользователя.
+  tradeoffs: Одновременный старт множества программ может кратковременно увеличить нагрузку на процессор и накопитель.
+  recommendation: Включайте на быстрых системах с небольшим и контролируемым списком автозапуска.
+  technical_details: Изменяется 32-битный DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize\StartupDelayInMSec. Значение 0 включает ускоренный режим, 10000 возвращает задержку в 10 секунд.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Выключено
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize'
+        value_name: StartupDelayInMSec
+        view: registry64
+        value: 10000
+  enabled:
+    title: Включено
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize'
+        value_name: StartupDelayInMSec
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize'
+  value_name: StartupDelayInMSec
+  view: registry64
+  states:
+    0: enabled
+    10000: disabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

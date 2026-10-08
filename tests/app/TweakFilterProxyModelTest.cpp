@@ -17,7 +17,10 @@ private:
         const auto loaded = content::TweakCatalogLoader{}.loadDirectory(
             QStringLiteral(TWEAKOPEDIA_TEST_CONTENT_ROOT));
         Q_ASSERT(loaded.catalog.has_value());
-        auto first = loaded.catalog->tweaks().first();
+        const auto id = *domain::TweakId::parse(u"filesystem.win32-long-paths");
+        const auto* longPaths = loaded.catalog->find(id);
+        Q_ASSERT(longPaths != nullptr);
+        auto first = *longPaths;
         auto second = first;
         second.id = *domain::TweakId::parse(u"privacy.diagnostics"_s);
         second.title = u"Диагностические данные"_s;

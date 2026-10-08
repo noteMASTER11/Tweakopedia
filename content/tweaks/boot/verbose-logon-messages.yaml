@@ -1,0 +1,59 @@
+id: boot.verbose-logon-messages
+title: Подробные сообщения входа и завершения работы
+category: boot
+subcategory: diagnostics
+kind: setting
+summary: Показывает названия выполняемых этапов при входе, выходе, запуске и завершении работы Windows.
+explanation:
+  purpose: Помогает понять, на каком этапе задерживается вход, выход или завершение работы.
+  mechanism: Системная политика VerboseStatus включает расширенные текстовые сообщения состояния Winlogon.
+  effect: Вместо общих сообщений Windows отображает более конкретный текущий этап.
+  tradeoffs: Экран входа становится более техническим, но работа системы и длительность операций не меняются.
+  recommendation: Полезно при поиске причин медленного входа или завершения работы и на обслуживаемых компьютерах.
+  technical_details: Изменяется 32-битный DWORD HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\VerboseStatus. Значение 1 включает подробные сообщения.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Выключено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: VerboseStatus
+        view: registry64
+        value: 0
+  enabled:
+    title: Включено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: VerboseStatus
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System'
+  value_name: VerboseStatus
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: low
+reversibility: reversible
+requires_network: false
