@@ -18,6 +18,16 @@ std::string windowsError(const char* prefix)
 
 std::filesystem::path WindowsBootstrapPlatform::localAppDataPath() const
 {
+    const auto required = GetEnvironmentVariableW(L"LOCALAPPDATA", nullptr, 0);
+    if (required > 1) {
+        std::wstring value(required, L'\0');
+        const auto written = GetEnvironmentVariableW(L"LOCALAPPDATA", value.data(), required);
+        if (written > 0 && written < required) {
+            value.resize(written);
+            const std::filesystem::path environmentPath(value);
+            if (environmentPath.is_absolute()) return environmentPath;
+        }
+    }
     PWSTR rawPath{};
     if (FAILED(SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_DEFAULT, nullptr, &rawPath))) {
         return {};

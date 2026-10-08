@@ -4,5 +4,7 @@ target_link_libraries(TweakopediaPackager PRIVATE
     TweakopediaPackage nlohmann_json::nlohmann_json
 )
 if(MINGW)
-    target_link_options(TweakopediaPackager PRIVATE -municode)
+    target_link_options(TweakopediaPackager PRIVATE
+        -municode -static -static-libgcc -static-libstdc++
+    )
 endif()

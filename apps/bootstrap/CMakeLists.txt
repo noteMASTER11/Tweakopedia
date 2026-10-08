@@ -12,5 +12,7 @@ add_executable(TweakopediaBootstrap WIN32 main.cpp)
 set_target_properties(TweakopediaBootstrap PROPERTIES OUTPUT_NAME Tweakopedia)
 target_link_libraries(TweakopediaBootstrap PRIVATE TweakopediaBootstrapCore)
 if(MINGW)
-    target_link_options(TweakopediaBootstrap PRIVATE -municode)
+    target_link_options(TweakopediaBootstrap PRIVATE
+        -municode -static -static-libgcc -static-libstdc++
+    )
 endif()
