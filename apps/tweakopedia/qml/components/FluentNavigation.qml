@@ -29,7 +29,7 @@ Rectangle {
     readonly property var primaryDestinations: [
         {title: "Обзор", glyph: "⌂"},
         {title: "Твики", glyph: "≡"},
-        {title: "Справочник", glyph: "i"},
+        {title: "Твикопедия", glyph: "▤"},
         {title: "Очередь", glyph: "≣"},
         {title: "История", glyph: "↶"}
     ]

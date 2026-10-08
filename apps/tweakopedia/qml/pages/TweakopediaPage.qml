@@ -1,0 +1,184 @@
+import QtQuick
+import QtQuick.Controls.Basic
+import QtQuick.Layouts
+import "../components"
+import "../style"
+
+Page {
+    id: root
+
+    required property var controller
+    readonly property var encyclopedia: controller ? controller.encyclopedia : null
+    property string lastRequestedSection: ""
+    readonly property bool treeVisible: width >= 980
+
+    background: Rectangle { color: FluentTheme.canvas }
+
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.leftMargin: 24
+        anchors.rightMargin: 24
+        anchors.topMargin: 18
+        anchors.bottomMargin: 18
+        spacing: 12
+
+        Text {
+            id: pageTitle
+            objectName: "tweakopediaTitle"
+            Layout.fillWidth: true
+            text: "Твикопедия"
+            color: FluentTheme.textPrimary
+            font.family: FluentTheme.fontFamily
+            font.pixelSize: 28
+            font.weight: Font.DemiBold
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+
+            Button {
+                id: backButton
+                objectName: "tweakopediaBackButton"
+                text: "‹"
+                enabled: root.encyclopedia && root.encyclopedia.canGoBack
+                implicitWidth: 38
+                implicitHeight: 38
+                Accessible.name: "Назад по истории статей"
+                onClicked: root.encyclopedia.goBack()
+            }
+
+            Button {
+                id: forwardButton
+                objectName: "tweakopediaForwardButton"
+                text: "›"
+                enabled: root.encyclopedia && root.encyclopedia.canGoForward
+                implicitWidth: 38
+                implicitHeight: 38
+                Accessible.name: "Вперёд по истории статей"
+                onClicked: root.encyclopedia.goForward()
+            }
+
+            FluentSearchField {
+                id: searchField
+                objectName: "tweakopediaSearchField"
+                Layout.fillWidth: true
+                text: root.encyclopedia ? root.encyclopedia.query : ""
+                placeholderText: "Поиск по статьям, параметрам и компонентам Windows"
+                Accessible.name: "Поиск в Твикопедии"
+                onSearchRequested: query => root.encyclopedia.setQuery(query)
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            spacing: 14
+
+            EncyclopediaTree {
+                id: encyclopediaTree
+                Layout.preferredWidth: 300
+                Layout.fillHeight: true
+                visible: root.treeVisible
+                model: root.encyclopedia ? root.encyclopedia.tree : null
+                onArticleRequested: id => root.encyclopedia.openArticle(id)
+            }
+
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                BusyIndicator {
+                    anchors.centerIn: parent
+                    visible: root.encyclopedia && root.encyclopedia.loading
+                    running: visible
+                }
+
+                Column {
+                    id: initialState
+                    objectName: "tweakopediaInitialState"
+                    anchors.centerIn: parent
+                    width: Math.min(parent.width - 40, 520)
+                    spacing: 10
+                    visible: root.encyclopedia
+                        && !root.encyclopedia.loading
+                        && root.encyclopedia.tree.articleCount > 0
+                        && !root.encyclopedia.article.hasArticle
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "▤"
+                        color: FluentTheme.accent
+                        font.family: FluentTheme.fontFamily
+                        font.pixelSize: 56
+                    }
+                    Text {
+                        width: parent.width
+                        text: "Выберите статью или воспользуйтесь поиском"
+                        color: FluentTheme.textPrimary
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.WordWrap
+                        font.family: FluentTheme.fontFamily
+                        font.pixelSize: 20
+                        font.weight: Font.DemiBold
+                    }
+                    Text {
+                        width: parent.width
+                        text: "Материалы собраны из локального каталога Tweakopedia и доступны без подключения к интернету."
+                        color: FluentTheme.textSecondary
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.WordWrap
+                        font.family: FluentTheme.fontFamily
+                        font.pixelSize: 13
+                    }
+                }
+
+                Column {
+                    id: noResults
+                    objectName: "tweakopediaNoResults"
+                    anchors.centerIn: parent
+                    width: Math.min(parent.width - 40, 520)
+                    spacing: 12
+                    visible: root.encyclopedia
+                        && !root.encyclopedia.loading
+                        && root.encyclopedia.tree.articleCount === 0
+                        && root.encyclopedia.query.length > 0
+
+                    Text {
+                        width: parent.width
+                        text: "Статьи не найдены"
+                        color: FluentTheme.textPrimary
+                        horizontalAlignment: Text.AlignHCenter
+                        font.family: FluentTheme.fontFamily
+                        font.pixelSize: 20
+                        font.weight: Font.DemiBold
+                    }
+                    Text {
+                        width: parent.width
+                        text: "Попробуйте изменить запрос или очистить поиск."
+                        color: FluentTheme.textSecondary
+                        horizontalAlignment: Text.AlignHCenter
+                        font.family: FluentTheme.fontFamily
+                        font.pixelSize: 13
+                    }
+                    Button {
+                        id: clearSearchButton
+                        objectName: "tweakopediaClearSearchButton"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "Очистить поиск"
+                        Accessible.name: text
+                        onClicked: root.encyclopedia.clearSearch()
+                    }
+                }
+
+                ArticleReader {
+                    anchors.fill: parent
+                    visible: root.encyclopedia && root.encyclopedia.article.hasArticle
+                    articleModel: root.encyclopedia.article
+                    controller: root.encyclopedia
+                    onSectionRequested: sectionId => root.lastRequestedSection = sectionId
+                }
+            }
+        }
+    }
+}

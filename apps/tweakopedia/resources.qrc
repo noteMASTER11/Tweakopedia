@@ -5,6 +5,7 @@
     <file alias="qml/style/qmldir">qml/style/qmldir</file>
     <file alias="qml/pages/OverviewPage.qml">qml/pages/OverviewPage.qml</file>
     <file alias="qml/pages/TweaksPage.qml">qml/pages/TweaksPage.qml</file>
+    <file alias="qml/pages/TweakopediaPage.qml">qml/pages/TweakopediaPage.qml</file>
     <file alias="qml/pages/QueuePage.qml">qml/pages/QueuePage.qml</file>
     <file alias="qml/pages/HistoryPage.qml">qml/pages/HistoryPage.qml</file>
     <file alias="qml/pages/PlaceholderPage.qml">qml/pages/PlaceholderPage.qml</file>
@@ -23,6 +24,11 @@
     <file alias="qml/components/StatusBadge.qml">qml/components/StatusBadge.qml</file>
     <file alias="qml/components/ApplyProgress.qml">qml/components/ApplyProgress.qml</file>
     <file alias="qml/components/TransactionDetails.qml">qml/components/TransactionDetails.qml</file>
+    <file alias="qml/components/EncyclopediaTree.qml">qml/components/EncyclopediaTree.qml</file>
+    <file alias="qml/components/ArticleReader.qml">qml/components/ArticleReader.qml</file>
+    <file alias="qml/components/ArticleSection.qml">qml/components/ArticleSection.qml</file>
+    <file alias="qml/components/ArticleContents.qml">qml/components/ArticleContents.qml</file>
+    <file alias="qml/components/RelatedArticleCard.qml">qml/components/RelatedArticleCard.qml</file>
     <file alias="images/windows-10.svg">images/windows-10.svg</file>
     <file alias="images/windows-11.svg">images/windows-11.svg</file>
     <file alias="images/windows.svg">images/windows.svg</file>

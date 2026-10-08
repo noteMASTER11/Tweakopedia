@@ -46,10 +46,7 @@ ApplicationWindow {
                 wideLayout: window.width >= 1180
                 onReviewRequested: window.openQueue()
             }
-            PlaceholderPage {
-                pageTitle: "Справочник"
-                description: "Обучающие материалы будут добавляться вместе с тематическими разделами каталога."
-            }
+            TweakopediaPage { controller: appController }
             QueuePage {
                 controller: appController
                 wideLayout: window.width >= 1180

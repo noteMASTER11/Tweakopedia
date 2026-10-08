@@ -74,7 +74,7 @@ TestCase {
 
     function test_orderSettingsPlacementBadgeAndAccessibleNames() {
         const navigation = createTemporaryObject(navigationComponent, this, {availableWidth: 1099})
-        const expected = ["Обзор", "Твики", "Справочник", "Очередь", "История", "Настройки"]
+        const expected = ["Обзор", "Твики", "Твикопедия", "Очередь", "История", "Настройки"]
         for (let index = 0; index < expected.length; ++index) {
             const item = findChild(navigation, "navItem_" + index)
             verify(item)
