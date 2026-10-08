@@ -39,6 +39,24 @@ add_executable(LegacyDataMigratorTest package/LegacyDataMigratorTest.cpp)
 target_link_libraries(LegacyDataMigratorTest PRIVATE Qt6::Test TweakopediaPackage)
 add_test(NAME LegacyDataMigrator COMMAND LegacyDataMigratorTest)
 
+add_executable(BootstrapArgumentProbe package/BootstrapArgumentProbe.cpp)
+if(MINGW)
+    target_link_options(BootstrapArgumentProbe PRIVATE -municode)
+endif()
+add_test(NAME BootstrapArgumentProbe COMMAND BootstrapArgumentProbe
+    "обычный" "два слова" "кавычка \" внутри" "хвост\\"
+)
+
+add_executable(BootstrapApplicationTest package/BootstrapApplicationTest.cpp)
+target_compile_definitions(BootstrapApplicationTest PRIVATE
+    TWEAKOPEDIA_BOOTSTRAP_ARGUMENT_PROBE="$<TARGET_FILE:BootstrapArgumentProbe>"
+)
+target_link_libraries(BootstrapApplicationTest PRIVATE
+    Qt6::Test TweakopediaBootstrapCore TweakopediaPackage
+)
+add_dependencies(BootstrapApplicationTest BootstrapArgumentProbe)
+add_test(NAME BootstrapApplication COMMAND BootstrapApplicationTest)
+
 add_executable(DomainTweakDefinitionTest
     domain/TweakDefinitionTest.cpp
 )

@@ -25,6 +25,7 @@ add_subdirectory(src/persistence)
 add_subdirectory(src/execution)
 add_subdirectory(src/app)
 add_subdirectory(src/package)
+add_subdirectory(apps/bootstrap)
 add_subdirectory(apps/executor)
 add_subdirectory(apps/tweakopedia)
 
