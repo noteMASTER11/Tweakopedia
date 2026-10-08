@@ -19,6 +19,7 @@ add_subdirectory(src/domain)
 add_subdirectory(src/content)
 add_subdirectory(src/platform)
 add_subdirectory(src/detection)
+add_subdirectory(src/planning)
 
 if(BUILD_TESTING)
     add_subdirectory(tests)

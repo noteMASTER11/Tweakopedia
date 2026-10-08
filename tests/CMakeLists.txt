@@ -97,3 +97,35 @@ target_link_libraries(WindowsRegistryBackendTest
 )
 
 add_test(NAME WindowsRegistryBackend COMMAND WindowsRegistryBackendTest)
+
+add_executable(TweakQueueTest
+    planning/TweakQueueTest.cpp
+    fakes/FakeRegistryBackend.cpp
+    fakes/FakeRegistryBackend.h
+)
+
+target_include_directories(TweakQueueTest
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/tests
+)
+
+target_link_libraries(TweakQueueTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaPlanning
+        TweakopediaPlatform
+)
+
+add_test(NAME TweakQueue COMMAND TweakQueueTest)
+
+add_executable(PlanBuilderTest
+    planning/PlanBuilderTest.cpp
+)
+
+target_link_libraries(PlanBuilderTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaPlanning
+)
+
+add_test(NAME PlanBuilder COMMAND PlanBuilderTest)
