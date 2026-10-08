@@ -90,6 +90,30 @@ class AppControllerTest final : public QObject
     Q_OBJECT
 
 private slots:
+    void returningToggleToActualStateRemovesQueueItem()
+    {
+        auto backend = services();
+        app::AppController controller(backend);
+        QVERIFY(controller.startup());
+
+        QVERIFY(controller.selectTarget(u"filesystem.win32-long-paths"_s, u"enabled"_s));
+        QCOMPARE(controller.queue()->rowCount(), 1);
+        QCOMPARE(controller.tweaks()->data(
+                     controller.tweaks()->index(0), app::TweakListModel::TargetStateRole).toString(),
+                 u"enabled"_s);
+
+        QVERIFY(controller.selectTarget(u"filesystem.win32-long-paths"_s, u"disabled"_s));
+        QCOMPARE(controller.queue()->rowCount(), 0);
+        QCOMPARE(controller.tweaks()->data(
+                     controller.tweaks()->index(0), app::TweakListModel::TargetStateRole).toString(),
+                 QString{});
+        QVERIFY(!controller.tweaks()->data(
+                     controller.tweaks()->index(0), app::TweakListModel::PendingRole).toBool());
+
+        QVERIFY(controller.selectTarget(u"filesystem.win32-long-paths"_s, u"disabled"_s));
+        QCOMPARE(controller.queue()->rowCount(), 0);
+    }
+
     void startupQueuePreviewCancelSuccessAndRollback()
     {
         auto backend = services();

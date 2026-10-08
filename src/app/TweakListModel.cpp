@@ -28,6 +28,39 @@ QString restartName(domain::RestartRequirement restart)
     return {};
 }
 
+QString stateTitle(const domain::TweakDefinition& tweak, QStringView stateId)
+{
+    for (const auto& state : tweak.states) {
+        if (state.id == stateId) return state.title;
+    }
+    return {};
+}
+
+QVariantList availableStates(const domain::TweakDefinition& tweak)
+{
+    QVariantList result;
+    result.reserve(tweak.states.size());
+    for (const auto& state : tweak.states) {
+        result.append(QVariantMap{
+            {u"id"_s, state.id},
+            {u"title"_s, state.title},
+        });
+    }
+    return result;
+}
+
+bool isBinary(const domain::TweakDefinition& tweak)
+{
+    if (tweak.states.size() != 2) return false;
+    bool hasDisabled{};
+    bool hasEnabled{};
+    for (const auto& state : tweak.states) {
+        hasDisabled = hasDisabled || state.id == u"disabled";
+        hasEnabled = hasEnabled || state.id == u"enabled";
+    }
+    return hasDisabled && hasEnabled;
+}
+
 } // namespace
 
 TweakListModel::TweakListModel(QObject* parent)
@@ -53,6 +86,14 @@ QVariant TweakListModel::data(const QModelIndex& index, int role) const
     case SupportedRole: return entry.supported;
     case ImpactRole: return impactName(entry.tweak.impact);
     case RestartRole: return restartName(entry.tweak.restart);
+    case CategoryRole: return entry.tweak.category;
+    case SubcategoryRole: return entry.tweak.subcategory;
+    case CurrentStateTitleRole: return stateTitle(entry.tweak, entry.detected.stateId);
+    case TargetStateTitleRole: return stateTitle(entry.tweak, entry.targetState);
+    case AvailableStatesRole: return availableStates(entry.tweak);
+    case BinaryRole: return isBinary(entry.tweak);
+    case PendingRole: return !entry.targetState.isEmpty();
+    case SupportDetailsRole: return entry.detected.details;
     default: return {};
     }
 }
@@ -68,6 +109,14 @@ QHash<int, QByteArray> TweakListModel::roleNames() const
         {SupportedRole, "supported"},
         {ImpactRole, "impact"},
         {RestartRole, "restart"},
+        {CategoryRole, "category"},
+        {SubcategoryRole, "subcategory"},
+        {CurrentStateTitleRole, "currentStateTitle"},
+        {TargetStateTitleRole, "targetStateTitle"},
+        {AvailableStatesRole, "availableStates"},
+        {BinaryRole, "binary"},
+        {PendingRole, "pending"},
+        {SupportDetailsRole, "supportDetails"},
     };
 }
 
@@ -98,7 +147,11 @@ bool TweakListModel::setTargetState(const domain::TweakId& id, const QString& st
         if (entry.targetState == state) return true;
         entry.targetState = state;
         const auto changed = index(static_cast<int>(row));
-        emit dataChanged(changed, changed, {TargetStateRole});
+        emit dataChanged(changed, changed, {
+            TargetStateRole,
+            TargetStateTitleRole,
+            PendingRole,
+        });
         return true;
     }
     return false;

@@ -22,6 +22,14 @@ public:
         SupportedRole,
         ImpactRole,
         RestartRole,
+        CategoryRole,
+        SubcategoryRole,
+        CurrentStateTitleRole,
+        TargetStateTitleRole,
+        AvailableStatesRole,
+        BinaryRole,
+        PendingRole,
+        SupportDetailsRole,
     };
     Q_ENUM(Role)
 

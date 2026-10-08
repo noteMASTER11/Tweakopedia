@@ -85,6 +85,16 @@ bool AppController::selectTarget(const QString& id, const QString& state)
         setError(u"tweak.unknown"_s);
         return false;
     }
+    const auto actual = detected_.value(*parsed);
+    if (actual.status == domain::DetectionStatus::Named && actual.stateId == state) {
+        (void)queueData_.remove(*parsed);
+        preview_.reset();
+        (void)tweaksModel_.setTargetState(*parsed, {});
+        queueModel_.reset(catalog_, queueData_, detected_);
+        emit previewChanged();
+        setError({});
+        return true;
+    }
     const auto changed = queueData_.setTarget(*tweak, state);
     if (!changed.accepted) {
         setError(changed.errorCode);
