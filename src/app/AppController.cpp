@@ -73,6 +73,12 @@ QVariantMap AppController::openExplanation(const QString& id) const
     const auto* tweak = parsed ? catalog_.find(*parsed) : nullptr;
     if (!tweak) return {};
     const auto& explanation = tweak->explanation;
+    QString registryObject;
+    if (tweak->detection) {
+        const auto& location = tweak->detection->location;
+        registryObject = (location.hive == domain::RegistryHive::LocalMachine ? u"HKLM\\"_s : u"HKCU\\"_s)
+            + location.key + u"\\"_s + location.valueName;
+    }
     return {
         {u"title"_s, tweak->title},
         {u"purpose"_s, explanation.purpose},
@@ -81,6 +87,8 @@ QVariantMap AppController::openExplanation(const QString& id) const
         {u"tradeoffs"_s, explanation.tradeoffs},
         {u"recommendation"_s, explanation.recommendation},
         {u"technicalDetails"_s, explanation.technicalDetails},
+        {u"registryObject"_s, registryObject},
+        {u"rollback"_s, u"При возврате восстанавливаются точный исходный тип и байты значения; если значения не было, оно удаляется."_s},
     };
 }
 

@@ -232,3 +232,10 @@ target_compile_definitions(TweakListModelTest PRIVATE
 )
 target_link_libraries(TweakListModelTest PRIVATE Qt6::Test TweakopediaApp TweakopediaContent)
 add_test(NAME TweakListModel COMMAND TweakListModelTest)
+
+add_executable(QmlComponentTests qml/QmlTestMain.cpp)
+target_link_libraries(QmlComponentTests PRIVATE Qt6::QuickTest Qt6::QuickControls2)
+add_test(NAME QmlComponents COMMAND QmlComponentTests -input ${PROJECT_SOURCE_DIR}/tests/qml)
+set_tests_properties(QmlComponents PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QML_DISABLE_DISK_CACHE=1"
+)

@@ -1,0 +1,12 @@
+<RCC>
+  <qresource prefix="/">
+    <file alias="qml/Main.qml">qml/Main.qml</file>
+    <file alias="qml/pages/OverviewPage.qml">qml/pages/OverviewPage.qml</file>
+    <file alias="qml/pages/TweaksPage.qml">qml/pages/TweaksPage.qml</file>
+    <file alias="qml/pages/QueuePage.qml">qml/pages/QueuePage.qml</file>
+    <file alias="qml/pages/HistoryPage.qml">qml/pages/HistoryPage.qml</file>
+    <file alias="qml/components/TweakRow.qml">qml/components/TweakRow.qml</file>
+    <file alias="qml/components/ExplanationDrawer.qml">qml/components/ExplanationDrawer.qml</file>
+    <file alias="qml/components/StatusBadge.qml">qml/components/StatusBadge.qml</file>
+  </qresource>
+</RCC>
