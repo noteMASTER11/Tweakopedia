@@ -1,0 +1,58 @@
+id: desktop.experimental-share-pane
+title: 'Новая панель общего доступа Windows 10 1703'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Включает экспериментальную новую панель общего доступа в тестовых и ранних сборках Windows 10 1703.'
+explanation:
+  purpose: 'Переключает старый интерфейс отправки файлов на новый вариант Share UI.'
+  mechanism: 'EnableNewShareFlow активирует новый поток общего доступа в SharePlatform.'
+  effect: 'Команда «Поделиться» открывает новую панель выбора приложения и получателя.'
+  tradeoffs: 'Параметр предназначен для узкого диапазона сборок; позже новый интерфейс стал штатным.'
+  recommendation: 'Используйте только на указанной сборке для проверки нового интерфейса.'
+  technical_details: 'DWORD HKLM\Software\Microsoft\SharePlatform\EnableNewShareFlow: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 14986
+  max_build: 15063
+states:
+  disabled:
+    title: 'Старый интерфейс'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\SharePlatform'
+        value_name: EnableNewShareFlow
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Новый интерфейс'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\SharePlatform'
+        value_name: EnableNewShareFlow
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [14986, 15063]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Microsoft\SharePlatform'
+  value_name: EnableNewShareFlow
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

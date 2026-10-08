@@ -148,7 +148,7 @@ private slots:
 
         QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 202);
+        QCOMPARE(result.catalog->size(), 207);
 
         const QStringList expectedIds{
             u"apps.windows-ink-workspace"_s,

@@ -1,0 +1,70 @@
+id: desktop.cortana-white-search-box
+title: 'Белое поле поиска Cortana в Windows 10 1703'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Включает экспериментальное белое оформление поля поиска Cortana в ранних сборках Windows 10 1703.'
+explanation:
+  purpose: 'Изменяет цвет поля поиска Cortana на экспериментальный белый вариант.'
+  mechanism: 'Отключение ротации Flighting и Value в WhiteSearchBox фиксируют соответствующий эксперимент.'
+  effect: 'Поле поиска на панели задач получает белый фон.'
+  tradeoffs: 'Параметр относится к удалённой версии Cortana и не действует на современный поиск Windows.'
+  recommendation: 'Используйте только на поддерживаемой ранней сборке.'
+  technical_details: 'DWORD Current=0 и RotateFlight=0 в Search\Flighting; DWORD Value=1 в Search\Flighting\0\WhiteSearchBox.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 14946
+  max_build: 15063
+states:
+  disabled:
+    title: 'Штатный цвет'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Search\Flighting\0\WhiteSearchBox'
+        value_name: Value
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Белое поле'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Search\Flighting'
+        value_name: Current
+        view: registry64
+        value: 0
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Search\Flighting'
+        value_name: RotateFlight
+        view: registry64
+        value: 0
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Search\Flighting\0\WhiteSearchBox'
+        value_name: Value
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [14946, 15063]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Search\Flighting\0\WhiteSearchBox'
+  value_name: Value
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false
+

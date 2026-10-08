@@ -1,0 +1,57 @@
+id: desktop.quick-action-buttons
+title: 'Кнопки быстрых действий Windows 10'
+category: desktop
+subcategory: notifications
+kind: setting
+summary: 'Показывает или полностью скрывает область быстрых действий в центре уведомлений Windows 10.'
+explanation:
+  purpose: 'Управляет количеством закреплённых кнопок быстрых действий в центре уведомлений.'
+  mechanism: 'PinnedQuickActionSlotCount задаёт число доступных ячеек; ноль скрывает всю область.'
+  effect: 'Центр уведомлений показывает четыре стандартные кнопки либо только список уведомлений.'
+  tradeoffs: 'При скрытии пропадает быстрый доступ к системным переключателям.'
+  recommendation: 'Оставьте кнопки включёнными, если используете центр уведомлений для управления функциями Windows.'
+  technical_details: 'DWORD HKLM\Software\Microsoft\Shell\ActionCenter\Quick Actions\PinnedQuickActionSlotCount: 0 — скрыть, 4 — показать.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Скрывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Shell\ActionCenter\Quick Actions'
+        value_name: PinnedQuickActionSlotCount
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показывать четыре'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Shell\ActionCenter\Quick Actions'
+        value_name: PinnedQuickActionSlotCount
+        view: registry64
+        value: 4
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Microsoft\Shell\ActionCenter\Quick Actions'
+  value_name: PinnedQuickActionSlotCount
+  view: registry64
+  states:
+    0: disabled
+    4: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

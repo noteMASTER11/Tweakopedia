@@ -1,0 +1,59 @@
+id: apps.onedrive-experimental-flyout
+title: 'Новая панель OneDrive в Windows 10 1703'
+category: apps
+subcategory: cloud-storage
+kind: setting
+summary: 'Включает экспериментальную панель OneDrive в ранних сборках Windows 10 1703.'
+explanation:
+  purpose: 'Переключает значок OneDrive на новый вариант всплывающей панели состояния.'
+  mechanism: 'TeamSiteSyncPreview включает предварительную версию панели клиента OneDrive.'
+  effect: 'Щелчок по значку OneDrive открывает новый интерфейс синхронизации.'
+  tradeoffs: 'Параметр имеет смысл только для старой версии клиента и узкого диапазона сборок.'
+  recommendation: 'На современных системах не используется и автоматически скрывается.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\OneDrive\TeamSiteSyncPreview: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 14986
+  max_build: 15063
+  required_components: [onedrive]
+states:
+  disabled:
+    title: 'Старая панель'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\OneDrive'
+        value_name: TeamSiteSyncPreview
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Новая панель'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\OneDrive'
+        value_name: TeamSiteSyncPreview
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [14986, 15063]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\OneDrive'
+  value_name: TeamSiteSyncPreview
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false
+

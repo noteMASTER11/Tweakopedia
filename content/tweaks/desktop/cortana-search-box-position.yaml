@@ -1,0 +1,70 @@
+id: desktop.cortana-search-box-position
+title: 'Положение поля поиска Cortana в Windows 10 1703'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Перемещает поле поиска Cortana в верхнюю часть панели поиска ранних сборок Windows 10 1703.'
+explanation:
+  purpose: 'Выбирает экспериментальное верхнее или штатное положение поля ввода Cortana.'
+  mechanism: 'Отключение ротации Flighting и Value в SearchBoxOnTop фиксируют соответствующий эксперимент.'
+  effect: 'Поле ввода отображается сверху либо в штатном положении.'
+  tradeoffs: 'Параметр относится к удалённой версии Cortana и не действует на современный поиск Windows.'
+  recommendation: 'Используйте только на поддерживаемой ранней сборке.'
+  technical_details: 'DWORD Current=0 и RotateFlight=0 в Search\Flighting; DWORD Value в Search\Flighting\0\SearchBoxOnTop.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 14946
+  max_build: 15063
+states:
+  bottom:
+    title: 'Штатное положение'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Search\Flighting\0\SearchBoxOnTop'
+        value_name: Value
+        view: registry64
+        value: 0
+  top:
+    title: 'Сверху'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Search\Flighting'
+        value_name: Current
+        view: registry64
+        value: 0
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Search\Flighting'
+        value_name: RotateFlight
+        view: registry64
+        value: 0
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Search\Flighting\0\SearchBoxOnTop'
+        value_name: Value
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [14946, 15063]
+    state: bottom
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Search\Flighting\0\SearchBoxOnTop'
+  value_name: Value
+  view: registry64
+  states:
+    0: bottom
+    1: top
+  missing_state: bottom
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false
+
