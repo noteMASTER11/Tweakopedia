@@ -25,6 +25,7 @@ enum class RegistryValueType {
 struct RegistryReadResult {
     RegistryPresence presence{RegistryPresence::Missing};
     RegistryValueType type{RegistryValueType::None};
+    quint32 nativeType{};
     QByteArray rawValue;
     std::error_code error;
 
@@ -33,11 +34,15 @@ struct RegistryReadResult {
         return {};
     }
 
-    [[nodiscard]] static RegistryReadResult present(RegistryValueType type, QByteArray rawValue)
+    [[nodiscard]] static RegistryReadResult present(
+        RegistryValueType type,
+        QByteArray rawValue,
+        quint32 nativeType = 0)
     {
         return {
             .presence = RegistryPresence::Present,
             .type = type,
+            .nativeType = nativeType,
             .rawValue = std::move(rawValue),
         };
     }
@@ -76,6 +81,10 @@ public:
     [[nodiscard]] virtual RegistryWriteResult writeDword(
         const domain::RegistryLocation& location,
         quint32 value) = 0;
+    [[nodiscard]] virtual RegistryWriteResult writeRaw(
+        const domain::RegistryLocation& location,
+        quint32 nativeType,
+        const QByteArray& rawValue) = 0;
     [[nodiscard]] virtual RegistryWriteResult deleteValue(const domain::RegistryLocation& location) = 0;
 };
 

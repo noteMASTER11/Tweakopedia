@@ -24,7 +24,24 @@ platform::RegistryWriteResult FakeRegistryBackend::writeDword(
     qToLittleEndian(value, bytes.data());
     values_.insert(keyFor(location), platform::RegistryReadResult::present(
         platform::RegistryValueType::Dword,
-        bytes));
+        bytes,
+        4));
+    return platform::RegistryWriteResult::succeeded();
+}
+
+platform::RegistryWriteResult FakeRegistryBackend::writeRaw(
+    const domain::RegistryLocation& location,
+    quint32 nativeType,
+    const QByteArray& rawValue)
+{
+    auto type = platform::RegistryValueType::Unknown;
+    if (nativeType == 4) type = platform::RegistryValueType::Dword;
+    else if (nativeType == 1 || nativeType == 2) type = platform::RegistryValueType::String;
+    else if (nativeType == 3) type = platform::RegistryValueType::Binary;
+    values_.insert(keyFor(location), platform::RegistryReadResult::present(
+        type,
+        rawValue,
+        nativeType));
     return platform::RegistryWriteResult::succeeded();
 }
 

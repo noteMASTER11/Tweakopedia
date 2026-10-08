@@ -103,7 +103,7 @@ RegistryReadResult WindowsRegistryBackend::read(const domain::RegistryLocation& 
         return RegistryReadResult::failed(win32Error(status));
     }
     bytes.resize(static_cast<qsizetype>(byteCount));
-    return RegistryReadResult::present(valueType(type), std::move(bytes));
+    return RegistryReadResult::present(valueType(type), std::move(bytes), type);
 }
 
 RegistryWriteResult WindowsRegistryBackend::writeDword(
@@ -132,6 +132,40 @@ RegistryWriteResult WindowsRegistryBackend::writeDword(
         REG_DWORD,
         reinterpret_cast<const BYTE*>(&value),
         sizeof(value));
+    RegCloseKey(key);
+    if (status != ERROR_SUCCESS) {
+        return RegistryWriteResult::failed(win32Error(status));
+    }
+    return RegistryWriteResult::succeeded();
+}
+
+RegistryWriteResult WindowsRegistryBackend::writeRaw(
+    const domain::RegistryLocation& location,
+    quint32 nativeType,
+    const QByteArray& rawValue)
+{
+    HKEY key{};
+    const auto createStatus = RegCreateKeyExW(
+        nativeHive(location.hive),
+        reinterpret_cast<LPCWSTR>(location.key.utf16()),
+        0,
+        nullptr,
+        0,
+        KEY_SET_VALUE | nativeView(location.view),
+        nullptr,
+        &key,
+        nullptr);
+    if (createStatus != ERROR_SUCCESS) {
+        return RegistryWriteResult::failed(win32Error(createStatus));
+    }
+
+    const auto status = RegSetValueExW(
+        key,
+        reinterpret_cast<LPCWSTR>(location.valueName.utf16()),
+        0,
+        nativeType,
+        reinterpret_cast<const BYTE*>(rawValue.constData()),
+        static_cast<DWORD>(rawValue.size()));
     RegCloseKey(key);
     if (status != ERROR_SUCCESS) {
         return RegistryWriteResult::failed(win32Error(status));

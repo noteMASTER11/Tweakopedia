@@ -17,6 +17,8 @@ QByteArray fingerprint(const platform::RegistryReadResult& value)
     hash.addData("|");
     hash.addData(QByteArray::number(static_cast<int>(value.type)));
     hash.addData("|");
+    hash.addData(QByteArray::number(value.nativeType));
+    hash.addData("|");
     hash.addData(value.rawValue);
     return hash.result().toHex();
 }

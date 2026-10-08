@@ -189,3 +189,20 @@ target_link_libraries(PlanValidatorTest
 )
 
 add_test(NAME PlanValidator COMMAND PlanValidatorTest)
+
+add_executable(RegistryDwordExecutorTest
+    execution/RegistryDwordExecutorTest.cpp
+    fakes/FakeRegistryBackend.cpp
+    fakes/FakeRegistryBackend.h
+)
+
+target_include_directories(RegistryDwordExecutorTest PRIVATE ${PROJECT_SOURCE_DIR}/tests)
+target_link_libraries(RegistryDwordExecutorTest PRIVATE Qt6::Test TweakopediaExecution TweakopediaPlatform)
+add_test(NAME RegistryDwordExecutor COMMAND RegistryDwordExecutorTest)
+
+add_executable(TransactionRunnerTest
+    execution/TransactionRunnerTest.cpp
+)
+
+target_link_libraries(TransactionRunnerTest PRIVATE Qt6::Test TweakopediaExecution TweakopediaPersistence)
+add_test(NAME TransactionRunner COMMAND TransactionRunnerTest)

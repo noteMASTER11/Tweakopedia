@@ -3,6 +3,12 @@ add_library(TweakopediaExecution STATIC
     ExecutionProtocol.h
     PlanValidator.cpp
     PlanValidator.h
+    RegistryDwordExecutor.cpp
+    RegistryDwordExecutor.h
+    RegistrySnapshot.cpp
+    RegistrySnapshot.h
+    TransactionRunner.cpp
+    TransactionRunner.h
 )
 
 target_include_directories(TweakopediaExecution
@@ -15,4 +21,6 @@ target_link_libraries(TweakopediaExecution
         Qt6::Core
         TweakopediaDomain
         TweakopediaPlanning
+        TweakopediaPlatform
+        TweakopediaPersistence
 )
