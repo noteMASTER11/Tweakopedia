@@ -24,14 +24,15 @@ Item {
 
         delegate: Button {
             id: categoryButton
-            property string categoryId: model.id
+            property string categoryId: model.id !== undefined ? model.id : model.categoryId
+            property string categoryTitle: model.title !== undefined ? model.title : model.categoryTitle
 
             objectName: "categoryButton_" + categoryId
             width: root.wide ? ListView.view.width : implicitWidth
             height: 40
             leftPadding: 12
             rightPadding: 12
-            text: model.title
+            text: categoryTitle
             Accessible.name: text
             onClicked: {
                 root.currentCategory = categoryId

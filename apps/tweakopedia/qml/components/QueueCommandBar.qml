@@ -48,6 +48,8 @@ Rectangle {
             objectName: "reviewQueueButton"
             text: "Просмотреть и применить"
             Accessible.name: text
+            Layout.preferredWidth: 210
+            Layout.minimumWidth: 210
             onClicked: root.reviewRequested()
 
             contentItem: Text {

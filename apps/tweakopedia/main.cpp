@@ -11,11 +11,13 @@
 #include "persistence/TransactionRepository.h"
 #include "platform/WindowsRegistryBackend.h"
 #include "platform/WindowsSystemProfileProvider.h"
+#include "UiFontLoader.h"
 
 #include <QDir>
 #include <QCommandLineParser>
 #include <QEventLoop>
 #include <QFileInfo>
+#include <QFont>
 #include <QGuiApplication>
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -288,6 +290,9 @@ int main(int argc, char* argv[])
     QGuiApplication app(argc, argv);
     QCoreApplication::setApplicationName(u"Tweakopedia"_s);
     QCoreApplication::setOrganizationName(u"Tweakopedia"_s);
+    const auto uiFontFamily = ui::loadBundledUiFont();
+    if (uiFontFamily.isEmpty()) return 4;
+    app.setFont(QFont(uiFontFamily));
 
     QCommandLineParser parser;
     parser.addHelpOption();

@@ -19,7 +19,7 @@ QtObject {
     readonly property color stateOff: "#C42B1C"
     readonly property color stateUnknown: "#687487"
 
-    readonly property string fontFamily: "Segoe UI"
+    readonly property string fontFamily: "SF Pro"
     readonly property int navigationExpandedWidth: 220
     readonly property int navigationCompactWidth: 64
     readonly property int compactBreakpoint: 1100

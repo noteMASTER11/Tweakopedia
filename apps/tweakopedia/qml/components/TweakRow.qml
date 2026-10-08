@@ -93,7 +93,9 @@ Item {
                 objectName: "currentStateLabel"
                 prefix: "Сейчас:"
                 stateId: root.currentState
-                stateTitle: root.currentStateTitle
+                stateTitle: root.binary
+                    ? root.currentStateTitle.toLocaleLowerCase()
+                    : root.currentStateTitle
             }
 
             StateLabel {
@@ -101,7 +103,9 @@ Item {
                 visible: root.pending
                 prefix: "После применения:"
                 stateId: root.targetState
-                stateTitle: root.targetStateTitle
+                stateTitle: root.binary
+                    ? root.targetStateTitle.toLocaleLowerCase()
+                    : root.targetStateTitle
             }
 
             Text {

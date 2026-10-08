@@ -2,10 +2,12 @@ import QtQuick
 import QtQuick.Controls
 import QtTest
 import "../../apps/tweakopedia/qml/components"
+import "../../apps/tweakopedia/qml/style"
 
 TestCase {
     name: "History"
     when: windowShown
+    visible: true
     width: 900
     height: 500
 
@@ -17,6 +19,9 @@ TestCase {
         compare(findChild(progress, "statusText").text, "running")
         progress.status = "succeeded"
         compare(findChild(progress, "statusText").text, "succeeded")
+        compare(findChild(progress, "statusText").color, FluentTheme.stateOn)
+        progress.status = "failed"
+        compare(findChild(progress, "statusText").color, FluentTheme.stateOff)
     }
 
     function test_rollbackOnlyForCompleteSnapshot() {
@@ -25,6 +30,9 @@ TestCase {
         verify(!button.enabled)
         details.canRollback = true
         verify(button.enabled)
+        details.error = "Ошибка применения"
+        compare(findChild(details, "transactionError").visible, true)
+        compare(findChild(details, "transactionError").color, FluentTheme.stateOff)
     }
 
     Component {

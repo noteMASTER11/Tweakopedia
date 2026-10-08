@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/fonts">
+    <file alias="SF-Pro.ttf">fonts/SF-Pro.ttf</file>
+  </qresource>
+</RCC>

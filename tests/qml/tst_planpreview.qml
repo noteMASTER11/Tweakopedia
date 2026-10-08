@@ -2,10 +2,12 @@ import QtQuick
 import QtQuick.Controls
 import QtTest
 import "../../apps/tweakopedia/qml/components"
+import "../../apps/tweakopedia/qml/style"
 
 TestCase {
     name: "PlanPreview"
     when: windowShown
+    visible: true
     width: 900
     height: 600
 
@@ -36,6 +38,9 @@ TestCase {
         compare(findChild(preview, "targetStateText").text, "enabled")
         verify(findChild(preview, "registryObjectText").text.includes("LongPathsEnabled"))
         compare(findChild(preview, "restartText").text, "none")
+        compare(findChild(preview, "previewSurface").color, FluentTheme.surface)
+        verify(findChild(preview, "operationTitle").width <= 520)
+        verify(findChild(preview, "operationTitle").height > 0)
     }
 
     function test_confirmationSignal() {

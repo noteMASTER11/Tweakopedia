@@ -1,5 +1,8 @@
 qt_add_executable(Tweakopedia WIN32
     main.cpp
+    UiFontLoader.cpp
+    UiFontLoader.h
+    fonts.qrc
     resources.qrc
 )
 

@@ -24,7 +24,7 @@ TestCase {
     }
 
     function test_typographyAndAdaptiveGeometry() {
-        compare(FluentTheme.fontFamily, "Segoe UI")
+        compare(FluentTheme.fontFamily, "SF Pro")
         compare(FluentTheme.navigationExpandedWidth, 220)
         compare(FluentTheme.navigationCompactWidth, 64)
         compare(FluentTheme.compactBreakpoint, 1100)

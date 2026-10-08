@@ -265,6 +265,28 @@ set_tests_properties(QmlPlanPreviewHistory PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QML_DISABLE_DISK_CACHE=1;QT_QUICK_CONTROLS_STYLE=Basic"
 )
 
+add_executable(UiFontLoaderTest
+    ui/UiFontLoaderTest.cpp
+    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiFontLoader.cpp
+    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiFontLoader.h
+    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/fonts.qrc
+)
+target_include_directories(UiFontLoaderTest PRIVATE ${PROJECT_SOURCE_DIR}/apps/tweakopedia)
+target_link_libraries(UiFontLoaderTest PRIVATE Qt6::Gui Qt6::Test)
+add_test(NAME UiFontLoader COMMAND UiFontLoaderTest)
+set_tests_properties(UiFontLoader PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(TweakopediaVisualCapture
+    visual/VisualCaptureMain.cpp
+    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiFontLoader.cpp
+    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiFontLoader.h
+    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/fonts.qrc
+)
+target_include_directories(TweakopediaVisualCapture PRIVATE ${PROJECT_SOURCE_DIR}/apps/tweakopedia)
+target_link_libraries(TweakopediaVisualCapture PRIVATE
+    Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2
+)
+
 add_executable(VerticalSliceWorkflowTest
     integration/VerticalSliceWorkflowTest.cpp
     fakes/FakeRegistryBackend.cpp

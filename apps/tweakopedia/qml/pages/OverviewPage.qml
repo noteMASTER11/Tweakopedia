@@ -1,42 +1,89 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import QtQuick.Layouts
+import "../style"
 
 Page {
+    id: root
     required property var controller
     padding: 28
 
+    background: Rectangle {
+        objectName: "overviewBackground"
+        color: FluentTheme.canvas
+    }
+
     ColumnLayout {
         anchors.fill: parent
-        spacing: 18
-        Label { text: "Обзор"; font.pixelSize: 28; font.weight: Font.DemiBold }
-        Label {
+        spacing: 16
+
+        Text { text: "Обзор"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 28; font.weight: Font.DemiBold }
+        Text {
             text: "Локальная энциклопедия параметров Windows и очередь выбранных изменений."
-            color: palette.mid
+            color: FluentTheme.textSecondary
+            font.family: FluentTheme.fontFamily
+            font.pixelSize: 14
         }
-        Frame {
+
+        Rectangle {
             Layout.fillWidth: true
-            visible: controller.history.interruptedCount > 0
-            Label {
+            implicitHeight: warningText.implicitHeight + 24
+            visible: root.controller.history.interruptedCount > 0
+            color: "#FFF4CE"
+            radius: 8
+            border.color: "#E5C365"
+            Text {
+                id: warningText
                 anchors.fill: parent
-                text: "Обнаружены незавершённые транзакции: " + controller.history.interruptedCount
-                color: "#9A5B00"
+                anchors.margins: 12
+                text: "Обнаружены незавершённые транзакции: " + root.controller.history.interruptedCount
+                color: "#7A5412"
+                font.family: FluentTheme.fontFamily
+                wrapMode: Text.WordWrap
             }
         }
-        Frame {
-            Layout.fillWidth: true
-            RowLayout {
-                anchors.fill: parent
-                Label { text: "Твиков в каталоге"; Layout.fillWidth: true }
-                Label { text: controller.tweaks.rowCount(); font.pixelSize: 24 }
-            }
+
+        Text {
+            objectName: "overviewEmptyState"
+            visible: root.controller.tweaks.rowCount() === 0
+            text: "Каталог пока пуст. Добавленные определения появятся здесь автоматически."
+            color: FluentTheme.textSecondary
+            font.family: FluentTheme.fontFamily
+            font.pixelSize: 14
         }
-        Frame {
+
+        RowLayout {
             Layout.fillWidth: true
-            RowLayout {
-                anchors.fill: parent
-                Label { text: "Изменений в очереди"; Layout.fillWidth: true }
-                Label { text: controller.queue.rowCount(); font.pixelSize: 24 }
+            spacing: 12
+
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 110
+                radius: 8
+                color: FluentTheme.surface
+                border.color: FluentTheme.stroke
+                Column {
+                    anchors.fill: parent
+                    anchors.margins: 16
+                    spacing: 8
+                    Text { text: "Твиков в каталоге"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily }
+                    Text { text: root.controller.tweaks.rowCount(); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 28; font.weight: Font.DemiBold }
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 110
+                radius: 8
+                color: FluentTheme.surface
+                border.color: FluentTheme.stroke
+                Column {
+                    anchors.fill: parent
+                    anchors.margins: 16
+                    spacing: 8
+                    Text { text: "Изменений в очереди"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily }
+                    Text { text: root.controller.queue.rowCount(); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 28; font.weight: Font.DemiBold }
+                }
             }
         }
         Item { Layout.fillHeight: true }

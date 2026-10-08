@@ -1,18 +1,20 @@
 import QtQuick
-import QtQuick.Controls
+import "../style"
 
 Rectangle {
     id: root
     property alias text: label.text
     property bool positive: true
     implicitWidth: label.implicitWidth + 18
-    implicitHeight: 28
-    radius: 14
-    color: positive ? "#DDF4E7" : "#F3E5C8"
-    Label {
+    implicitHeight: 26
+    radius: 13
+    color: positive ? "#DFF6DD" : "#FFF4CE"
+    Text {
         id: label
         anchors.centerIn: parent
-        color: root.positive ? "#176B3A" : "#7A5412"
+        color: root.positive ? FluentTheme.stateOn : "#7A5412"
+        font.family: FluentTheme.fontFamily
         font.pixelSize: 12
+        font.weight: Font.DemiBold
     }
 }

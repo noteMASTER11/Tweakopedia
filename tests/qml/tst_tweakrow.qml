@@ -78,6 +78,17 @@ TestCase {
         compare(findChild(row, "changedBadge").visible, data.pending)
     }
 
+    function test_binaryStateWordsAreLowercase() {
+        const row = createTemporaryObject(rowComponent, this, {
+            currentStateTitle: "Выключено",
+            targetState: "enabled",
+            targetStateTitle: "Включено",
+            pending: true
+        })
+        compare(findChild(row, "currentStateLabel").stateTitle, "выключено")
+        compare(findChild(row, "targetStateLabel").stateTitle, "включено")
+    }
+
     function test_unsupportedRowKeepsReasonAndDisablesToggle() {
         const row = createTemporaryObject(rowComponent, this, {
             supported: false,
