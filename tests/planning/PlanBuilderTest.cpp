@@ -132,6 +132,35 @@ private slots:
         QVERIFY(!result.plan->transactionId.isNull());
     }
 
+    void buildsTypedAppxRemovalWithBeforeFingerprint()
+    {
+        TweakDefinition tweak;
+        tweak.id = *TweakId::parse(u"apps.remove.clipchamp.clipchamp"_s);
+        tweak.title = u"Удалить Clipchamp"_s;
+        tweak.compatibility.architectures = {CpuArchitecture::X64};
+        tweak.compatibility.operatingSystems = {WindowsFamily::Windows11};
+        tweak.compatibility.minimumBuild = 22000;
+        tweak.states = {{
+            .id = u"remove"_s,
+            .title = u"Удалить"_s,
+            .operations = {RemoveAppxPackageOperation{u"Clipchamp.Clipchamp"_s}},
+        }};
+        const TweakCatalog catalog({tweak});
+        TweakQueue queue;
+        QVERIFY(queue.setTarget(tweak, u"remove").accepted);
+
+        const auto result = PlanBuilder{}.build(
+            catalog, queue, {{tweak.id, state(u"installed", QByteArray(64, 'c'))}}, profile());
+
+        QVERIFY(result.plan.has_value());
+        QCOMPARE(result.plan->operations.size(), 1);
+        QVERIFY(std::holds_alternative<PlannedAppxRemoval>(result.plan->operations.first()));
+        const auto& operation = std::get<PlannedAppxRemoval>(result.plan->operations.first());
+        QCOMPARE(operation.change.packageName, u"Clipchamp.Clipchamp"_s);
+        QCOMPARE(operation.beforeFingerprint, QByteArray(64, 'c'));
+        QCOMPARE(operation.tweakId, tweak.id);
+    }
+
     void usesFingerprintOfEachRegistryLocationForCompositeState()
     {
         auto tweak = definition(u"filesystem.composite", u"Primary");
@@ -188,6 +217,36 @@ private slots:
         const auto& second = std::get<PlannedRegistryDwordChange>(result.plan->operations.at(1));
         QCOMPARE(first.tweakId.toString(), u"filesystem.alpha"_s);
         QCOMPARE(second.tweakId.toString(), u"filesystem.beta"_s);
+    }
+
+    void placesConditionalAppxRemovalAfterRegistryChanges()
+    {
+        const auto registryTweak = definition(u"filesystem.alpha"_s, u"Alpha"_s);
+        TweakDefinition appxTweak;
+        appxTweak.id = *TweakId::parse(u"apps.remove.clipchamp.clipchamp"_s);
+        appxTweak.title = u"Удалить Clipchamp"_s;
+        appxTweak.compatibility.architectures = {CpuArchitecture::X64};
+        appxTweak.compatibility.operatingSystems = {WindowsFamily::Windows11};
+        appxTweak.compatibility.minimumBuild = 22000;
+        appxTweak.states = {{
+            .id = u"remove"_s,
+            .title = u"Удалить"_s,
+            .operations = {RemoveAppxPackageOperation{u"Clipchamp.Clipchamp"_s}},
+        }};
+        const TweakCatalog catalog({appxTweak, registryTweak});
+        TweakQueue queue;
+        QVERIFY(queue.setTarget(appxTweak, u"remove"_s).accepted);
+        QVERIFY(queue.setTarget(registryTweak, u"enabled"_s).accepted);
+
+        const auto result = PlanBuilder{}.build(catalog, queue, {
+            {appxTweak.id, state(u"installed"_s, QByteArray(64, 'c'))},
+            {registryTweak.id, state(u"disabled"_s, QByteArray(64, 'd'))},
+        }, profile());
+
+        QVERIFY(result.plan.has_value());
+        QCOMPARE(result.plan->operations.size(), 2);
+        QVERIFY(std::holds_alternative<PlannedRegistryDwordChange>(result.plan->operations.first()));
+        QVERIFY(std::holds_alternative<PlannedAppxRemoval>(result.plan->operations.last()));
     }
 
     void writesRussianSummary()

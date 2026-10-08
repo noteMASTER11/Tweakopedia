@@ -61,13 +61,23 @@ PlanValidationResult PlanValidator::validate(
     }
 
     static const QRegularExpression fingerprintPattern(u"^[0-9a-f]{64}$"_s);
+    static const QRegularExpression packageNamePattern(u"^[A-Za-z0-9][A-Za-z0-9.-]{0,199}$"_s);
     for (const auto& operationVariant : plan.operations) {
-        const auto& operation = std::get<planning::PlannedRegistryDwordChange>(operationVariant);
-        if (!fingerprintPattern.match(QString::fromLatin1(operation.beforeFingerprint)).hasMatch()) {
+        const auto fingerprint = std::visit(
+            [](const auto& operation) { return operation.beforeFingerprint; },
+            operationVariant);
+        if (!fingerprintPattern.match(QString::fromLatin1(fingerprint)).hasMatch()) {
             addError(result, u"fingerprint.invalid"_s, u"Отпечаток исходного состояния имеет неверный формат."_s);
         }
-        if (operation.change.location.key.isEmpty() || operation.change.location.valueName.isEmpty()) {
-            addError(result, u"registry.path_invalid"_s, u"Путь значения реестра пуст."_s);
+        if (const auto* operation = std::get_if<planning::PlannedRegistryDwordChange>(&operationVariant)) {
+            if (operation->change.location.key.isEmpty() || operation->change.location.valueName.isEmpty()) {
+                addError(result, u"registry.path_invalid"_s, u"Путь значения реестра пуст."_s);
+            }
+        } else if (const auto* operation = std::get_if<planning::PlannedAppxRemoval>(&operationVariant)) {
+            if (!packageNamePattern.match(operation->change.packageName).hasMatch()) {
+                addError(result, u"appx.package_name_invalid"_s,
+                         u"Имя AppX-пакета содержит недопустимые символы."_s);
+            }
         }
     }
     result.accepted = result.errors.isEmpty();

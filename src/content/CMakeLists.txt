@@ -1,4 +1,6 @@
 add_library(TweakopediaContent STATIC
+    AppRemovalCatalogLoader.cpp
+    AppRemovalCatalogLoader.h
     CatalogError.h
     CategoryCatalog.cpp
     CategoryCatalog.h

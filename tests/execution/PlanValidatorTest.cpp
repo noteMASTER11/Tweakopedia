@@ -65,6 +65,24 @@ private slots:
         QVERIFY(result.errors.isEmpty());
     }
 
+    void acceptsTypedAppxRemoval()
+    {
+        const auto now = QDateTime::currentDateTimeUtc();
+        auto candidate = plan(now);
+        candidate.operations = {PlannedAppxRemoval{
+            .tweakId = *TweakId::parse(u"apps.remove.clipchamp.clipchamp"_s),
+            .targetState = u"remove"_s,
+            .change = RemoveAppxPackageOperation{u"Clipchamp.Clipchamp"_s},
+            .beforeFingerprint = QByteArray(64, 'c'),
+        }};
+        const auto hash = ExecutionProtocol::bodyHash(candidate);
+
+        const auto result = PlanValidator{}.validate(candidate, profile(), now, hash, hash);
+
+        QVERIFY(result.accepted);
+        QVERIFY(result.errors.isEmpty());
+    }
+
     void rejectsChangedSystemProfile()
     {
         const auto now = QDateTime::currentDateTimeUtc();

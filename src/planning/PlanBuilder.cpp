@@ -137,6 +137,14 @@ PlanBuildResult PlanBuilder::build(
                     .beforeFingerprint = std::move(beforeFingerprint),
                     .restart = tweak->restart,
                 });
+            } else if (const auto* appx = std::get_if<domain::RemoveAppxPackageOperation>(&operation)) {
+                plan.operations.append(PlannedAppxRemoval{
+                    .tweakId = item.tweakId,
+                    .targetState = item.targetState,
+                    .change = *appx,
+                    .beforeFingerprint = current.fingerprint,
+                    .restart = tweak->restart,
+                });
             }
         }
         if (restartRank(tweak->restart) > restartRank(plan.restart)) {
@@ -147,6 +155,11 @@ PlanBuildResult PlanBuilder::build(
     if (!result.issues.isEmpty()) {
         return result;
     }
+    std::stable_sort(
+        plan.operations.begin(), plan.operations.end(),
+        [](const PlannedOperation& left, const PlannedOperation& right) {
+            return left.index() < right.index();
+        });
     plan.summary = plan.operations.isEmpty()
         ? u"Изменения не требуются."_s
         : u"Будет применено операций: "_s + QString::number(plan.operations.size()) + u"."_s;

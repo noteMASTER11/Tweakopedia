@@ -10,6 +10,7 @@
 #include "persistence/TransactionRecord.h"
 #include "persistence/TransactionRepository.h"
 #include "platform/WindowsRegistryBackend.h"
+#include "platform/WindowsAppxPackageProvider.h"
 #include "platform/WindowsSystemProfileProvider.h"
 
 #include <QCommandLineParser>
@@ -215,7 +216,8 @@ int main(int argc, char* argv[])
                 }
             }
             platform::WindowsRegistryBackend backend;
-            execution::TransactionRunner runner(backend, files, repository);
+            platform::WindowsAppxPackageProvider appxBackend;
+            execution::TransactionRunner runner(backend, files, repository, &appxBackend);
             (void)client.sendProgress(10, u"Снимок исходных значений"_s);
             const auto result = runner.run(*decoded.plan);
             (void)client.sendProgress(100, result.success ? u"Изменения применены"_s : u"Операция завершилась ошибкой"_s);

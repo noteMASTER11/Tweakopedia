@@ -1,5 +1,6 @@
 #include "execution/TransactionRunner.h"
 
+#include "execution/AppxPackageExecutor.h"
 #include "execution/RegistryDwordExecutor.h"
 
 #include <QJsonArray>
@@ -9,10 +10,14 @@ using namespace Qt::StringLiterals;
 namespace tweakopedia::execution {
 namespace {
 
-QJsonObject beforeDocument(const QVector<RegistrySnapshot>& snapshots)
+using CapturedSnapshot = std::variant<RegistrySnapshot, AppxPackageSnapshot>;
+
+QJsonObject beforeDocument(const QVector<CapturedSnapshot>& snapshots)
 {
     QJsonArray operations;
-    for (const auto& snapshot : snapshots) operations.append(snapshot.toJson());
+    for (const auto& snapshot : snapshots) {
+        operations.append(std::visit([](const auto& value) { return value.toJson(); }, snapshot));
+    }
     return {{u"operations"_s, operations}};
 }
 
@@ -31,27 +36,35 @@ QJsonObject resultDocument(const TransactionRunResult& result)
 TransactionRunner::TransactionRunner(
     platform::IRegistryBackend& backend,
     persistence::TransactionFiles& files,
-    persistence::TransactionRepository& repository)
-    : backend_(&backend), files_(&files), repository_(&repository)
+    persistence::TransactionRepository& repository,
+    platform::IAppxPackageBackend* appxBackend)
+    : backend_(&backend), appxBackend_(appxBackend), files_(&files), repository_(&repository)
 {
 }
 
 TransactionRunResult TransactionRunner::run(const planning::ExecutionPlan& plan)
 {
     RegistryDwordExecutor executor(*backend_);
-    QVector<RegistrySnapshot> snapshots;
+    std::optional<AppxPackageExecutor> appxExecutor;
+    if (appxBackend_) appxExecutor.emplace(*appxBackend_);
+    QVector<CapturedSnapshot> snapshots;
     bool runningMarked = false;
+    bool appxAttempted = false;
 
-    const auto finishFailure = [&](RegistryExecutionResult error, qsizetype rollbackCount) {
+    const auto finishFailure = [&](QString code, QString message) {
         bool restored = true;
-        for (qsizetype index = rollbackCount - 1; index >= 0; --index) {
-            if (!executor.restore(snapshots.at(index)).success) restored = false;
+        bool restoredAny = false;
+        for (qsizetype index = snapshots.size() - 1; index >= 0; --index) {
+            if (const auto* registry = std::get_if<RegistrySnapshot>(&snapshots[index])) {
+                restoredAny = true;
+                if (!executor.restore(*registry).success) restored = false;
+            }
         }
         TransactionRunResult result{
             .success = false,
-            .rolledBack = restored && rollbackCount > 0,
-            .code = std::move(error.code),
-            .message = std::move(error.message),
+            .rolledBack = restored && restoredAny && !appxAttempted,
+            .code = std::move(code),
+            .message = std::move(message),
         };
         const auto status = result.rolledBack
             ? persistence::TransactionStatus::RolledBack
@@ -61,58 +74,67 @@ TransactionRunResult TransactionRunner::run(const planning::ExecutionPlan& plan)
         return result;
     };
 
-    for (const auto& operation : plan.operations) {
-        const auto* registry = std::get_if<planning::PlannedRegistryDwordChange>(&operation);
-        if (!registry) {
-            return finishFailure(
-                {.success = false,
-                 .code = u"operation.unsupported"_s,
-                 .message = u"План содержит неподдерживаемую операцию."_s},
-                snapshots.size());
+    const auto markRunning = [&]() -> std::optional<TransactionRunResult> {
+        if (runningMarked) return std::nullopt;
+        if (!repository_->updateStatus(plan.transactionId, persistence::TransactionStatus::Running)) {
+            return finishFailure(u"transaction.status_failed"_s, repository_->lastError());
         }
+        runningMarked = true;
+        return std::nullopt;
+    };
 
-        const auto captured = executor.capture(registry->change.location);
-        if (!captured.success) return finishFailure(captured, snapshots.size());
-        const auto compared = executor.compareBefore(captured.snapshot, registry->beforeFingerprint);
-        if (!compared.success) return finishFailure(compared, snapshots.size());
+    for (const auto& operation : plan.operations) {
+        if (const auto* registry = std::get_if<planning::PlannedRegistryDwordChange>(&operation)) {
+            const auto captured = executor.capture(registry->change.location);
+            if (!captured.success) return finishFailure(captured.code, captured.message);
+            const auto compared = executor.compareBefore(captured.snapshot, registry->beforeFingerprint);
+            if (!compared.success) return finishFailure(compared.code, compared.message);
+
+            snapshots.append(captured.snapshot);
+            if (!files_->writeBefore(plan.transactionId, beforeDocument(snapshots))) {
+                snapshots.removeLast();
+                return finishFailure(
+                    u"transaction.snapshot_persist_failed"_s,
+                    u"Не удалось записать снимок транзакции."_s);
+            }
+            if (const auto failed = markRunning()) return *failed;
+
+            const auto applied = executor.apply(registry->change);
+            if (!applied.success) return finishFailure(applied.code, applied.message);
+            continue;
+        }
+        const auto* appx = std::get_if<planning::PlannedAppxRemoval>(&operation);
+        if (!appx || !appxExecutor) {
+            return finishFailure(
+                u"operation.unsupported"_s,
+                u"План содержит неподдерживаемую операцию."_s);
+        }
+        const auto captured = appxExecutor->capture(appx->change.packageName);
+        if (!captured.success) return finishFailure(captured.code, captured.message);
+        const auto compared = appxExecutor->compareBefore(captured.snapshot, appx->beforeFingerprint);
+        if (!compared.success) return finishFailure(compared.code, compared.message);
 
         snapshots.append(captured.snapshot);
         if (!files_->writeBefore(plan.transactionId, beforeDocument(snapshots))) {
+            snapshots.removeLast();
             return finishFailure(
-                {.success = false,
-                 .code = u"transaction.snapshot_persist_failed"_s,
-                 .message = u"Не удалось записать снимок транзакции."_s},
-                snapshots.size() - 1);
+                u"transaction.snapshot_persist_failed"_s,
+                u"Не удалось записать снимок транзакции."_s);
         }
-        if (!runningMarked) {
-            if (!repository_->updateStatus(plan.transactionId, persistence::TransactionStatus::Running)) {
-                return finishFailure(
-                    {.success = false,
-                     .code = u"transaction.status_failed"_s,
-                     .message = repository_->lastError()},
-                    snapshots.size() - 1);
-            }
-            runningMarked = true;
-        }
-
-        const auto applied = executor.apply(registry->change);
-        if (!applied.success) return finishFailure(applied, snapshots.size());
+        if (const auto failed = markRunning()) return *failed;
+        appxAttempted = true;
+        const auto applied = appxExecutor->apply(captured.snapshot);
+        if (!applied.success) return finishFailure(applied.code, applied.message);
     }
 
     TransactionRunResult result{.success = true};
     if (!repository_->updateStatus(plan.transactionId, persistence::TransactionStatus::Succeeded)) {
-        return finishFailure(
-            {.success = false,
-             .code = u"transaction.status_failed"_s,
-             .message = repository_->lastError()},
-            snapshots.size());
+        return finishFailure(u"transaction.status_failed"_s, repository_->lastError());
     }
     if (!files_->writeResult(plan.transactionId, resultDocument(result))) {
         return finishFailure(
-            {.success = false,
-             .code = u"transaction.result_persist_failed"_s,
-             .message = u"Не удалось записать результат транзакции."_s},
-            snapshots.size());
+            u"transaction.result_persist_failed"_s,
+            u"Не удалось записать результат транзакции."_s);
     }
     return result;
 }

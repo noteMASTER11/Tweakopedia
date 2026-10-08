@@ -36,6 +36,8 @@ public:
     app::AppOperationResult nextApply{.status = app::AppOperationStatus::Cancelled,
                                       .code = u"launch.cancelled"_s};
     QVector<persistence::TransactionRecord> records;
+    content::TweakCatalog appRemovalCatalog;
+    int appRemovalScans{};
     int applyCalls{};
     int rollbackCalls{};
     int restartCalls{};
@@ -47,6 +49,11 @@ public:
     }
 
     content::CatalogLoadResult loadCatalog() override { return {.catalog = catalog}; }
+    content::CatalogLoadResult loadAppRemovalCatalog() override
+    {
+        ++appRemovalScans;
+        return {.catalog = appRemovalCatalog};
+    }
     content::CategoryCatalogLoadResult loadCategories() override
     {
         return {.catalog = categoryCatalog};
@@ -141,6 +148,28 @@ private slots:
         QCOMPARE(controller.filteredTweaks()->rowCount(), 1);
     }
 
+    void appRemovalCatalogIsLoadedOnlyAfterExplicitScan()
+    {
+        auto backend = services();
+        auto removal = backend.catalog.tweaks().first();
+        removal.id = *domain::TweakId::parse(u"app-removal.remove.clipchamp.clipchamp"_s);
+        removal.title = u"Удалить Clipchamp"_s;
+        removal.category = u"app-removal"_s;
+        removal.subcategory = u"installed"_s;
+        backend.appRemovalCatalog = content::TweakCatalog({removal});
+        app::AppController controller(backend);
+
+        QVERIFY(controller.startup());
+        QCOMPARE(backend.appRemovalScans, 0);
+        QCOMPARE(controller.appRemovalScanStatus(), u"idle"_s);
+        QCOMPARE(controller.tweaks()->rowCount(), 1);
+
+        controller.scanInstalledApps();
+        QTRY_COMPARE(controller.appRemovalScanStatus(), u"succeeded"_s);
+        QCOMPARE(backend.appRemovalScans, 1);
+        QCOMPARE(controller.tweaks()->rowCount(), 2);
+    }
+
     void returningToggleToActualStateRemovesQueueItem()
     {
         auto backend = services();
@@ -227,6 +256,52 @@ private slots:
         QVERIFY(!explanation.contains(u"sources"_s));
     }
 
+    void previewsAppxRemovalAndExplainsConditionalReturn()
+    {
+        auto backend = services();
+        domain::TweakDefinition tweak;
+        tweak.id = *domain::TweakId::parse(u"apps.remove.clipchamp.clipchamp"_s);
+        tweak.title = u"Удалить Clipchamp"_s;
+        tweak.category = u"apps"_s;
+        tweak.subcategory = u"removal"_s;
+        tweak.kind = domain::TweakKind::Action;
+        tweak.summary = u"Видеоредактор Microsoft"_s;
+        tweak.explanation = {
+            u"Удаляет приложение."_s, u"Использует AppX."_s, u"Пакет исчезает."_s,
+            u"Данные могут быть удалены."_s, u"Удалять, если не нужен."_s,
+            u"Пакет Clipchamp.Clipchamp."_s,
+        };
+        tweak.compatibility = {
+            .architectures = {domain::CpuArchitecture::X64},
+            .operatingSystems = {domain::WindowsFamily::Windows11},
+            .minimumBuild = 22000,
+        };
+        tweak.states = {{
+            .id = u"remove"_s,
+            .title = u"Удалить"_s,
+            .operations = {domain::RemoveAppxPackageOperation{u"Clipchamp.Clipchamp"_s}},
+        }};
+        tweak.appxDetection = domain::AppxPackageDetection{u"Clipchamp.Clipchamp"_s};
+        tweak.reversibility = domain::Reversibility::Conditional;
+        backend.catalog = content::TweakCatalog({tweak});
+        backend.detected = {
+            .status = domain::DetectionStatus::Named,
+            .stateId = u"installed"_s,
+            .fingerprint = QByteArray(64, 'c'),
+        };
+        app::AppController controller(backend);
+
+        QVERIFY(controller.startup());
+        QVERIFY(controller.selectTarget(tweak.id.toString(), u"remove"_s));
+        QVERIFY(controller.buildPreview());
+        const auto operations = controller.previewOperations();
+        QCOMPARE(operations.size(), 1);
+        QCOMPARE(operations.first().toMap().value(u"registryObject"_s).toString(),
+                 u"AppX: Clipchamp.Clipchamp"_s);
+        const auto explanation = controller.openExplanation(tweak.id.toString());
+        QVERIFY(explanation.value(u"rollback"_s).toString().contains(u"повторная установка"_s));
+    }
+
     void successfulRebootPlanExposesRequirementAndRestartCommand()
     {
         auto backend = services();
@@ -276,8 +351,28 @@ private slots:
 
         QVERIFY(model.data(model.index(0), app::HistoryListModel::CanRollbackRole).toBool());
     }
+
+    void appxRemovalSnapshotIsNotAdvertisedAsAutomaticallyReversible()
+    {
+        QTemporaryDir root;
+        QVERIFY(root.isValid());
+        const auto directory = root.filePath(u"transaction"_s);
+        QVERIFY(QDir{}.mkpath(directory));
+        QFile before(QDir(directory).filePath(u"before.json"_s));
+        QVERIFY(before.open(QIODevice::WriteOnly));
+        QVERIFY(before.write(R"({"operations":[{"type":"appx.packages","packages":[]}]})") > 0);
+        before.close();
+
+        auto record = persistence::TransactionRecord::pending(
+            QUuid::createUuid(), u"Удаление приложения"_s, directory);
+        record.status = persistence::TransactionStatus::Succeeded;
+        app::HistoryListModel model;
+        model.reset({record});
+
+        QVERIFY(!model.data(model.index(0), app::HistoryListModel::CanRollbackRole).toBool());
+    }
 };
 
-QTEST_APPLESS_MAIN(AppControllerTest)
+QTEST_GUILESS_MAIN(AppControllerTest)
 
 #include "AppControllerTest.moc"

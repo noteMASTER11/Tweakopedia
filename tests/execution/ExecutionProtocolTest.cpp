@@ -88,6 +88,43 @@ private slots:
         QCOMPARE(operation.beforeFingerprint, QByteArray(64, 'a'));
     }
 
+    void roundTripsWhitelistedAppxRemoval()
+    {
+        auto original = plan();
+        original.operations = {PlannedAppxRemoval{
+            .tweakId = *TweakId::parse(u"apps.remove.clipchamp.clipchamp"_s),
+            .targetState = u"remove"_s,
+            .change = RemoveAppxPackageOperation{u"Clipchamp.Clipchamp"_s},
+            .beforeFingerprint = QByteArray(64, 'c'),
+        }};
+
+        const auto decoded = ExecutionProtocol::decode(ExecutionProtocol::encode(original));
+
+        QVERIFY2(decoded.errors.isEmpty(), qPrintable(
+            decoded.errors.isEmpty() ? QString{} : decoded.errors.first().message));
+        QVERIFY(decoded.plan.has_value());
+        QVERIFY(std::holds_alternative<PlannedAppxRemoval>(decoded.plan->operations.first()));
+        const auto& operation = std::get<PlannedAppxRemoval>(decoded.plan->operations.first());
+        QCOMPARE(operation.change.packageName, u"Clipchamp.Clipchamp"_s);
+        QCOMPARE(operation.beforeFingerprint, QByteArray(64, 'c'));
+    }
+
+    void rejectsAppxWildcard()
+    {
+        auto original = plan();
+        original.operations = {PlannedAppxRemoval{
+            .tweakId = *TweakId::parse(u"apps.remove.clipchamp.clipchamp"_s),
+            .targetState = u"remove"_s,
+            .change = RemoveAppxPackageOperation{u"*Clipchamp*"_s},
+            .beforeFingerprint = QByteArray(64, 'c'),
+        }};
+
+        const auto decoded = ExecutionProtocol::decode(ExecutionProtocol::encode(original));
+
+        QVERIFY(!decoded.plan.has_value());
+        QVERIFY(hasError(decoded, u"appx.package_name_invalid"));
+    }
+
     void producesStableJsonForSamePlan()
     {
         const auto value = plan();

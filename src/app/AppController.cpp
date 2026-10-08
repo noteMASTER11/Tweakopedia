@@ -5,6 +5,7 @@
 #include "app/SystemOverviewPresenter.h"
 
 #include <QtConcurrentRun>
+#include <algorithm>
 using namespace Qt::StringLiterals;
 
 namespace tweakopedia::app {
@@ -50,12 +51,43 @@ AppController::AppController(IAppServices& services, QObject* parent)
                 systemOverviewLoading_ = false;
                 emit systemOverviewChanged();
             });
+    connect(&appRemovalScanWatcher_,
+            &QFutureWatcher<content::CatalogLoadResult>::finished,
+            this,
+            [this] {
+                const auto result = appRemovalScanWatcher_.result();
+                if (!result.catalog) {
+                    appRemovalScanStatus_ = u"failed"_s;
+                    appRemovalScanError_ = result.errors.isEmpty()
+                        ? u"Не удалось определить установленные приложения."_s
+                        : result.errors.first().message;
+                    emit appRemovalScanChanged();
+                    return;
+                }
+
+                auto definitions = catalog_.tweaks();
+                definitions.erase(
+                    std::remove_if(definitions.begin(), definitions.end(), [](const auto& tweak) {
+                        return tweak.category == u"app-removal"_s;
+                    }),
+                    definitions.end());
+                definitions += result.catalog->tweaks();
+                catalog_ = content::TweakCatalog(std::move(definitions));
+                refreshDetectedStates();
+                refreshModels();
+                appRemovalScanStatus_ = u"succeeded"_s;
+                appRemovalScanError_.clear();
+                emit appRemovalScanChanged();
+            });
 }
 
 AppController::~AppController()
 {
     if (systemOverviewWatcher_.isRunning()) {
         systemOverviewWatcher_.waitForFinished();
+    }
+    if (appRemovalScanWatcher_.isRunning()) {
+        appRemovalScanWatcher_.waitForFinished();
     }
 }
 
@@ -71,15 +103,23 @@ QVariantList AppController::previewOperations() const
     QVariantList result;
     if (!preview_) return result;
     for (const auto& variant : preview_->operations) {
-        const auto& operation = std::get<planning::PlannedRegistryDwordChange>(variant);
-        const auto* tweak = catalog_.find(operation.tweakId);
-        result.append(QVariantMap{
-            {u"title"_s, tweak ? tweak->title : operation.tweakId.toString()},
-            {u"beforeState"_s, detected_.value(operation.tweakId).stateId},
-            {u"targetState"_s, operation.targetState},
-            {u"registryObject"_s, registryObject(operation.change.location)},
-            {u"restart"_s, restartName(operation.restart)},
-        });
+        std::visit([&](const auto& operation) {
+            const auto* tweak = catalog_.find(operation.tweakId);
+            QString object;
+            if constexpr (std::is_same_v<std::decay_t<decltype(operation)>,
+                                         planning::PlannedRegistryDwordChange>) {
+                object = registryObject(operation.change.location);
+            } else {
+                object = u"AppX: "_s + operation.change.packageName;
+            }
+            result.append(QVariantMap{
+                {u"title"_s, tweak ? tweak->title : operation.tweakId.toString()},
+                {u"beforeState"_s, detected_.value(operation.tweakId).stateId},
+                {u"targetState"_s, operation.targetState},
+                {u"registryObject"_s, object},
+                {u"restart"_s, restartName(operation.restart)},
+            });
+        }, variant);
     }
     return result;
 }
@@ -91,6 +131,8 @@ bool AppController::rebootRequired() const noexcept { return rebootRequired_; }
 QVariantMap AppController::systemOverview() const { return systemOverview_; }
 bool AppController::systemOverviewLoading() const noexcept { return systemOverviewLoading_; }
 QString AppController::systemOverviewError() const { return systemOverviewError_; }
+QString AppController::appRemovalScanStatus() const { return appRemovalScanStatus_; }
+QString AppController::appRemovalScanError() const { return appRemovalScanError_; }
 
 bool AppController::startup()
 {
@@ -184,6 +226,8 @@ QVariantMap AppController::openExplanation(const QString& id) const
         const auto& location = tweak->detection->location;
         registryObject = (location.hive == domain::RegistryHive::LocalMachine ? u"HKLM\\"_s : u"HKCU\\"_s)
             + location.key + u"\\"_s + location.valueName;
+    } else if (tweak->appxDetection) {
+        registryObject = u"AppX: "_s + tweak->appxDetection->packageName;
     }
     return {
         {u"title"_s, tweak->title},
@@ -194,7 +238,9 @@ QVariantMap AppController::openExplanation(const QString& id) const
         {u"recommendation"_s, explanation.recommendation},
         {u"technicalDetails"_s, explanation.technicalDetails},
         {u"registryObject"_s, registryObject},
-        {u"rollback"_s, u"При возврате восстанавливаются точный исходный тип и байты значения; если значения не было, оно удаляется."_s},
+        {u"rollback"_s, tweak->appxDetection
+            ? u"Автоматический возврат удалённого пакета не выполняется; потребуется повторная установка приложения."_s
+            : u"При возврате восстанавливаются точный исходный тип и байты значения; если значения не было, оно удаляется."_s},
     };
 }
 
@@ -249,6 +295,24 @@ bool AppController::applyQueue(const QString& packageName)
     const auto queued = queueData_.items();
     for (const auto& item : queued) (void)queueData_.remove(item.tweakId);
     preview_.reset();
+    const auto reloaded = services_->loadCatalog();
+    if (reloaded.catalog) {
+        catalog_ = *reloaded.catalog;
+        if (appRemovalScanStatus_ == u"succeeded"_s) {
+            const auto removals = services_->loadAppRemovalCatalog();
+            if (removals.catalog) {
+                auto definitions = catalog_.tweaks();
+                definitions += removals.catalog->tweaks();
+                catalog_ = content::TweakCatalog(std::move(definitions));
+            } else {
+                appRemovalScanStatus_ = u"failed"_s;
+                appRemovalScanError_ = removals.errors.isEmpty()
+                    ? u"Не удалось обновить список установленных приложений."_s
+                    : removals.errors.first().message;
+                emit appRemovalScanChanged();
+            }
+        }
+    }
     refreshDetectedStates();
     refreshModels();
     historyModel_.reset(services_->history());
@@ -314,6 +378,17 @@ void AppController::refreshSystemOverview()
     auto* services = services_;
     systemOverviewWatcher_.setFuture(
         QtConcurrent::run([services] { return services->systemOverview(); }));
+}
+
+void AppController::scanInstalledApps()
+{
+    if (appRemovalScanWatcher_.isRunning()) return;
+    appRemovalScanStatus_ = u"running"_s;
+    appRemovalScanError_.clear();
+    emit appRemovalScanChanged();
+    auto* services = services_;
+    appRemovalScanWatcher_.setFuture(
+        QtConcurrent::run([services] { return services->loadAppRemovalCatalog(); }));
 }
 
 void AppController::refreshDetectedStates()

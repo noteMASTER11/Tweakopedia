@@ -1,0 +1,59 @@
+id: privacy.implicit-ink-collection
+title: Сбор образцов рукописного ввода
+category: privacy
+subcategory: personalization
+kind: setting
+summary: Управляет неявным сбором образцов рукописного ввода для персонализации распознавания.
+explanation:
+  purpose: Позволяет запретить накопление образцов штрихов пера, используемых функциями персонализации ввода.
+  mechanism: Флаг RestrictImplicitInkCollection инвертирует разрешение на неявный сбор рукописного ввода.
+  effect: При запрете новые образцы рукописного ввода не добавляются в соответствующее хранилище персонализации.
+  tradeoffs: Распознавание индивидуального почерка может адаптироваться медленнее.
+  recommendation: Запрещайте, если персонализация рукописного ввода не используется.
+  technical_details: Изменяется DWORD HKCU\Software\Microsoft\InputPersonalization\RestrictImplicitInkCollection. Значение 1 запрещает сбор, 0 разрешает.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Запрещён
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\InputPersonalization'
+        value_name: RestrictImplicitInkCollection
+        view: registry64
+        value: 1
+  enabled:
+    title: Разрешён
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\InputPersonalization'
+        value_name: RestrictImplicitInkCollection
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\InputPersonalization'
+  value_name: RestrictImplicitInkCollection
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

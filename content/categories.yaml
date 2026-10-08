@@ -95,6 +95,11 @@ categories:
         title: Microsoft Defender
       - id: store
         title: Microsoft Store
+  - id: app-removal
+    title: Удаление приложений
+    subcategories:
+      - id: installed
+        title: Установленные приложения
   - id: devices
     title: Устройства и датчики
     subcategories:

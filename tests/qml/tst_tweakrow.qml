@@ -161,5 +161,24 @@ TestCase {
         compare(explanationSpy.count, 0)
     }
 
+    function test_actionUsesQueueButtonInsteadOfStateSelector() {
+        const row = createTemporaryObject(rowComponent, this, {
+            action: true,
+            binary: false,
+            currentState: "installed",
+            availableStates: [{"id": "remove", "title": "Удалить"}]
+        })
+        const actionButton = findChild(row, "actionQueueButton")
+        verify(actionButton)
+        compare(actionButton.visible, true)
+        compare(findChild(row, "stateSelector").visible, false)
+        compare(findChild(row, "currentStateLabel").visible, false)
+
+        const spy = signalSpy.createObject(row, {target: row, signalName: "targetSelected"})
+        mouseClick(actionButton)
+        compare(spy.count, 1)
+        compare(spy.signalArguments[0][0], "remove")
+    }
+
     Component { id: signalSpy; SignalSpy {} }
 }

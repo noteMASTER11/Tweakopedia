@@ -14,6 +14,7 @@ Item {
     property string targetStateTitle: ""
     property var availableStates: []
     property bool binary: false
+    property bool action: false
     property bool pending: false
     property bool supported: true
     property string supportDetails: ""
@@ -125,6 +126,7 @@ Item {
 
             StateLabel {
                 objectName: "currentStateLabel"
+                visible: !root.action
                 prefix: root.pending ? "После применения:" : "Сейчас:"
                 stateId: root.pending ? root.targetState : root.currentState
                 stateTitle: root.binary
@@ -148,7 +150,7 @@ Item {
 
         FluentStateSelector {
             objectName: "stateSelector"
-            visible: !root.binary
+            visible: !root.binary && !root.action
             enabled: root.supported
             states: root.availableStates
             selectedState: root.pending ? root.targetState : root.currentState
@@ -157,13 +159,42 @@ Item {
 
         FluentToggle {
             objectName: "binaryToggle"
-            visible: root.binary
+            visible: root.binary && !root.action
             checked: root.pending
                 ? root.targetState === "enabled"
                 : root.currentState === "enabled"
             enabled: root.supported
                 && (root.currentState === "disabled" || root.currentState === "enabled")
             onToggledByUser: checked => root.targetSelected(checked ? "enabled" : "disabled")
+        }
+
+        Button {
+            id: actionButton
+            objectName: "actionQueueButton"
+            visible: root.action
+            enabled: root.supported && !root.pending
+            text: root.pending ? "Добавлено" : "В очередь"
+            implicitWidth: 124
+            implicitHeight: 36
+            hoverEnabled: true
+            onClicked: root.targetSelected("remove")
+
+            contentItem: Text {
+                text: actionButton.text
+                color: actionButton.enabled ? "white" : FluentTheme.disabledText
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                font.family: FluentTheme.fontFamily
+                font.pixelSize: 13
+                font.weight: Font.DemiBold
+            }
+
+            background: Rectangle {
+                radius: 5
+                color: !actionButton.enabled
+                    ? FluentTheme.disabledSurface
+                    : actionButton.hovered ? FluentTheme.accentHover : FluentTheme.accent
+            }
         }
 
     }

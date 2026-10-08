@@ -1,4 +1,6 @@
 add_library(TweakopediaDetection STATIC
+    AppxPackageStateDetector.cpp
+    AppxPackageStateDetector.h
     CompatibilityEvaluator.cpp
     CompatibilityEvaluator.h
     RegistryDwordStateDetector.cpp

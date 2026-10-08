@@ -37,6 +37,7 @@ class IAppServices
 public:
     virtual ~IAppServices() = default;
     [[nodiscard]] virtual content::CatalogLoadResult loadCatalog() = 0;
+    [[nodiscard]] virtual content::CatalogLoadResult loadAppRemovalCatalog() = 0;
     [[nodiscard]] virtual content::CategoryCatalogLoadResult loadCategories() = 0;
     [[nodiscard]] virtual domain::SystemProfile currentProfile() const = 0;
     [[nodiscard]] virtual domain::SystemOverviewSnapshot systemOverview() const = 0;
@@ -73,6 +74,8 @@ class AppController final : public QObject
     Q_PROPERTY(QVariantMap systemOverview READ systemOverview NOTIFY systemOverviewChanged)
     Q_PROPERTY(bool systemOverviewLoading READ systemOverviewLoading NOTIFY systemOverviewChanged)
     Q_PROPERTY(QString systemOverviewError READ systemOverviewError NOTIFY systemOverviewChanged)
+    Q_PROPERTY(QString appRemovalScanStatus READ appRemovalScanStatus NOTIFY appRemovalScanChanged)
+    Q_PROPERTY(QString appRemovalScanError READ appRemovalScanError NOTIFY appRemovalScanChanged)
 
 public:
     explicit AppController(IAppServices& services, QObject* parent = nullptr);
@@ -94,6 +97,8 @@ public:
     [[nodiscard]] QVariantMap systemOverview() const;
     [[nodiscard]] bool systemOverviewLoading() const noexcept;
     [[nodiscard]] QString systemOverviewError() const;
+    [[nodiscard]] QString appRemovalScanStatus() const;
+    [[nodiscard]] QString appRemovalScanError() const;
 
     Q_INVOKABLE bool startup();
     Q_INVOKABLE void setTweakSearch(const QString& query);
@@ -106,12 +111,14 @@ public:
     Q_INVOKABLE bool rollback(const QString& transactionId);
     Q_INVOKABLE bool restartComputer();
     Q_INVOKABLE void refreshSystemOverview();
+    Q_INVOKABLE void scanInstalledApps();
 
 signals:
     void previewChanged();
     void errorChanged();
     void operationChanged();
     void systemOverviewChanged();
+    void appRemovalScanChanged();
 
 private:
     void refreshDetectedStates();
@@ -139,9 +146,12 @@ private:
     QString applyMessage_;
     bool rebootRequired_{};
     QFutureWatcher<domain::SystemOverviewSnapshot> systemOverviewWatcher_;
+    QFutureWatcher<content::CatalogLoadResult> appRemovalScanWatcher_;
     QVariantMap systemOverview_;
     QString systemOverviewError_;
     bool systemOverviewLoading_{};
+    QString appRemovalScanStatus_{QStringLiteral("idle")};
+    QString appRemovalScanError_;
 };
 
 } // namespace tweakopedia::app

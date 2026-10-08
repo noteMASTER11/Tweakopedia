@@ -8,6 +8,10 @@ Page {
 
     required property var controller
     property bool wideLayout: width >= 1180
+    property string selectedCategory: ""
+    readonly property bool appRemovalSelected: selectedCategory === "app-removal"
+    readonly property bool appRemovalPromptVisible:
+        appRemovalSelected && controller.appRemovalScanStatus !== "succeeded"
     signal reviewRequested()
 
     function showExplanation(tweakId, trigger) {
@@ -48,6 +52,7 @@ Page {
         anchors.rightMargin: 24 + (infoPane.opened && infoPane.docked ? infoPane.width : 0)
         anchors.top: pageDescription.bottom
         anchors.topMargin: 16
+        visible: !root.appRemovalPromptVisible
         onSearchRequested: query => root.controller.setTweakSearch(query)
     }
 
@@ -55,7 +60,7 @@ Page {
         id: categoryRail
         objectName: "categoryRail"
         anchors.left: pageTitle.left
-        anchors.top: searchField.bottom
+        anchors.top: root.appRemovalPromptVisible ? pageDescription.bottom : searchField.bottom
         anchors.topMargin: 14
         width: root.wideLayout ? 220 : parent.width - 48
         height: root.wideLayout
@@ -63,7 +68,10 @@ Page {
             : 44
         model: root.controller.categories
         wide: root.wideLayout
-        onCategorySelected: categoryId => root.controller.setTweakCategory(categoryId)
+        onCategorySelected: categoryId => {
+            root.selectedCategory = categoryId
+            root.controller.setTweakCategory(categoryId)
+        }
     }
 
     ListView {
@@ -80,6 +88,8 @@ Page {
         clip: true
         spacing: 8
         model: root.controller.filteredTweaks
+        visible: !root.appRemovalSelected
+            || root.controller.appRemovalScanStatus === "succeeded"
 
         delegate: TweakRow {
             id: tweakRowDelegate
@@ -93,6 +103,7 @@ Page {
             targetStateTitle: model.targetStateTitle
             availableStates: model.availableStates
             binary: model.binary
+            action: model.action
             pending: model.pending
             supported: model.supported
             supportDetails: model.supportDetails
@@ -100,6 +111,103 @@ Page {
             restart: model.restart
             onTargetSelected: state => root.controller.selectTarget(model.id, state)
             onExplanationRequested: root.showExplanation(model.id, tweakRowDelegate)
+        }
+    }
+
+    Rectangle {
+        id: appRemovalSearchPrompt
+        objectName: "appRemovalSearchPrompt"
+        anchors.left: tweakList.left
+        anchors.right: tweakList.right
+        anchors.top: tweakList.top
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 24
+        visible: root.appRemovalPromptVisible
+        radius: 8
+        color: FluentTheme.surface
+        border.width: 1
+        border.color: FluentTheme.stroke
+
+        Column {
+            anchors.centerIn: parent
+            width: Math.min(parent.width - 48, 560)
+            spacing: 16
+
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "⌕"
+                color: FluentTheme.accent
+                font.family: FluentTheme.fontFamily
+                font.pixelSize: 72
+            }
+
+            Text {
+                width: parent.width
+                text: "Нажмите на поиск, чтобы автоматически определить установленные приложения"
+                color: FluentTheme.textPrimary
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                font.family: FluentTheme.fontFamily
+                font.pixelSize: 20
+                font.weight: Font.DemiBold
+            }
+
+            Text {
+                width: parent.width
+                visible: root.controller.appRemovalScanStatus === "failed"
+                text: root.controller.appRemovalScanError
+                    || "Не удалось определить установленные приложения."
+                color: FluentTheme.danger
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                font.family: FluentTheme.fontFamily
+                font.pixelSize: 13
+            }
+
+            Row {
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 12
+
+                BusyIndicator {
+                    id: appRemovalSearchSpinner
+                    objectName: "appRemovalSearchSpinner"
+                    width: 32
+                    height: 32
+                    visible: root.controller.appRemovalScanStatus === "running"
+                    running: visible
+                }
+
+                Button {
+                    id: appRemovalSearchButton
+                    objectName: "appRemovalSearchButton"
+                    text: root.controller.appRemovalScanStatus === "running"
+                        ? "Поиск…" : "Поиск"
+                    enabled: root.controller.appRemovalScanStatus !== "running"
+                    leftPadding: 24
+                    rightPadding: 24
+                    topPadding: 9
+                    bottomPadding: 9
+                    onClicked: root.controller.scanInstalledApps()
+
+                    contentItem: Text {
+                        text: appRemovalSearchButton.text
+                        color: appRemovalSearchButton.enabled ? "white" : FluentTheme.disabledText
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        font.family: FluentTheme.fontFamily
+                        font.pixelSize: 14
+                        font.weight: Font.DemiBold
+                    }
+
+                    background: Rectangle {
+                        radius: 5
+                        color: appRemovalSearchButton.enabled
+                            ? (appRemovalSearchButton.hovered
+                                ? FluentTheme.accentHover : FluentTheme.accent)
+                            : FluentTheme.disabledSurface
+                    }
+                }
+            }
         }
     }
 

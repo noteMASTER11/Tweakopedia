@@ -1,7 +1,9 @@
 #include "app/AppController.h"
+#include "content/AppRemovalCatalogLoader.h"
 #include "content/TweakCatalogLoader.h"
 #include "content/CategoryCatalogLoader.h"
 #include "detection/RegistryDwordStateDetector.h"
+#include "detection/AppxPackageStateDetector.h"
 #include "execution/ExecutionProtocol.h"
 #include "execution/ExecutorLauncher.h"
 #include "execution/ExecutorServer.h"
@@ -10,6 +12,7 @@
 #include "persistence/TransactionFiles.h"
 #include "persistence/TransactionRepository.h"
 #include "platform/WindowsRegistryBackend.h"
+#include "platform/WindowsAppxPackageProvider.h"
 #include "platform/WindowsSystemProfileProvider.h"
 #include "platform/WindowsSystemOverviewProvider.h"
 #include "UiFontLoader.h"
@@ -78,15 +81,55 @@ public:
 
     content::CatalogLoadResult loadCatalog() override
     {
-        const auto portable = paths_.contentRoot() + u"/tweaks"_s;
+        const auto portableRoot = paths_.contentRoot();
 #ifdef TWEAKOPEDIA_SOURCE_CONTENT_ROOT
-        const auto root = QFileInfo::exists(portable)
-            ? portable
-            : QStringLiteral(TWEAKOPEDIA_SOURCE_CONTENT_ROOT) + u"/tweaks"_s;
+        const auto root = QFileInfo::exists(portableRoot + u"/categories.yaml"_s)
+            ? portableRoot
+            : QStringLiteral(TWEAKOPEDIA_SOURCE_CONTENT_ROOT);
 #else
-        const auto& root = portable;
+        const auto& root = portableRoot;
 #endif
-        return content::TweakCatalogLoader{}.loadDirectory(root);
+        return content::TweakCatalogLoader{}.loadDirectory(root + u"/tweaks"_s);
+    }
+
+    content::CatalogLoadResult loadAppRemovalCatalog() override
+    {
+        const auto portableRoot = paths_.contentRoot();
+#ifdef TWEAKOPEDIA_SOURCE_CONTENT_ROOT
+        const auto root = QFileInfo::exists(portableRoot + u"/categories.yaml"_s)
+            ? portableRoot
+            : QStringLiteral(TWEAKOPEDIA_SOURCE_CONTENT_ROOT);
+#else
+        const auto& root = portableRoot;
+#endif
+        content::CatalogLoadResult result;
+        appxInventory_ = appx_.installedForCurrentUser();
+        if (!appxInventory_.error.isEmpty()) {
+            result.errors.append({
+                .code = u"apps.scan_failed"_s,
+                .message = appxInventory_.error,
+                .filePath = root + u"/apps.json"_s,
+                .line = 1,
+                .column = 1,
+            });
+            return result;
+        }
+        const auto removals = content::AppRemovalCatalogLoader{}.loadFile(
+            root + u"/apps.json"_s, appxInventory_.packageNames());
+        if (!removals.errors.isEmpty()) {
+            for (const auto& message : removals.errors) {
+                result.errors.append({
+                    .code = u"apps.catalog_invalid"_s,
+                    .message = message,
+                    .filePath = root + u"/apps.json"_s,
+                    .line = 1,
+                    .column = 1,
+                });
+            }
+            return result;
+        }
+        result.catalog = content::TweakCatalog(removals.tweaks);
+        return result;
     }
 
     content::CategoryCatalogLoadResult loadCategories() override
@@ -112,6 +155,10 @@ public:
         const domain::TweakDefinition& tweak,
         const domain::SystemProfile& profile) const override
     {
+        if (tweak.appxDetection) {
+            return detection::AppxPackageStateDetector{}.detect(
+                tweak, appxInventory_.packages, profile);
+        }
         return detection::RegistryDwordStateDetector{}.detect(tweak, registry_, profile);
     }
 
@@ -296,6 +343,8 @@ private:
     std::unique_ptr<persistence::TransactionRepository> repository_;
     platform::WindowsSystemProfileProvider profile_;
     mutable platform::WindowsRegistryBackend registry_;
+    platform::WindowsAppxPackageProvider appx_;
+    platform::AppxPackageQueryResult appxInventory_;
 };
 
 } // namespace

@@ -148,7 +148,7 @@ private slots:
 
         QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 207);
+        QCOMPARE(result.catalog->size(), 212);
 
         const QStringList expectedIds{
             u"apps.windows-ink-workspace"_s,
@@ -261,6 +261,11 @@ private slots:
             u"privacy.diagnostic-data-level"_s,
             u"privacy.first-logon-privacy-screen"_s,
             u"privacy.online-speech-recognition"_s,
+            u"privacy.inking-typing-improvement"_s,
+            u"privacy.implicit-ink-collection"_s,
+            u"privacy.implicit-text-collection"_s,
+            u"privacy.contact-harvesting"_s,
+            u"privacy.input-personalization-consent"_s,
             u"privacy.experimentation"_s,
             u"privacy.publish-user-activities"_s,
             u"privacy.tailored-experiences"_s,

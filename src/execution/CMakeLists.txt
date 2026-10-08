@@ -1,4 +1,6 @@
 add_library(TweakopediaExecution STATIC
+    AppxPackageExecutor.cpp
+    AppxPackageExecutor.h
     ExecutionProtocol.cpp
     ExecutionProtocol.h
     ExecutorClient.cpp

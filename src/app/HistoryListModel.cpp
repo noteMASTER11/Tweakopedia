@@ -15,7 +15,14 @@ bool hasCompleteSnapshot(const QString& directory)
     if (!file.open(QIODevice::ReadOnly)) return false;
     const auto document = QJsonDocument::fromJson(file.readAll());
     const auto operations = document.object().value(QStringLiteral("operations"));
-    return operations.isArray() && !operations.toArray().isEmpty();
+    if (!operations.isArray() || operations.toArray().isEmpty()) return false;
+    for (const auto& operation : operations.toArray()) {
+        if (operation.toObject().value(QStringLiteral("type")).toString()
+            == QStringLiteral("appx.packages")) {
+            return false;
+        }
+    }
+    return true;
 }
 
 } // namespace

@@ -1,0 +1,59 @@
+id: privacy.input-personalization-consent
+title: Согласие на персонализацию ввода
+category: privacy
+subcategory: personalization
+kind: setting
+summary: Управляет пользовательским согласием на функции персонализации печатного и рукописного ввода.
+explanation:
+  purpose: Позволяет включить или отозвать принятое пользователем согласие на персонализацию ввода.
+  mechanism: Windows хранит состояние согласия в параметре AcceptedPrivacyPolicy раздела Personalization Settings.
+  effect: При отзыве согласия связанные функции персонализации ввода перестают считать политику принятой.
+  tradeoffs: Персональный словарь, распознавание почерка и предложения ввода могут работать менее индивидуально.
+  recommendation: Отзывайте согласие, если персонализация ввода не требуется.
+  technical_details: Изменяется DWORD HKCU\Software\Microsoft\Personalization\Settings\AcceptedPrivacyPolicy. Значение 0 означает отказ, 1 — согласие.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Отозвано
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Personalization\Settings'
+        value_name: AcceptedPrivacyPolicy
+        view: registry64
+        value: 0
+  enabled:
+    title: Принято
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Personalization\Settings'
+        value_name: AcceptedPrivacyPolicy
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Personalization\Settings'
+  value_name: AcceptedPrivacyPolicy
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

@@ -94,6 +94,7 @@ QVariant TweakListModel::data(const QModelIndex& index, int role) const
     case BinaryRole: return isBinary(entry.tweak);
     case PendingRole: return !entry.targetState.isEmpty();
     case SupportDetailsRole: return entry.detected.details;
+    case ActionRole: return entry.tweak.kind == domain::TweakKind::Action;
     default: return {};
     }
 }
@@ -117,6 +118,7 @@ QHash<int, QByteArray> TweakListModel::roleNames() const
         {BinaryRole, "binary"},
         {PendingRole, "pending"},
         {SupportDetailsRole, "supportDetails"},
+        {ActionRole, "action"},
     };
 }
 

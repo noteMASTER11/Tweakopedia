@@ -4,6 +4,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonParseError>
+#include <QRegularExpression>
 #include <QSet>
 
 using namespace Qt::StringLiterals;
@@ -16,11 +17,13 @@ using domain::RegistryHive;
 using domain::RegistryLocation;
 using domain::RegistryView;
 using domain::RestartRequirement;
+using domain::RemoveAppxPackageOperation;
 using domain::SetRegistryDwordOperation;
 using domain::SystemProfile;
 using domain::TweakId;
 using domain::WindowsFamily;
 using planning::ExecutionPlan;
+using planning::PlannedAppxRemoval;
 using planning::PlannedOperation;
 using planning::PlannedRegistryDwordChange;
 
@@ -103,6 +106,18 @@ QJsonObject operationObject(const PlannedRegistryDwordChange& operation)
         {u"target_state"_s, operation.targetState},
         {u"tweak_id"_s, operation.tweakId.toString()},
         {u"type"_s, u"registry.set_dword"_s},
+    };
+}
+
+QJsonObject operationObject(const PlannedAppxRemoval& operation)
+{
+    return {
+        {u"before_fingerprint"_s, QString::fromLatin1(operation.beforeFingerprint)},
+        {u"package_name"_s, operation.change.packageName},
+        {u"restart"_s, restartName(operation.restart)},
+        {u"target_state"_s, operation.targetState},
+        {u"tweak_id"_s, operation.tweakId.toString()},
+        {u"type"_s, u"appx.remove"_s},
     };
 }
 
@@ -201,16 +216,47 @@ std::optional<PlannedOperation> parseOperation(ProtocolDecodeResult& result, con
         return std::nullopt;
     }
     const auto object = value.toObject();
-    validateKeys(result, object, {
-        u"before_fingerprint"_s, u"registry"_s, u"restart"_s,
-        u"target_state"_s, u"tweak_id"_s, u"type"_s,
-    });
-    if (object.value(u"type"_s).toString() != u"registry.set_dword") {
+    const auto type = object.value(u"type"_s).toString();
+    if (type != u"registry.set_dword" && type != u"appx.remove") {
         addError(result, u"operation.unknown"_s, u"Тип операции не входит в whitelist."_s);
         return std::nullopt;
     }
     const auto id = TweakId::parse(object.value(u"tweak_id"_s).toString());
     const auto restart = parseRestart(result, object.value(u"restart"_s).toString());
+    const auto targetState = object.value(u"target_state"_s).toString();
+    if (!id || !restart || targetState.isEmpty()) {
+        if (!id) addError(result, u"id.invalid"_s, u"Некорректный ID твика."_s);
+        if (targetState.isEmpty()) {
+            addError(result, u"operation.invalid"_s, u"Целевое состояние отсутствует."_s);
+        }
+        return std::nullopt;
+    }
+
+    if (type == u"appx.remove") {
+        validateKeys(result, object, {
+            u"before_fingerprint"_s, u"package_name"_s, u"restart"_s,
+            u"target_state"_s, u"tweak_id"_s, u"type"_s,
+        });
+        const auto packageName = object.value(u"package_name"_s).toString();
+        static const QRegularExpression packageNamePattern(u"^[A-Za-z0-9][A-Za-z0-9.-]{0,199}$"_s);
+        if (!packageNamePattern.match(packageName).hasMatch()) {
+            addError(result, u"appx.package_name_invalid"_s,
+                     u"Имя AppX-пакета содержит недопустимые символы."_s);
+            return std::nullopt;
+        }
+        return PlannedAppxRemoval{
+            .tweakId = *id,
+            .targetState = targetState,
+            .change = RemoveAppxPackageOperation{.packageName = packageName},
+            .beforeFingerprint = object.value(u"before_fingerprint"_s).toString().toLatin1(),
+            .restart = *restart,
+        };
+    }
+
+    validateKeys(result, object, {
+        u"before_fingerprint"_s, u"registry"_s, u"restart"_s,
+        u"target_state"_s, u"tweak_id"_s, u"type"_s,
+    });
     const auto registryValue = object.value(u"registry"_s);
     if (!registryValue.isObject()) {
         addError(result, u"registry.invalid"_s, u"Параметры реестра должны быть объектом."_s);
@@ -221,8 +267,7 @@ std::optional<PlannedOperation> parseOperation(ProtocolDecodeResult& result, con
     const auto hive = parseHive(result, registry.value(u"hive"_s).toString());
     const auto view = parseView(result, registry.value(u"view"_s).toString());
     const auto rawValue = registry.value(u"value"_s).toInteger(-1);
-    if (!id || !restart || !hive || !view || rawValue < 0 || rawValue > std::numeric_limits<quint32>::max()) {
-        if (!id) addError(result, u"id.invalid"_s, u"Некорректный ID твика."_s);
+    if (!hive || !view || rawValue < 0 || rawValue > std::numeric_limits<quint32>::max()) {
         if (rawValue < 0 || rawValue > std::numeric_limits<quint32>::max()) {
             addError(result, u"value.invalid_dword"_s, u"DWORD выходит за допустимый диапазон."_s);
         }
@@ -230,7 +275,6 @@ std::optional<PlannedOperation> parseOperation(ProtocolDecodeResult& result, con
     }
     const auto key = registry.value(u"key"_s).toString();
     const auto valueName = registry.value(u"value_name"_s).toString();
-    const auto targetState = object.value(u"target_state"_s).toString();
     if (key.isEmpty() || valueName.isEmpty() || targetState.isEmpty()) {
         addError(result, u"operation.invalid"_s, u"Операция содержит пустое обязательное поле."_s);
         return std::nullopt;
@@ -253,7 +297,7 @@ QJsonObject ExecutionProtocol::bodyObject(const planning::ExecutionPlan& plan)
 {
     QJsonArray operations;
     for (const auto& operation : plan.operations) {
-        operations.append(operationObject(std::get<PlannedRegistryDwordChange>(operation)));
+        operations.append(std::visit([](const auto& value) { return operationObject(value); }, operation));
     }
     return {
         {u"created_at_utc"_s, plan.createdAtUtc.toUTC().toString(Qt::ISODateWithMs)},

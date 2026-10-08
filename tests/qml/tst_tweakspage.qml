@@ -25,6 +25,9 @@ TestCase {
         property string lastSearch: ""
         property string lastCategory: ""
         property string lastTarget: ""
+        property string appRemovalScanStatus: "idle"
+        property string appRemovalScanError: ""
+        property int scanCalls: 0
         function setTweakSearch(query) { lastSearch = query }
         function setTweakCategory(category) { lastCategory = category }
         function selectTarget(id, state) { lastTarget = id + ":" + state; return true }
@@ -36,6 +39,10 @@ TestCase {
                 technicalDetails: "Детали", registryObject: "HKLM\\Object",
                 rollback: "Возврат"
             }
+        }
+        function scanInstalledApps() {
+            ++scanCalls
+            appRemovalScanStatus = "running"
         }
     }
 
@@ -56,7 +63,7 @@ TestCase {
             summary: "Работа с длинными путями", currentState: "disabled",
             currentStateTitle: "выключено", targetState: "", targetStateTitle: "",
             availableStates: [{id: "disabled", title: "Выключено"}, {id: "enabled", title: "Включено"}],
-            binary: true, pending: false, supported: true, supportDetails: "",
+            binary: true, action: false, pending: false, supported: true, supportDetails: "",
             impact: "low", restart: "none"
         })
     }
@@ -65,7 +72,31 @@ TestCase {
         fakeController.lastSearch = ""
         fakeController.lastCategory = ""
         fakeController.lastTarget = ""
+        fakeController.appRemovalScanStatus = "idle"
+        fakeController.appRemovalScanError = ""
+        fakeController.scanCalls = 0
         queueModel.count = 2
+    }
+
+    function test_appRemovalRequiresExplicitSearchAndShowsProgress() {
+        categoriesModel.append({id: "app-removal", title: "Удаление приложений", subcategories: []})
+        const page = createTemporaryObject(pageComponent, this)
+
+        mouseClick(findChild(page, "categoryButton_app-removal"))
+        const prompt = findChild(page, "appRemovalSearchPrompt")
+        verify(prompt.visible)
+        verify(!findChild(page, "tweakList").visible)
+
+        const button = findChild(page, "appRemovalSearchButton")
+        mouseClick(button)
+        compare(fakeController.scanCalls, 1)
+        compare(button.enabled, false)
+        verify(findChild(page, "appRemovalSearchSpinner").visible)
+
+        fakeController.appRemovalScanStatus = "succeeded"
+        tryCompare(prompt, "visible", false)
+        verify(findChild(page, "tweakList").visible)
+        categoriesModel.remove(categoriesModel.count - 1)
     }
 
     function test_searchCategoryRolesAndQueueReview() {

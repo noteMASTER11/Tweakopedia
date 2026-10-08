@@ -1,0 +1,59 @@
+id: privacy.contact-harvesting
+title: Использование контактов для персонализации ввода
+category: privacy
+subcategory: personalization
+kind: setting
+summary: Разрешает или запрещает использовать имена и другие сведения из контактов для подсказок ввода.
+explanation:
+  purpose: Управляет добавлением сведений из контактов в персональное хранилище распознавания и предложений ввода.
+  mechanism: Параметр HarvestContacts включает или выключает извлечение сведений из контактов для TrainedDataStore.
+  effect: При выключении новые имена из контактов не используются для персонализации предложений ввода.
+  tradeoffs: Подсказки имён и адресатов могут быть менее точными.
+  recommendation: Выключайте, если интеграция контактов с подсказками ввода не нужна.
+  technical_details: Изменяется DWORD HKCU\Software\Microsoft\InputPersonalization\TrainedDataStore\HarvestContacts. Значение 0 запрещает использование контактов, 1 разрешает.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Запрещено
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\InputPersonalization\TrainedDataStore'
+        value_name: HarvestContacts
+        view: registry64
+        value: 0
+  enabled:
+    title: Разрешено
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\InputPersonalization\TrainedDataStore'
+        value_name: HarvestContacts
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\InputPersonalization\TrainedDataStore'
+  value_name: HarvestContacts
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

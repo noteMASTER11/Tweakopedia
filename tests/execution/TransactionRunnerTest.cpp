@@ -1,3 +1,4 @@
+#include "execution/AppxPackageExecutor.h"
 #include "execution/RegistrySnapshot.h"
 #include "execution/TransactionRunner.h"
 #include "persistence/Database.h"
@@ -78,6 +79,27 @@ public:
         values.insert(keyFor(location), platform::RegistryReadResult::missing());
         return platform::RegistryWriteResult::succeeded();
     }
+};
+
+class ScriptedAppxBackend final : public platform::IAppxPackageBackend
+{
+public:
+    platform::AppxPackageQueryResult installedForCurrentUser() const override
+    {
+        return {.packages = packages};
+    }
+
+    platform::AppxPackageMutationResult removeCurrentUser(const QString& fullName) override
+    {
+        removed.append(fullName);
+        for (qsizetype index = packages.size() - 1; index >= 0; --index) {
+            if (packages.at(index).fullName == fullName) packages.removeAt(index);
+        }
+        return {.success = true};
+    }
+
+    mutable QVector<platform::AppxPackageIdentity> packages;
+    QStringList removed;
 };
 
 domain::RegistryLocation location(QString name)
@@ -211,6 +233,38 @@ private slots:
         QVERIFY(!result.success);
         QCOMPARE(result.code, u"registry.verify_failed"_s);
         QCOMPARE(backend.read(target).rawValue, before.rawValue);
+    }
+
+    void removesAppxPackageAndPersistsExactBeforeSnapshot()
+    {
+        Fixture fixture;
+        ScriptedBackend registry;
+        ScriptedAppxBackend appx;
+        appx.packages = {{
+            u"Clipchamp.Clipchamp"_s,
+            u"Clipchamp.Clipchamp_3.0_x64__abc"_s,
+        }};
+        execution::AppxPackageExecutor appxExecutor(appx);
+        const auto captured = appxExecutor.capture(u"Clipchamp.Clipchamp"_s);
+        QVERIFY(captured.success);
+        fixture.plan.operations.append(planning::PlannedAppxRemoval{
+            .tweakId = domain::TweakId::parse(u"apps.remove.clipchamp.clipchamp"_s).value(),
+            .targetState = u"remove"_s,
+            .change = domain::RemoveAppxPackageOperation{u"Clipchamp.Clipchamp"_s},
+            .beforeFingerprint = captured.snapshot.fingerprint(),
+        });
+
+        execution::TransactionRunner runner(
+            registry, *fixture.files, *fixture.repository, &appx);
+        const auto result = runner.run(fixture.plan);
+
+        QVERIFY(result.success);
+        QCOMPARE(appx.removed, QStringList{u"Clipchamp.Clipchamp_3.0_x64__abc"_s});
+        const auto before = fixture.files->readBefore(fixture.plan.transactionId);
+        QVERIFY(before.has_value());
+        const auto operations = before->value(u"operations"_s).toArray();
+        QCOMPARE(operations.size(), 1);
+        QCOMPARE(operations.first().toObject().value(u"type"_s).toString(), u"appx.packages"_s);
     }
 
     void rollsBackConfirmedOperationsInReverseOrder()

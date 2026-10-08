@@ -101,6 +101,15 @@ target_link_libraries(TweakCatalogLoaderTest
 add_test(NAME TweakCatalogLoader COMMAND TweakCatalogLoaderTest)
 add_test(NAME ContentCatalog COMMAND TweakCatalogLoaderTest loadsRealCatalog)
 
+add_executable(AppRemovalCatalogLoaderTest
+    content/AppRemovalCatalogLoaderTest.cpp
+)
+target_compile_definitions(AppRemovalCatalogLoaderTest PRIVATE
+    TWEAKOPEDIA_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content"
+)
+target_link_libraries(AppRemovalCatalogLoaderTest PRIVATE Qt6::Test TweakopediaContent)
+add_test(NAME AppRemovalCatalogLoader COMMAND AppRemovalCatalogLoaderTest)
+
 add_executable(CategoryCatalogLoaderTest
     content/CategoryCatalogLoaderTest.cpp
 )
@@ -155,6 +164,12 @@ target_link_libraries(WindowsSystemOverviewProviderTest
 )
 add_test(NAME WindowsSystemOverviewProvider COMMAND WindowsSystemOverviewProviderTest)
 
+add_executable(WindowsAppxPackageProviderTest
+    platform/WindowsAppxPackageProviderTest.cpp
+)
+target_link_libraries(WindowsAppxPackageProviderTest PRIVATE Qt6::Test TweakopediaPlatform)
+add_test(NAME WindowsAppxPackageProvider COMMAND WindowsAppxPackageProviderTest)
+
 add_executable(RegistryDwordStateDetectorTest
     detection/RegistryDwordStateDetectorTest.cpp
     fakes/FakeRegistryBackend.cpp
@@ -174,6 +189,12 @@ target_link_libraries(RegistryDwordStateDetectorTest
 )
 
 add_test(NAME RegistryDwordStateDetector COMMAND RegistryDwordStateDetectorTest)
+
+add_executable(AppxPackageStateDetectorTest
+    detection/AppxPackageStateDetectorTest.cpp
+)
+target_link_libraries(AppxPackageStateDetectorTest PRIVATE Qt6::Test TweakopediaDetection TweakopediaPlatform)
+add_test(NAME AppxPackageStateDetector COMMAND AppxPackageStateDetectorTest)
 
 add_executable(WindowsRegistryBackendTest
     platform/WindowsRegistryBackendTest.cpp
@@ -289,6 +310,12 @@ add_executable(RegistryDwordExecutorTest
 target_include_directories(RegistryDwordExecutorTest PRIVATE ${PROJECT_SOURCE_DIR}/tests)
 target_link_libraries(RegistryDwordExecutorTest PRIVATE Qt6::Test TweakopediaExecution TweakopediaPlatform)
 add_test(NAME RegistryDwordExecutor COMMAND RegistryDwordExecutorTest)
+
+add_executable(AppxPackageExecutorTest
+    execution/AppxPackageExecutorTest.cpp
+)
+target_link_libraries(AppxPackageExecutorTest PRIVATE Qt6::Test TweakopediaExecution TweakopediaPlatform)
+add_test(NAME AppxPackageExecutor COMMAND AppxPackageExecutorTest)
 
 add_executable(TransactionRunnerTest
     execution/TransactionRunnerTest.cpp

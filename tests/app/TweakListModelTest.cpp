@@ -46,6 +46,7 @@ private slots:
         };
         QCOMPARE(model.data(index, app::TweakListModel::AvailableStatesRole).toList(), expectedStates);
         QVERIFY(model.data(index, app::TweakListModel::BinaryRole).toBool());
+        QVERIFY(!model.data(index, app::TweakListModel::ActionRole).toBool());
         QVERIFY(!model.data(index, app::TweakListModel::PendingRole).toBool());
         QCOMPARE(model.data(index, app::TweakListModel::SupportDetailsRole).toString(),
                  u"Фактическое состояние"_s);
@@ -90,6 +91,7 @@ private slots:
         QCOMPARE(names.value(app::TweakListModel::TargetStateTitleRole), QByteArray("targetStateTitle"));
         QCOMPARE(names.value(app::TweakListModel::AvailableStatesRole), QByteArray("availableStates"));
         QCOMPARE(names.value(app::TweakListModel::BinaryRole), QByteArray("binary"));
+        QCOMPARE(names.value(app::TweakListModel::ActionRole), QByteArray("action"));
         QCOMPARE(names.value(app::TweakListModel::PendingRole), QByteArray("pending"));
         QCOMPARE(names.value(app::TweakListModel::SupportDetailsRole), QByteArray("supportDetails"));
     }
@@ -118,6 +120,25 @@ private slots:
         QCOMPARE(roles, expectedRoles);
         QCOMPARE(model.data(model.index(0), app::TweakListModel::TitleRole).toString(), originalTitle);
         QCOMPARE(model.data(model.index(0), app::TweakListModel::TargetStateRole).toString(), u"enabled"_s);
+    }
+
+    void exposesActionKindForRemovalCards()
+    {
+        app::TweakListModel model;
+        auto definitions = catalog().tweaks();
+        definitions[0].kind = domain::TweakKind::Action;
+        definitions[0].states = {{.id = u"remove"_s, .title = u"Удалить"_s}};
+        const content::TweakCatalog source(std::move(definitions));
+        const auto id = source.tweaks().first().id;
+
+        model.reset(source, {{id, {
+            .status = domain::DetectionStatus::Named,
+            .stateId = u"installed"_s,
+        }}}, {{id, true}});
+
+        const auto index = model.index(0);
+        QVERIFY(model.data(index, app::TweakListModel::ActionRole).toBool());
+        QVERIFY(!model.data(index, app::TweakListModel::BinaryRole).toBool());
     }
 };
 

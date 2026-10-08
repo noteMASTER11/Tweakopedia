@@ -41,6 +41,16 @@ struct SetRegistryDwordOperation {
     friend bool operator==(const SetRegistryDwordOperation&, const SetRegistryDwordOperation&) = default;
 };
 
-using OperationSpec = std::variant<SetRegistryDwordOperation>;
+struct AppxPackageDetection {
+    QString packageName;
+};
+
+struct RemoveAppxPackageOperation {
+    QString packageName;
+
+    friend bool operator==(const RemoveAppxPackageOperation&, const RemoveAppxPackageOperation&) = default;
+};
+
+using OperationSpec = std::variant<SetRegistryDwordOperation, RemoveAppxPackageOperation>;
 
 } // namespace tweakopedia::domain

@@ -30,6 +30,7 @@ public:
         BinaryRole,
         PendingRole,
         SupportDetailsRole,
+        ActionRole,
     };
     Q_ENUM(Role)
 

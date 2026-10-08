@@ -1,0 +1,59 @@
+id: privacy.inking-typing-improvement
+title: Улучшение распознавания ввода и рукописного текста
+category: privacy
+subcategory: personalization
+kind: setting
+summary: Разрешает или запрещает Windows использовать ввод с клавиатуры и пера для улучшения распознавания.
+explanation:
+  purpose: Управляет пользовательским согласием на улучшение распознавания печатного и рукописного ввода.
+  mechanism: Параметр TIPC Enabled хранит состояние соответствующего пользовательского переключателя Windows.
+  effect: При выключении Windows не использует эту настройку для отправки и обработки образцов ввода в рамках функции улучшения распознавания.
+  tradeoffs: Персональные словари и качество предложений ввода могут развиваться медленнее.
+  recommendation: Выключайте, если улучшение облачного распознавания ввода не требуется.
+  technical_details: Изменяется DWORD HKCU\Software\Microsoft\Input\TIPC\Enabled. Значение 0 выключает функцию, 1 включает.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Выключено
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Input\TIPC'
+        value_name: Enabled
+        view: registry64
+        value: 0
+  enabled:
+    title: Включено
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Input\TIPC'
+        value_name: Enabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Input\TIPC'
+  value_name: Enabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false
