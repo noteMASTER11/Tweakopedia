@@ -1,0 +1,57 @@
+id: desktop.start-all-apps
+title: 'Список всех приложений в меню «Пуск»'
+category: desktop
+subcategory: start
+kind: setting
+summary: 'Выбирает, открывать ли меню «Пуск» сразу на списке всех приложений.'
+explanation:
+  purpose: 'Позволяет миновать основную страницу меню «Пуск» и сразу показывать полный список установленных приложений.'
+  mechanism: 'Политика NoStartMenuMorePrograms переключает начальное представление меню «Пуск» между основной страницей и списком приложений.'
+  effect: 'При включении списка меню «Пуск» открывается на всех приложениях; закреплённые и рекомендации остаются доступны через навигацию.'
+  tradeoffs: 'Быстрее открывается алфавитный список, но закреплённые элементы больше не являются первым экраном.'
+  recommendation: 'Включайте, если запускаете программы преимущественно из общего списка.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoStartMenuMorePrograms: 1 — сразу все приложения, 0 — обычная страница.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 26200
+states:
+  disabled:
+    title: 'Обычная страница'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: NoStartMenuMorePrograms
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Сразу все приложения'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: NoStartMenuMorePrograms
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [26200, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+  value_name: NoStartMenuMorePrograms
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

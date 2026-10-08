@@ -1,0 +1,57 @@
+id: desktop.start-recommended
+title: 'Раздел «Рекомендуем» в меню «Пуск»'
+category: desktop
+subcategory: start
+kind: setting
+summary: 'Показывает или скрывает раздел с недавними файлами и предлагаемыми элементами в меню «Пуск».'
+explanation:
+  purpose: 'Управляет разделом «Рекомендуем», который занимает нижнюю часть меню «Пуск» Windows 11.'
+  mechanism: 'Политика HideRecommendedSection определяет видимость всего раздела рекомендаций для текущего пользователя.'
+  effect: 'После скрытия в меню «Пуск» не отображаются недавние документы и рекомендованные элементы.'
+  tradeoffs: 'Освобождается место и не показывается история недавней работы, но быстрый доступ к недавно открытым файлам исчезает.'
+  recommendation: 'Скрывайте, если не используете рекомендации или не хотите выводить недавние документы в меню «Пуск».'
+  technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows\Explorer\HideRecommendedSection: 0 — показан, 1 — скрыт.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  disabled:
+    title: 'Скрыт'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: HideRecommendedSection
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Показан'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: HideRecommendedSection
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows11
+    builds: [22621, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\Explorer'
+  value_name: HideRecommendedSection
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

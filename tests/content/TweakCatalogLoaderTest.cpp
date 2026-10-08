@@ -165,7 +165,7 @@ private slots:
 
         QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 216);
+        QCOMPARE(result.catalog->size(), 234);
 
         const QStringList expectedIds{
             u"apps.windows-ink-workspace"_s,
@@ -319,6 +319,24 @@ private slots:
             u"updates.automatic-updates"_s,
             u"updates.delivery-optimization-mode"_s,
             u"updates.prevent-auto-reboot-signed-in"_s,
+            u"apps.ai-service-auto-start"_s,
+            u"apps.notepad-ai-features"_s,
+            u"behavior.alt-tab-app-tabs"_s,
+            u"behavior.snap-assist"_s,
+            u"desktop.phone-link-start"_s,
+            u"desktop.search-highlights"_s,
+            u"desktop.share-drag-tray"_s,
+            u"desktop.start-all-apps"_s,
+            u"desktop.start-recommended"_s,
+            u"desktop.taskbar-search-mode"_s,
+            u"desktop.toast-notifications"_s,
+            u"devices.device-companion-apps"_s,
+            u"filesystem.bitlocker-auto-encryption"_s,
+            u"filesystem.storage-sense"_s,
+            u"power.fast-startup"_s,
+            u"privacy.find-my-device"_s,
+            u"privacy.location-services"_s,
+            u"updates.early-feature-updates"_s,
         };
         for (const auto& expectedId : expectedIds) {
             const auto id = TweakId::parse(expectedId);
@@ -348,6 +366,24 @@ private slots:
         QCOMPARE(ink->detection->statesByValue.value(0), u"disabled"_s);
         QCOMPARE(ink->detection->statesByValue.value(1), u"enabled_after_sign_in"_s);
         QCOMPARE(ink->detection->statesByValue.value(2), u"enabled"_s);
+
+        const auto searchModeId = *TweakId::parse(u"desktop.taskbar-search-mode");
+        const auto* searchMode = result.catalog->find(searchModeId);
+        QVERIFY(searchMode != nullptr);
+        QCOMPARE(searchMode->states.size(), 4);
+        QCOMPARE(searchMode->detection->statesByValue.value(0), u"hidden"_s);
+        QCOMPARE(searchMode->detection->statesByValue.value(1), u"icon"_s);
+        QCOMPARE(searchMode->detection->statesByValue.value(2), u"box"_s);
+        QCOMPARE(searchMode->detection->statesByValue.value(3), u"icon_and_label"_s);
+
+        const auto altTabId = *TweakId::parse(u"behavior.alt-tab-app-tabs");
+        const auto* altTab = result.catalog->find(altTabId);
+        QVERIFY(altTab != nullptr);
+        QCOMPARE(altTab->states.size(), 4);
+        QCOMPARE(altTab->detection->statesByValue.value(3), u"none"_s);
+        QCOMPARE(altTab->detection->statesByValue.value(2), u"three"_s);
+        QCOMPARE(altTab->detection->statesByValue.value(1), u"five"_s);
+        QCOMPARE(altTab->detection->statesByValue.value(0), u"twenty"_s);
     }
 };
 

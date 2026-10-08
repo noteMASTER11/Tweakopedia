@@ -1,0 +1,57 @@
+id: desktop.share-drag-tray
+title: 'Панель отправки при перетаскивании'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Включает или отключает панель отправки, появляющуюся при перетаскивании файла к верхнему краю экрана.'
+explanation:
+  purpose: 'Управляет новой областью быстрого обмена файлами через поддерживаемые приложения и устройства.'
+  mechanism: 'Параметр DragTrayEnabled в разделе CDP включает или отключает интерфейс панели отправки.'
+  effect: 'После отключения перетаскивание файла к верхней части экрана не вызывает дополнительную панель.'
+  tradeoffs: 'Отключение предотвращает случайное появление панели, но убирает быстрый сценарий отправки перетаскиванием.'
+  recommendation: 'Оставляйте включённым, если часто отправляете файлы через системное меню; иначе можно отключить.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\CDP\DragTrayEnabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 26200
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\CDP'
+        value_name: DragTrayEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\CDP'
+        value_name: DragTrayEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [26200, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\CDP'
+  value_name: DragTrayEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

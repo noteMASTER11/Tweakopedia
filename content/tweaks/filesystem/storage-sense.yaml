@@ -1,0 +1,59 @@
+id: filesystem.storage-sense
+title: 'Автоматическая очистка «Контроль памяти»'
+category: filesystem
+subcategory: maintenance
+kind: setting
+summary: 'Включает или отключает автоматическое освобождение места на накопителях.'
+explanation:
+  purpose: 'Управляет основной функцией «Контроль памяти», которая периодически удаляет выбранные категории ненужных файлов.'
+  mechanism: 'Значение 01 в пользовательской политике StoragePolicy является главным переключателем автоматической очистки.'
+  effect: 'После отключения Windows не запускает очистку по расписанию, но ручная очистка остаётся доступной.'
+  tradeoffs: 'Без автоматической очистки временные файлы и содержимое корзины могут постепенно занимать больше места.'
+  recommendation: 'Оставляйте включённым на устройствах с небольшим накопителем; отключайте, если очистка выполняется вручную.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy\01: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 15063
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy'
+        value_name: '01'
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy'
+        value_name: '01'
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [15063, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy'
+  value_name: '01'
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

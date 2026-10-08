@@ -1,0 +1,59 @@
+id: devices.device-companion-apps
+title: 'Автоустановка приложений для устройств'
+category: devices
+subcategory: metadata
+kind: setting
+summary: 'Управляет загрузкой метаданных и сопутствующих приложений при подключении устройств.'
+explanation:
+  purpose: 'Позволяет запретить Windows автоматически получать из сети приложения производителей подключённого оборудования.'
+  mechanism: 'Политика PreventDeviceMetadataFromNetwork блокирует сетевое получение метаданных устройства, используемых для подбора сопутствующего приложения.'
+  effect: 'Мониторы, принтеры и другое оборудование продолжают подключаться, но дополнительные приложения производителей не устанавливаются автоматически.'
+  tradeoffs: 'Фирменную панель управления или дополнительные материалы при необходимости придётся найти и установить вручную.'
+  recommendation: 'Отключайте автоустановку, если предпочитаете самостоятельно выбирать программное обеспечение для оборудования.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Device Metadata\PreventDeviceMetadataFromNetwork: 1 — запретить, 0 — разрешить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Device Metadata'
+        value_name: PreventDeviceMetadataFromNetwork
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Device Metadata'
+        value_name: PreventDeviceMetadataFromNetwork
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\Device Metadata'
+  value_name: PreventDeviceMetadataFromNetwork
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

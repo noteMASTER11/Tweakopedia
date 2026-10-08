@@ -1,0 +1,76 @@
+id: behavior.alt-tab-app-tabs
+title: 'Вкладки приложений в Alt+Tab'
+category: behavior
+subcategory: windows
+kind: setting
+summary: 'Выбирает, сколько последних вкладок приложений Windows добавляет в переключатель Alt+Tab.'
+explanation:
+  purpose: 'Настраивает присутствие вкладок поддерживаемых приложений, например браузера, среди отдельных элементов Alt+Tab.'
+  mechanism: 'MultiTaskingAltTabFilter задаёт предел последних вкладок: ни одной, 3, 5 или 20.'
+  effect: 'Большее значение даёт прямой доступ к вкладкам, но увеличивает число элементов в переключателе окон.'
+  tradeoffs: 'При большом количестве вкладок список Alt+Tab становится длиннее; режим без вкладок показывает только окна.'
+  recommendation: 'Три вкладки — сбалансированный штатный вариант; выберите «Не показывать» для компактного списка окон.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\MultiTaskingAltTabFilter: 3 — без вкладок, 2 — 3, 1 — 5, 0 — 20 вкладок.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  none:
+    title: 'Не показывать вкладки'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: MultiTaskingAltTabFilter
+        view: registry64
+        value: 3
+  three:
+    title: '3 последние вкладки'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: MultiTaskingAltTabFilter
+        view: registry64
+        value: 2
+  five:
+    title: '5 последних вкладок'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: MultiTaskingAltTabFilter
+        view: registry64
+        value: 1
+  twenty:
+    title: '20 последних вкладок'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: MultiTaskingAltTabFilter
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: three
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: MultiTaskingAltTabFilter
+  view: registry64
+  states:
+    3: none
+    2: three
+    1: five
+    0: twenty
+  missing_state: three
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

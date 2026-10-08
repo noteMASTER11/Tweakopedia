@@ -1,0 +1,56 @@
+id: filesystem.bitlocker-auto-encryption
+title: 'Автоматическое шифрование устройства BitLocker'
+category: filesystem
+subcategory: encryption
+kind: setting
+summary: 'Разрешает или предотвращает автоматическое включение шифрования устройства Windows.'
+explanation:
+  purpose: 'Определяет, может ли Windows автоматически включить шифрование устройства на совместимом компьютере.'
+  mechanism: 'PreventDeviceEncryption запрещает автоматическое включение BitLocker, не затрагивая ручное управление шифрованием.'
+  effect: 'При запрете новые подходящие установки и устройства не будут автоматически зашифрованы Windows.'
+  tradeoffs: 'Уже зашифрованные накопители не расшифровываются; для них состояние BitLocker меняется отдельно.'
+  recommendation: 'Запрещайте автоматическое включение только если планируете управлять шифрованием вручную.'
+  technical_details: 'DWORD HKLM\SYSTEM\CurrentControlSet\Control\BitLocker\PreventDeviceEncryption: 1 — предотвратить автошифрование, 0 — разрешить.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\BitLocker'
+        value_name: PreventDeviceEncryption
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\BitLocker'
+        value_name: PreventDeviceEncryption
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\BitLocker'
+  value_name: PreventDeviceEncryption
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

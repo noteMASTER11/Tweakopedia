@@ -1,0 +1,57 @@
+id: desktop.phone-link-start
+title: 'Связь с телефоном в меню «Пуск»'
+category: desktop
+subcategory: start
+kind: setting
+summary: 'Показывает или скрывает панель «Связь с телефоном» рядом с меню «Пуск».'
+explanation:
+  purpose: 'Управляет встроенной панелью быстрого доступа к подключённому смартфону в меню «Пуск» Windows 11.'
+  mechanism: 'Параметр IsEnabled в разделе Start_Companion_App включает или отключает интеграцию приложения «Связь с телефоном» с меню «Пуск».'
+  effect: 'После отключения сведения о телефоне и быстрые действия исчезают из меню «Пуск»; само приложение не удаляется.'
+  tradeoffs: 'Без панели для просмотра сообщений, фотографий и состояния телефона потребуется открыть приложение отдельно.'
+  recommendation: 'Отключайте, если не используете «Связь с телефоном» или предпочитаете более компактное меню «Пуск».'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Start\Companions\Microsoft.YourPhone_8wekyb3d8bbwe\Start_Companion_App\IsEnabled: 0 — скрыто, 1 — показано.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  disabled:
+    title: 'Скрыто'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Start\Companions\Microsoft.YourPhone_8wekyb3d8bbwe\Start_Companion_App'
+        value_name: IsEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показано'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Start\Companions\Microsoft.YourPhone_8wekyb3d8bbwe\Start_Companion_App'
+        value_name: IsEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22621, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Start\Companions\Microsoft.YourPhone_8wekyb3d8bbwe\Start_Companion_App'
+  value_name: IsEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

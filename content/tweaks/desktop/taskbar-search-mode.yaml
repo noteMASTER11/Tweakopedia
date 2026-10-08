@@ -1,0 +1,77 @@
+id: desktop.taskbar-search-mode
+title: 'Вид поиска на панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Выбирает, как поиск Windows представлен на панели задач.'
+explanation:
+  purpose: 'Позволяет скрыть поиск или выбрать компактное и развёрнутое представление элемента на панели задач.'
+  mechanism: 'SearchboxTaskbarMode сопоставляет числовое значение с одним из четырёх вариантов отображения поиска.'
+  effect: 'Изменяется только элемент запуска поиска на панели задач; сам поиск Windows продолжает работать.'
+  tradeoffs: 'Поле поиска заметнее и быстрее для мыши, но занимает больше места; скрытый режим освобождает панель.'
+  recommendation: 'Для компактной панели выберите значок; для максимума свободного места — скрытый режим.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search\SearchboxTaskbarMode: 0 — скрыт, 1 — значок, 2 — поле, 3 — значок с подписью.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  hidden:
+    title: 'Скрыто'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Search'
+        value_name: SearchboxTaskbarMode
+        view: registry64
+        value: 0
+  icon:
+    title: 'Значок'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Search'
+        value_name: SearchboxTaskbarMode
+        view: registry64
+        value: 1
+  box:
+    title: 'Поле поиска'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Search'
+        value_name: SearchboxTaskbarMode
+        view: registry64
+        value: 2
+  icon_and_label:
+    title: 'Значок и подпись'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Search'
+        value_name: SearchboxTaskbarMode
+        view: registry64
+        value: 3
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: box
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Search'
+  value_name: SearchboxTaskbarMode
+  view: registry64
+  states:
+    0: hidden
+    1: icon
+    2: box
+    3: icon_and_label
+  missing_state: box
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

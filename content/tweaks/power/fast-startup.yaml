@@ -1,0 +1,59 @@
+id: power.fast-startup
+title: 'Быстрый запуск Windows'
+category: power
+subcategory: sleep
+kind: setting
+summary: 'Управляет гибридным завершением работы для ускорения следующего запуска.'
+explanation:
+  purpose: 'Позволяет включить или отключить быстрый запуск после обычного завершения работы.'
+  mechanism: 'При включении Windows сохраняет состояние ядра в файл гибернации и использует его при следующей загрузке.'
+  effect: 'Запуск после выключения может стать быстрее; перезагрузка по-прежнему выполняет полный цикл.'
+  tradeoffs: 'Гибридное завершение иногда мешает доступу к разделу из другой ОС или сохранению полностью чистого состояния оборудования.'
+  recommendation: 'Оставляйте включённым ради скорости; отключайте при двойной загрузке или связанных с завершением работы неполадках.'
+  technical_details: 'DWORD HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power\HiberbootEnabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Session Manager\Power'
+        value_name: HiberbootEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Session Manager\Power'
+        value_name: HiberbootEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\Session Manager\Power'
+  value_name: HiberbootEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

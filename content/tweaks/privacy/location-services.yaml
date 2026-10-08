@@ -1,0 +1,59 @@
+id: privacy.location-services
+title: 'Службы определения местоположения'
+category: privacy
+subcategory: app-permissions
+kind: setting
+summary: 'Разрешает или запрещает Windows и приложениям определять местоположение устройства.'
+explanation:
+  purpose: 'Управляет системной платформой геолокации, на которую опираются приложения и функции Windows.'
+  mechanism: 'Политика DisableLocation блокирует системные службы местоположения для компьютера.'
+  effect: 'Карты, погода, часовой пояс и другие функции не смогут получать текущее местоположение через Windows.'
+  tradeoffs: 'Некоторые приложения потребуют указать регион или местоположение вручную.'
+  recommendation: 'Отключайте, если геолокация не нужна; для карт и автоматического часового пояса оставьте включённой.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors\DisableLocation: 1 — запретить, 0 — разрешить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors'
+        value_name: DisableLocation
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors'
+        value_name: DisableLocation
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors'
+  value_name: DisableLocation
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

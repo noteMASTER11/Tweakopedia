@@ -1,0 +1,56 @@
+id: apps.ai-service-auto-start
+title: 'Автозапуск службы Windows AI'
+category: apps
+subcategory: ai
+kind: setting
+summary: 'Выбирает автоматический или ручной запуск службы WSAIFabricSvc.'
+explanation:
+  purpose: 'Позволяет не запускать службу инфраструктуры Windows AI автоматически вместе с системой.'
+  mechanism: 'Тип запуска службы WSAIFabricSvc хранится в параметре Start: 2 означает автоматический, 3 — ручной запуск.'
+  effect: 'В ручном режиме служба запускается только по запросу компонента, которому она нужна.'
+  tradeoffs: 'Первое обращение к зависящей от службы функции может занять больше времени; удаление или блокировка службы не выполняется.'
+  recommendation: 'Ручной режим уместен, если функции Windows AI используются редко; автоматический оставляет штатное поведение.'
+  technical_details: 'DWORD HKLM\SYSTEM\CurrentControlSet\Services\WSAIFabricSvc\Start: 2 — автоматически, 3 — вручную.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  automatic:
+    title: 'Автоматически'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Services\WSAIFabricSvc'
+        value_name: Start
+        view: registry64
+        value: 2
+  manual:
+    title: 'Вручную'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Services\WSAIFabricSvc'
+        value_name: Start
+        view: registry64
+        value: 3
+windows_defaults:
+  - os: windows11
+    builds: [22621, 26200]
+    state: automatic
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Services\WSAIFabricSvc'
+  value_name: Start
+  view: registry64
+  states:
+    2: automatic
+    3: manual
+  missing_state: automatic
+dependencies: []
+conflicts: []
+restart: service
+impact: low
+reversibility: reversible
+requires_network: false

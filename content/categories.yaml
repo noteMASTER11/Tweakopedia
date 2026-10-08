@@ -67,6 +67,10 @@ categories:
         title: Съёмные накопители
       - id: memory
         title: Файл подкачки и память
+      - id: encryption
+        title: Шифрование накопителей
+      - id: maintenance
+        title: Автоматическая очистка
   - id: network
     title: Сеть и общий доступ
     subcategories:
@@ -95,6 +99,8 @@ categories:
         title: Microsoft Defender
       - id: store
         title: Microsoft Store
+      - id: ai
+        title: ИИ-компоненты Windows
   - id: app-removal
     title: Удаление приложений
     subcategories:
@@ -107,6 +113,8 @@ categories:
         title: Биометрические устройства
       - id: camera
         title: Камера
+      - id: metadata
+        title: Метаданные и сопутствующие приложения
   - id: experimental
     title: Экспериментальные функции
     subcategories:

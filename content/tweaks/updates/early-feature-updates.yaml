@@ -1,0 +1,57 @@
+id: updates.early-feature-updates
+title: 'Раннее получение новых функций Windows'
+category: updates
+subcategory: automatic
+kind: setting
+summary: 'Управляет получением необязательных новых функций сразу после их выпуска.'
+explanation:
+  purpose: 'Переключает режим «Получайте последние обновления, как только они будут доступны» в Windows Update.'
+  mechanism: 'IsContinuousInnovationOptedIn сообщает службе обновлений, согласен ли пользователь на более раннее включение новых функций.'
+  effect: 'При включении часть новых возможностей может появляться раньше обычного этапа развёртывания.'
+  tradeoffs: 'Раннее получение даёт быстрый доступ к изменениям, но они проходят меньше времени массового использования.'
+  recommendation: 'Отключайте для более консервативного обновления; включайте, если хотите получать новые функции раньше.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings\IsContinuousInnovationOptedIn: 0 — обычное развёртывание, 1 — раннее получение.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  disabled:
+    title: 'Обычное развёртывание'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\WindowsUpdate\UX\Settings'
+        value_name: IsContinuousInnovationOptedIn
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Получать раньше'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\WindowsUpdate\UX\Settings'
+        value_name: IsContinuousInnovationOptedIn
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22621, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\WindowsUpdate\UX\Settings'
+  value_name: IsContinuousInnovationOptedIn
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false
+

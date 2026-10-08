@@ -1,0 +1,56 @@
+id: behavior.snap-assist
+title: 'Предложения Snap Assist'
+category: behavior
+subcategory: windows
+kind: setting
+summary: 'Показывает или скрывает предложения других приложений после привязки окна.'
+explanation:
+  purpose: 'Управляет панелью выбора второго окна, которая появляется после размещения окна у края или в зоне привязки.'
+  mechanism: 'Параметр SnapAssist включает или отключает предложения заполнить оставшуюся область экрана.'
+  effect: 'При отключении привязка окон продолжает работать, но Windows не предлагает выбрать соседнее приложение.'
+  tradeoffs: 'Заполнение макета потребует самостоятельно выбрать и разместить остальные окна.'
+  recommendation: 'Отключайте только если панель предложений мешает; сама функция привязки этим параметром не блокируется.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\SnapAssist: 0 — не показывать, 1 — показывать.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: SnapAssist
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: SnapAssist
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: SnapAssist
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

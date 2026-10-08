@@ -1,0 +1,57 @@
+id: desktop.search-highlights
+title: 'Основные моменты поиска'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Показывает или скрывает меняющиеся иллюстрации и тематические материалы в поиске Windows.'
+explanation:
+  purpose: 'Управляет динамическим содержимым поисковой строки и панели поиска, связанным с памятными датами, новостями и рекомендациями.'
+  mechanism: 'Пользовательский параметр IsDynamicSearchBoxEnabled определяет, может ли Windows выводить основные моменты поиска.'
+  effect: 'После отключения поиск сохраняет обычную функциональность, но перестаёт показывать динамические изображения и тематические карточки.'
+  tradeoffs: 'Отключение убирает меняющееся оформление, но также скрывает быстрые тематические подборки Microsoft.'
+  recommendation: 'Отключайте для спокойного и предсказуемого интерфейса поиска.'
+  technical_details: 'DWORD HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings\IsDynamicSearchBoxEnabled: 0 — скрыто, 1 — показано.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  disabled:
+    title: 'Скрыто'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings'
+        value_name: IsDynamicSearchBoxEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показано'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings'
+        value_name: IsDynamicSearchBoxEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings'
+  value_name: IsDynamicSearchBoxEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

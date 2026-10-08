@@ -1,0 +1,60 @@
+id: desktop.toast-notifications
+title: 'Всплывающие уведомления приложений'
+category: desktop
+subcategory: notifications
+kind: setting
+summary: 'Разрешает или запрещает приложениям показывать всплывающие уведомления.'
+explanation:
+  purpose: 'Управляет общим пользовательским переключателем баннеров уведомлений Windows.'
+  mechanism: 'ToastEnabled задаёт, выводит ли оболочка всплывающие уведомления от приложений.'
+  effect: 'После отключения баннеры приложений не появляются; сами приложения продолжают работать.'
+  tradeoffs: 'Интерфейс становится спокойнее, но важные сообщения приложений можно заметить позже.'
+  recommendation: 'Оставляйте включённым, если полагаетесь на напоминания и сообщения; отключайте для минимального количества отвлечений.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\PushNotifications\ToastEnabled: 0 — запрещены, 1 — разрешены.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Запрещены'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\PushNotifications'
+        value_name: ToastEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Разрешены'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\PushNotifications'
+        value_name: ToastEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\PushNotifications'
+  value_name: ToastEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false
+

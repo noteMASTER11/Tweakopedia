@@ -1,0 +1,59 @@
+id: privacy.find-my-device
+title: 'Поиск потерянного устройства'
+category: privacy
+subcategory: app-permissions
+kind: setting
+summary: 'Разрешает или запрещает системную функцию «Найти устройство».'
+explanation:
+  purpose: 'Управляет функцией, которая сохраняет сведения о местоположении компьютера для последующего поиска через учётную запись Microsoft.'
+  mechanism: 'Политика AllowFindMyDevice разрешает или блокирует работу системного компонента поиска устройства.'
+  effect: 'После отключения Windows не использует эту функцию для обновления местоположения компьютера.'
+  tradeoffs: 'Найти потерянный ноутбук через страницу учётной записи Microsoft будет нельзя.'
+  recommendation: 'Оставляйте включённым на переносном устройстве, если планируете пользоваться удалённым поиском.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\FindMyDevice\AllowFindMyDevice: 0 — запретить, 1 — разрешить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\FindMyDevice'
+        value_name: AllowFindMyDevice
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\FindMyDevice'
+        value_name: AllowFindMyDevice
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\FindMyDevice'
+  value_name: AllowFindMyDevice
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false
