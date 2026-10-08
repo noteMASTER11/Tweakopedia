@@ -82,7 +82,7 @@ Page {
                     anchors.margins: 16
                     spacing: 8
                     Text { text: "Изменений в очереди"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily }
-                    Text { text: root.controller.queue.rowCount(); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 28; font.weight: Font.DemiBold }
+                    Text { text: root.controller.queue.count; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 28; font.weight: Font.DemiBold }
                 }
             }
         }

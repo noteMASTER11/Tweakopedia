@@ -33,6 +33,7 @@ void QueueListModel::reset(
     const planning::TweakQueue& queue,
     const QHash<domain::TweakId, domain::DetectedState>& states)
 {
+    const auto previousCount = count();
     beginResetModel();
     entries_.clear();
     for (const auto& item : queue.items()) {
@@ -41,6 +42,7 @@ void QueueListModel::reset(
         }
     }
     endResetModel();
+    if (count() != previousCount) emit countChanged();
 }
 
 } // namespace tweakopedia::app

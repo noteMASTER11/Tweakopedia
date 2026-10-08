@@ -3,6 +3,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QtTest/QTest>
 
@@ -120,15 +121,20 @@ private slots:
         auto backend = services();
         app::AppController controller(backend);
         QVERIFY(controller.startup());
+        QSignalSpy countChanged(controller.queue(), &app::QueueListModel::countChanged);
 
         QVERIFY(controller.selectTarget(u"filesystem.win32-long-paths"_s, u"enabled"_s));
         QCOMPARE(controller.queue()->rowCount(), 1);
+        QCOMPARE(controller.queue()->count(), 1);
+        QCOMPARE(countChanged.count(), 1);
         QCOMPARE(controller.tweaks()->data(
                      controller.tweaks()->index(0), app::TweakListModel::TargetStateRole).toString(),
                  u"enabled"_s);
 
         QVERIFY(controller.selectTarget(u"filesystem.win32-long-paths"_s, u"disabled"_s));
         QCOMPARE(controller.queue()->rowCount(), 0);
+        QCOMPARE(controller.queue()->count(), 0);
+        QCOMPARE(countChanged.count(), 2);
         QCOMPARE(controller.tweaks()->data(
                      controller.tweaks()->index(0), app::TweakListModel::TargetStateRole).toString(),
                  QString{});

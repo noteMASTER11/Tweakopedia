@@ -123,5 +123,19 @@ TestCase {
         compare(findChild(page, "queueCommandBar").visible, false)
     }
 
+    function test_queueBarTracksCountChanges() {
+        queueModel.count = 0
+        const page = createTemporaryObject(pageComponent, this)
+        const bar = findChild(page, "queueCommandBar")
+        compare(bar.visible, false)
+
+        queueModel.count = 1
+        tryCompare(bar, "visible", true)
+        compare(findChild(bar, "queueCountLabel").text, "1 изменение")
+
+        queueModel.count = 0
+        tryCompare(bar, "visible", false)
+    }
+
     Component { id: signalSpy; SignalSpy {} }
 }

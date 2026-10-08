@@ -110,7 +110,7 @@ Page {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 16
         height: implicitHeight
-        queueCount: root.controller.queue.rowCount()
+        queueCount: root.controller.queue.count
         onReviewRequested: root.reviewRequested()
     }
 

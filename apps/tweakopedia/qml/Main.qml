@@ -28,7 +28,7 @@ ApplicationWindow {
             id: navigation
             Layout.fillHeight: true
             availableWidth: window.width
-            queueCount: appController.queue.rowCount()
+            queueCount: appController.queue.count
         }
 
         StackLayout {
