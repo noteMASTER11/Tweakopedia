@@ -93,4 +93,4 @@
 - [x] Build `mingw-release` and package the portable EXE.
 - [x] Run package layout validation and the full test suite against the final tree.
 - [x] Record counts, commands and results.
-- [ ] Commit documentation and push the branch to `origin/main` as previously authorized by the user.
+- [x] Commit documentation and push the branch to `origin/main` as previously authorized by the user.
