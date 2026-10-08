@@ -1,0 +1,19 @@
+id: desktop.search-indexer-backoff
+title: 'Снижение активности индексатора при нагрузке'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Позволяет индексатору замедляться, когда компьютер занят другими задачами.'
+explanation: {purpose: 'Снижает конкуренцию Windows Search с активными приложениями.', mechanism: 'Инвертированный параметр DisableBackoff включает адаптивное замедление либо постоянную полную скорость.', effect: 'Полная скорость быстрее обновляет индекс, но сильнее нагружает процессор и накопитель.', tradeoffs: 'Адаптивный режим может дольше индексировать большую коллекцию.', recommendation: 'Оставляйте адаптивный режим для обычной работы.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\DisableBackoff: 0 — адаптивно, 1 — полная скорость.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 14393}
+states:
+  adaptive: {title: 'Адаптивная скорость', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: DisableBackoff, view: registry64, value: 0}]}
+  full_speed: {title: 'Всегда полная скорость', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: DisableBackoff, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [14393, 19045], state: adaptive}, {os: windows11, builds: [22000, 26200], state: adaptive}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: DisableBackoff, view: registry64, states: {0: adaptive, 1: full_speed}, missing_state: adaptive}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

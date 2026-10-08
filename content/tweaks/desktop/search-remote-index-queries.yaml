@@ -1,0 +1,19 @@
+id: desktop.search-remote-index-queries
+title: 'Удалённые запросы к индексу поиска'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Разрешает другим компьютерам использовать индекс этого ПК при поиске в общих папках.'
+explanation: {purpose: 'Ускоряет поиск клиентов по сетевым папкам, размещённым на этом компьютере.', mechanism: 'Политика PreventRemoteQueries разрешает или блокирует удалённое обращение к локальному индексу.', effect: 'При запрете сетевые клиенты ищут без помощи индекса этого компьютера.', tradeoffs: 'Поиск по общим папкам может стать медленнее.', recommendation: 'Блокируйте, если индекс не должен обслуживать сетевые клиенты.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\PreventRemoteQueries: 0 — разрешено, 1 — запрещено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 14393}
+states:
+  allowed: {title: 'Разрешено', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventRemoteQueries, view: registry64, value: 0}]}
+  blocked: {title: 'Запрещено', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventRemoteQueries, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [14393, 19045], state: blocked}, {os: windows11, builds: [22000, 26200], state: blocked}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventRemoteQueries, view: registry64, states: {0: allowed, 1: blocked}, missing_state: blocked}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

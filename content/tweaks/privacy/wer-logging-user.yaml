@@ -1,0 +1,19 @@
+id: privacy.wer-logging-user
+title: 'Локальный журнал отчётов пользователя'
+category: privacy
+subcategory: diagnostics
+kind: setting
+summary: 'Включает или отключает запись событий Windows Error Reporting для текущего пользователя.'
+explanation: {purpose: 'Сохраняет локальную историю работы подсистемы отчётов.', mechanism: 'Инвертированный параметр LoggingDisabled управляет журналированием WER.', effect: 'При отключении новые записи WER не сохраняются в журнале.', tradeoffs: 'Становится меньше данных для последующей диагностики.', recommendation: 'Оставляйте журнал включённым, если место на диске не критично.', technical_details: 'DWORD HKCU\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting\LoggingDisabled: 0 — журнал включён, 1 — отключён.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  enabled: {title: 'Журнал включён', operations: [{type: registry.set_dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: LoggingDisabled, view: registry64, value: 0}]}
+  disabled: {title: 'Журнал отключён', operations: [{type: registry.set_dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: LoggingDisabled, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: LoggingDisabled, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

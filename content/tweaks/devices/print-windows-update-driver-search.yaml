@@ -1,0 +1,19 @@
+id: devices.print-windows-update-driver-search
+title: 'Поиск драйвера принтера в Windows Update'
+category: devices
+subcategory: printing
+kind: setting
+summary: 'Продолжает поиск совместимого драйвера Point and Print через Windows Update.'
+explanation: {purpose: 'Помогает подключить принтер, если подходящего драйвера нет локально и на сервере.', mechanism: 'Инвертированный параметр DoNotInstallCompatibleDriverFromWindowsUpdate разрешает или прекращает облачный поиск.', effect: 'При отключении подключение завершается ошибкой, если локальный драйвер не найден.', tradeoffs: 'Облачный поиск требует сети и может загружать дополнительный пакет.', recommendation: 'Оставляйте включённым для домашних и небольших сетей.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Printers\DoNotInstallCompatibleDriverFromWindowsUpdate: 0 — искать, 1 — не искать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  enabled: {title: 'Искать в Windows Update', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: DoNotInstallCompatibleDriverFromWindowsUpdate, view: registry64, value: 0}]}
+  disabled: {title: 'Только локальные источники', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: DoNotInstallCompatibleDriverFromWindowsUpdate, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: DoNotInstallCompatibleDriverFromWindowsUpdate, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: true

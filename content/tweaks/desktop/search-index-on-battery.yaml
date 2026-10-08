@@ -1,0 +1,19 @@
+id: desktop.search-index-on-battery
+title: 'Индексирование при работе от батареи'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Продолжает или приостанавливает индексирование, когда компьютер работает от батареи.'
+explanation: {purpose: 'Управляет расходом энергии службой поиска без питания от сети.', mechanism: 'Параметр PreventIndexOnBattery приостанавливает индексатор до подключения питания.', effect: 'Пауза продлевает работу от батареи, но новые файлы позже появляются в результатах.', tradeoffs: 'После подключения питания индексатору потребуется догнать накопившиеся изменения.', recommendation: 'Приостанавливайте на ноутбуках, если автономность важнее немедленного обновления поиска.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\PreventIndexOnBattery: 0 — продолжать, 1 — приостанавливать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  active: {title: 'Продолжать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventIndexOnBattery, view: registry64, value: 0}]}
+  paused: {title: 'Приостанавливать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventIndexOnBattery, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: active}, {os: windows11, builds: [22000, 26200], state: active}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventIndexOnBattery, view: registry64, states: {0: active, 1: paused}, missing_state: active}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

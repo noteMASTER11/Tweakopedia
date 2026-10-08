@@ -1,0 +1,19 @@
+id: devices.print-driver-isolation
+title: 'Изолированный процесс драйверов печати'
+category: devices
+subcategory: printing
+kind: setting
+summary: 'Запускает совместимые драйверы отдельно от службы очереди печати.'
+explanation: {purpose: 'Не позволяет сбою одного драйвера завершить основной процесс очереди.', mechanism: 'Параметр PrintDriverIsolationExecutionPolicy включает изолированные процессы для поддерживаемых драйверов.', effect: 'Отказ драйвера меньше влияет на остальные принтеры.', tradeoffs: 'Наследуемые драйверы могут иметь ограничения совместимости.', recommendation: 'Включайте для современных драйверов.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Printers\PrintDriverIsolationExecutionPolicy: 0 — по данным драйвера, 1 — изолировать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  driver_choice: {title: 'По данным драйвера', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: PrintDriverIsolationExecutionPolicy, view: registry64, value: 0}]}
+  isolated: {title: 'Изолировать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: PrintDriverIsolationExecutionPolicy, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: driver_choice}, {os: windows11, builds: [22000, 26200], state: driver_choice}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: PrintDriverIsolationExecutionPolicy, view: registry64, states: {0: driver_choice, 1: isolated}, missing_state: driver_choice}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

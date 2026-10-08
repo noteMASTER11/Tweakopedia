@@ -1,0 +1,19 @@
+id: privacy.wer-metered-network-throttling-device
+title: 'Отчёты WER в тарифицируемой сети на компьютере'
+category: privacy
+subcategory: diagnostics
+kind: setting
+summary: 'Задаёт общее правило отправки дополнительных данных через лимитные подключения.'
+explanation: {purpose: 'Управляет расходом сетевого лимита подсистемой отчётов.', mechanism: 'Системный параметр BypassNetworkCostThrottling отключает учёт стоимости сети.', effect: 'При обходе дополнительные материалы могут передаваться через любое подключение.', tradeoffs: 'Отчёты способны расходовать тарифицируемый трафик.', recommendation: 'Оставляйте учёт типа сети включённым.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting\BypassNetworkCostThrottling: 0 — учитывать сеть, 1 — обходить ограничение.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  managed: {title: 'Учитывать тип сети', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: BypassNetworkCostThrottling, view: registry64, value: 0}]}
+  bypassed: {title: 'Отправлять в любой сети', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: BypassNetworkCostThrottling, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: managed}, {os: windows11, builds: [22000, 26200], state: managed}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: BypassNetworkCostThrottling, view: registry64, states: {0: managed, 1: bypassed}, missing_state: managed}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

@@ -192,7 +192,7 @@ private slots:
 
         QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 485);
+        QCOMPARE(result.catalog->size(), 535);
 
         const QStringList expectedIds{
             u"apps.windows-ink-workspace"_s,
@@ -615,6 +615,56 @@ private slots:
             u"boot.sign-in-acrylic-background"_s,
             u"behavior.control-panel-view"_s,
             u"behavior.control-panel-access"_s,
+            u"desktop.search-unc-locations-device"_s,
+            u"desktop.search-unc-locations-user"_s,
+            u"desktop.search-encrypted-items"_s,
+            u"desktop.search-indexer-backoff"_s,
+            u"desktop.search-remote-index-queries"_s,
+            u"desktop.search-index-on-battery"_s,
+            u"desktop.search-indexed-locations-device"_s,
+            u"desktop.search-indexed-locations-user"_s,
+            u"desktop.search-diacritics"_s,
+            u"desktop.search-advanced-indexing-options"_s,
+            u"desktop.search-delegate-mailboxes"_s,
+            u"desktop.search-outlook-indexing"_s,
+            u"desktop.search-email-attachments"_s,
+            u"desktop.search-public-folders"_s,
+            u"desktop.cortana-above-lock"_s,
+            u"privacy.wer-reporting-user"_s,
+            u"privacy.wer-reporting-device"_s,
+            u"privacy.wer-additional-data-user"_s,
+            u"privacy.wer-additional-data-device"_s,
+            u"privacy.wer-logging-user"_s,
+            u"privacy.wer-logging-device"_s,
+            u"privacy.wer-critical-error-ui"_s,
+            u"privacy.wer-data-throttling-user"_s,
+            u"privacy.wer-data-throttling-device"_s,
+            u"privacy.wer-battery-throttling-user"_s,
+            u"privacy.wer-battery-throttling-device"_s,
+            u"privacy.wer-metered-network-throttling-user"_s,
+            u"privacy.wer-metered-network-throttling-device"_s,
+            u"privacy.wer-archive-user"_s,
+            u"privacy.wer-archive-device"_s,
+            u"devices.print-app-driver-isolation"_s,
+            u"devices.print-software-rasterization"_s,
+            u"devices.print-add-printers"_s,
+            u"devices.print-delete-printers"_s,
+            u"devices.print-package-point-and-print-only"_s,
+            u"devices.print-driver-isolation"_s,
+            u"devices.print-force-driver-isolation"_s,
+            u"devices.print-windows-update-driver-search"_s,
+            u"devices.print-v4-extensions"_s,
+            u"devices.print-job-title-logging"_s,
+            u"devices.print-default-printer-management"_s,
+            u"devices.print-driver-installation"_s,
+            u"behavior.online-font-providers"_s,
+            u"behavior.cross-device-experiences"_s,
+            u"behavior.phone-pc-linking"_s,
+            u"behavior.app-uri-handlers"_s,
+            u"behavior.group-policy-dfs-sync"_s,
+            u"behavior.group-policy-service-optimization"_s,
+            u"behavior.local-group-policy-processing"_s,
+            u"behavior.background-group-policy-refresh"_s,
         };
         for (const auto& expectedId : expectedIds) {
             const auto id = TweakId::parse(expectedId);
@@ -806,6 +856,29 @@ private slots:
         QVERIFY(runUser != nullptr);
         QCOMPARE(runUser->detection->location.hive, RegistryHive::CurrentUser);
         QCOMPARE(runUser->detection->location.valueName, u"DisableCurrentUserRun"_s);
+
+        const auto encryptedSearchId = *TweakId::parse(u"desktop.search-encrypted-items"_s);
+        const auto* encryptedSearch = result.catalog->find(encryptedSearchId);
+        QVERIFY(encryptedSearch != nullptr);
+        QCOMPARE(encryptedSearch->detection->statesByValue.value(0), u"disabled"_s);
+        QCOMPARE(encryptedSearch->detection->statesByValue.value(1), u"enabled"_s);
+
+        const auto werArchiveId = *TweakId::parse(u"privacy.wer-archive-device"_s);
+        const auto* werArchive = result.catalog->find(werArchiveId);
+        QVERIFY(werArchive != nullptr);
+        QCOMPARE(werArchive->detection->statesByValue.value(0), u"enabled"_s);
+        QCOMPARE(werArchive->detection->statesByValue.value(1), u"disabled"_s);
+
+        const auto printerUpdateId = *TweakId::parse(u"devices.print-windows-update-driver-search"_s);
+        const auto* printerUpdate = result.catalog->find(printerUpdateId);
+        QVERIFY(printerUpdate != nullptr);
+        QCOMPARE(printerUpdate->detection->statesByValue.value(0), u"enabled"_s);
+        QCOMPARE(printerUpdate->detection->statesByValue.value(1), u"disabled"_s);
+
+        const auto fontProviderId = *TweakId::parse(u"behavior.online-font-providers"_s);
+        const auto* fontProvider = result.catalog->find(fontProviderId);
+        QVERIFY(fontProvider != nullptr);
+        QCOMPARE(fontProvider->restart, RestartRequirement::Reboot);
     }
 };
 

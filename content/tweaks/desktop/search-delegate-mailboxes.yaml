@@ -1,0 +1,19 @@
+id: desktop.search-delegate-mailboxes
+title: 'Индексирование делегированных почтовых ящиков'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Разрешает индексировать доступные по сети делегированные ящики Microsoft Exchange.'
+explanation: {purpose: 'Добавляет письма из делегированных ящиков в локальные результаты поиска.', mechanism: 'Параметр EnableIndexingDelegateMailboxes разрешает обработку сетевых делегированных ящиков.', effect: 'Поиск Outlook может находить их содержимое без отдельного обращения к серверу.', tradeoffs: 'Индекс становится больше и создаёт дополнительную сетевую нагрузку.', recommendation: 'Включайте только при постоянной работе с делегированными ящиками.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\EnableIndexingDelegateMailboxes: 0 — выключено, 1 — включено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  disabled: {title: 'Не индексировать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: EnableIndexingDelegateMailboxes, view: registry64, value: 0}]}
+  enabled: {title: 'Индексировать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: EnableIndexingDelegateMailboxes, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: disabled}, {os: windows11, builds: [22000, 26200], state: disabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: EnableIndexingDelegateMailboxes, view: registry64, states: {0: disabled, 1: enabled}, missing_state: disabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

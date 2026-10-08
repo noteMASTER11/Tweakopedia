@@ -1,0 +1,19 @@
+id: devices.print-package-point-and-print-only
+title: 'Только пакетные драйверы Point and Print'
+category: devices
+subcategory: printing
+kind: setting
+summary: 'Ограничивает Point and Print драйверами, упакованными для установки Windows.'
+explanation: {purpose: 'Ограничивает способ получения драйвера от сервера печати.', mechanism: 'Параметр PackagePointAndPrintOnly разрешает только пакетный вариант Point and Print.', effect: 'Непакетные драйверы не устанавливаются через это подключение.', tradeoffs: 'Некоторые старые серверы и принтеры могут не подключиться.', recommendation: 'Используйте пакетный режим с современными драйверами.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Printers\PackagePointAndPrint\PackagePointAndPrintOnly: 0 — без ограничения, 1 — только пакетные.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  unrestricted: {title: 'Без ограничения', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers\PackagePointAndPrint', value_name: PackagePointAndPrintOnly, view: registry64, value: 0}]}
+  package_only: {title: 'Только пакетные драйверы', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers\PackagePointAndPrint', value_name: PackagePointAndPrintOnly, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: unrestricted}, {os: windows11, builds: [22000, 26200], state: unrestricted}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers\PackagePointAndPrint', value_name: PackagePointAndPrintOnly, view: registry64, states: {0: unrestricted, 1: package_only}, missing_state: unrestricted}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

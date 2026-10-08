@@ -1,0 +1,19 @@
+id: devices.print-force-driver-isolation
+title: 'Принудительная изоляция драйверов печати'
+category: devices
+subcategory: printing
+kind: setting
+summary: 'Изолирует драйверы, даже если они не объявили совместимость с таким режимом.'
+explanation: {purpose: 'Расширяет изоляцию на драйверы без соответствующего флага совместимости.', mechanism: 'Параметр PrintDriverIsolationOverrideCompat переопределяет заявление драйвера.', effect: 'Больше драйверов выполняются вне основного процесса очереди.', tradeoffs: 'Несовместимый драйвер может печатать неправильно или не работать.', recommendation: 'Включайте после проверки конкретных драйверов.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Printers\PrintDriverIsolationOverrideCompat: 0 — учитывать драйвер, 1 — принудительно изолировать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  driver_choice: {title: 'Учитывать данные драйвера', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: PrintDriverIsolationOverrideCompat, view: registry64, value: 0}]}
+  forced: {title: 'Принудительно изолировать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: PrintDriverIsolationOverrideCompat, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: driver_choice}, {os: windows11, builds: [22000, 26200], state: driver_choice}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: PrintDriverIsolationOverrideCompat, view: registry64, states: {0: driver_choice, 1: forced}, missing_state: driver_choice}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,19 @@
+id: behavior.online-font-providers
+title: 'Онлайн-поставщики шрифтов'
+category: behavior
+subcategory: system-components
+kind: setting
+summary: 'Разрешает Windows загружать каталог и данные недостающих шрифтов из сети.'
+explanation: {purpose: 'Позволяет приложениям отображать текст с помощью загружаемых по требованию шрифтов.', mechanism: 'Параметр EnableFontProviders включает обращение к сетевому поставщику шрифтов Windows.', effect: 'При отключении доступны только локально установленные шрифты.', tradeoffs: 'Некоторые документы могут отображаться заменяющим шрифтом.', recommendation: 'Оставляйте включённым, если компьютер имеет обычный доступ к сети.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\System\EnableFontProviders: 0 — запрещено, 1 — разрешено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 15063}
+states:
+  disabled: {title: 'Только локальные шрифты', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnableFontProviders, view: registry64, value: 0}]}
+  enabled: {title: 'Разрешить загрузку', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnableFontProviders, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [15063, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnableFontProviders, view: registry64, states: {0: disabled, 1: enabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: reboot
+impact: low
+reversibility: reversible
+requires_network: true

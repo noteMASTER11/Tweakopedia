@@ -1,0 +1,19 @@
+id: devices.print-v4-extensions
+title: 'Расширения принтеров для драйверов v4'
+category: devices
+subcategory: printing
+kind: setting
+summary: 'Разрешает дополнительный интерфейс и функции расширений принтеров v4.'
+explanation: {purpose: 'Управляет фирменными расширениями современных драйверов печати.', mechanism: 'Инвертированный параметр V4DriverDisallowPrinterExtension разрешает или блокирует их выполнение.', effect: 'При блокировке остаются стандартные функции Windows.', tradeoffs: 'Могут исчезнуть специальные параметры конкретного принтера.', recommendation: 'Разрешайте при необходимости фирменных функций.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Printers\V4DriverDisallowPrinterExtension: 0 — разрешено, 1 — запрещено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  allowed: {title: 'Разрешено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: V4DriverDisallowPrinterExtension, view: registry64, value: 0}]}
+  blocked: {title: 'Запрещено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: V4DriverDisallowPrinterExtension, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: allowed}, {os: windows11, builds: [22000, 26200], state: allowed}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: V4DriverDisallowPrinterExtension, view: registry64, states: {0: allowed, 1: blocked}, missing_state: allowed}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,19 @@
+id: behavior.group-policy-service-optimization
+title: 'Остановка службы групповых политик при простое'
+category: behavior
+subcategory: group-policy
+kind: setting
+summary: 'Разрешает Windows останавливать службу клиента групповой политики, когда она не используется.'
+explanation: {purpose: 'Снижает число постоянно работающих компонентов.', mechanism: 'Инвертированный параметр DisableAOACProcessing включает оптимизацию службы либо удерживает её запущенной.', effect: 'В оптимизированном режиме служба запускается по необходимости.', tradeoffs: 'Постоянная работа может упростить диагностику редких проблем, но расходует ресурсы.', recommendation: 'Оставляйте оптимизацию включённой.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\System\DisableAOACProcessing: 0 — оптимизировать, 1 — не останавливать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  optimized: {title: 'Останавливать при простое', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: DisableAOACProcessing, view: registry64, value: 0}]}
+  always_running: {title: 'Не останавливать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: DisableAOACProcessing, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: optimized}, {os: windows11, builds: [22000, 26200], state: optimized}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: DisableAOACProcessing, view: registry64, states: {0: optimized, 1: always_running}, missing_state: optimized}
+dependencies: []
+conflicts: []
+restart: reboot
+impact: low
+reversibility: reversible
+requires_network: false

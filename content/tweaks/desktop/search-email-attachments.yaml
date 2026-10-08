@@ -1,0 +1,19 @@
+id: desktop.search-email-attachments
+title: 'Индексирование вложений электронной почты'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Включает или отключает поиск по содержимому почтовых вложений.'
+explanation: {purpose: 'Позволяет находить письма по тексту внутри поддерживаемых вложений.', mechanism: 'Инвертированный параметр PreventIndexingEmailAttachments управляет обработкой вложений фильтрами документов.', effect: 'При отключении индексируется письмо, но не содержимое вложенного файла.', tradeoffs: 'Индекс становится меньше, однако поиск по документам из писем не работает.', recommendation: 'Оставляйте включённым, если поиск по вложениям полезен.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\PreventIndexingEmailAttachments: 0 — индексировать, 1 — не индексировать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  enabled: {title: 'Индексировать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventIndexingEmailAttachments, view: registry64, value: 0}]}
+  disabled: {title: 'Не индексировать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventIndexingEmailAttachments, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventIndexingEmailAttachments, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

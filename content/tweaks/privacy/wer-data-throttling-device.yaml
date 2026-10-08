@@ -1,0 +1,19 @@
+id: privacy.wer-data-throttling-device
+title: 'Ограничение дополнительных данных WER на компьютере'
+category: privacy
+subcategory: diagnostics
+kind: setting
+summary: 'Задаёт общее правило регулирования дополнительных данных отчётов.'
+explanation: {purpose: 'Управляет общим объёмом расширенных материалов Windows Error Reporting.', mechanism: 'Системный параметр BypassDataThrottling включает обход штатного регулирования.', effect: 'Без ограничения WER может отправлять больше дополнительных данных.', tradeoffs: 'Возрастает сетевой трафик и объём обработки.', recommendation: 'Оставляйте штатное регулирование для обычного компьютера.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting\BypassDataThrottling: 0 — регулировать, 1 — обходить.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  managed: {title: 'Штатное регулирование', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: BypassDataThrottling, view: registry64, value: 0}]}
+  bypassed: {title: 'Без ограничения', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: BypassDataThrottling, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: managed}, {os: windows11, builds: [22000, 26200], state: managed}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: BypassDataThrottling, view: registry64, states: {0: managed, 1: bypassed}, missing_state: managed}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

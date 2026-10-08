@@ -1,0 +1,19 @@
+id: devices.print-app-driver-isolation
+title: 'Изоляция драйвера печати от приложений'
+category: devices
+subcategory: printing
+kind: setting
+summary: 'Запускает компоненты драйвера печати отдельно от процесса печатающего приложения.'
+explanation: {purpose: 'Снижает влияние сбоя драйвера на приложение.', mechanism: 'Параметр ApplicationDriverIsolation включает отдельный процесс для поддерживаемых компонентов драйвера.', effect: 'Сбой драйвера реже завершает работу программы.', tradeoffs: 'Некоторые старые драйверы могут вести себя иначе.', recommendation: 'Включайте для современных драйверов печати.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Printers\ApplicationDriverIsolation: 0 — выключено, 1 — включено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  disabled: {title: 'Выключено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: ApplicationDriverIsolation, view: registry64, value: 0}]}
+  enabled: {title: 'Включено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: ApplicationDriverIsolation, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: disabled}, {os: windows11, builds: [22000, 26200], state: disabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: ApplicationDriverIsolation, view: registry64, states: {0: disabled, 1: enabled}, missing_state: disabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,19 @@
+id: desktop.search-outlook-indexing
+title: 'Индексирование данных Outlook'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Включает или отключает добавление данных Microsoft Outlook в индекс Windows Search.'
+explanation: {purpose: 'Ускоряет поиск по почте и другим данным Outlook.', mechanism: 'Инвертированная политика PreventIndexingOutlook разрешает или запрещает индексирование источника Outlook.', effect: 'При отключении данные Outlook исчезают из локальных результатов Windows Search.', tradeoffs: 'Поиск в Outlook может стать медленнее или неполнее.', recommendation: 'Оставляйте включённым при регулярном использовании Outlook.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\PreventIndexingOutlook: 0 — индексировать, 1 — не индексировать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  enabled: {title: 'Индексировать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventIndexingOutlook, view: registry64, value: 0}]}
+  disabled: {title: 'Не индексировать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventIndexingOutlook, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventIndexingOutlook, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

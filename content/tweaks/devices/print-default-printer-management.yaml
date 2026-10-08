@@ -1,0 +1,19 @@
+id: devices.print-default-printer-management
+title: 'Управление принтером по умолчанию'
+category: devices
+subcategory: printing
+kind: setting
+summary: 'Позволяет Windows выбирать последний использованный принтер по умолчанию или сохраняет ручной выбор.'
+explanation: {purpose: 'Определяет, меняется ли принтер по умолчанию автоматически.', mechanism: 'Параметр LegacyDefaultPrinterMode переключает автоматическое управление Windows и фиксированный выбор пользователя.', effect: 'В ручном режиме выбранный принтер не меняется после печати на другом устройстве.', tradeoffs: 'Автоматический режим удобен при перемещении, ручной — предсказуемее.', recommendation: 'Используйте ручной режим, если задания часто уходят не на тот принтер.', technical_details: 'DWORD HKCU\Software\Microsoft\Windows NT\CurrentVersion\Windows\LegacyDefaultPrinterMode: 0 — управляет Windows, 1 — ручной выбор.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  windows: {title: 'Управляет Windows', operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows NT\CurrentVersion\Windows', value_name: LegacyDefaultPrinterMode, view: registry64, value: 0}]}
+  manual: {title: 'Ручной выбор', operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows NT\CurrentVersion\Windows', value_name: LegacyDefaultPrinterMode, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: windows}, {os: windows11, builds: [22000, 26200], state: windows}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Microsoft\Windows NT\CurrentVersion\Windows', value_name: LegacyDefaultPrinterMode, view: registry64, states: {0: windows, 1: manual}, missing_state: windows}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

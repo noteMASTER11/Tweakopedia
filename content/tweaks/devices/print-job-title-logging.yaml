@@ -1,0 +1,19 @@
+id: devices.print-job-title-logging
+title: 'Названия заданий печати в журнале событий'
+category: devices
+subcategory: printing
+kind: setting
+summary: 'Добавляет названия документов в новые записи журнала печати.'
+explanation: {purpose: 'Делает журнал печати информативнее для диагностики очереди.', mechanism: 'Параметр ShowJobTitleInEventLogs включает имя задания в событие.', effect: 'Администратор видит, какой документ относился к записи.', tradeoffs: 'Название документа становится частью локального журнала.', recommendation: 'Включайте для диагностики; скрывайте, если названия документов хранить не требуется.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Printers\ShowJobTitleInEventLogs: 0 — скрывать, 1 — показывать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  hidden: {title: 'Не записывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: ShowJobTitleInEventLogs, view: registry64, value: 0}]}
+  shown: {title: 'Записывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: ShowJobTitleInEventLogs, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: hidden}, {os: windows11, builds: [22000, 26200], state: hidden}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: ShowJobTitleInEventLogs, view: registry64, states: {0: hidden, 1: shown}, missing_state: hidden}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

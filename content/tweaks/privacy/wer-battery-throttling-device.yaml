@@ -1,0 +1,19 @@
+id: privacy.wer-battery-throttling-device
+title: 'Отправка дополнительных отчётов от батареи на компьютере'
+category: privacy
+subcategory: diagnostics
+kind: setting
+summary: 'Задаёт общее правило отправки дополнительных данных WER при работе от батареи.'
+explanation: {purpose: 'Управляет энергетическим ограничением подсистемы отчётов.', mechanism: 'Системный параметр BypassPowerThrottling разрешает отправку без ожидания питания от сети.', effect: 'При обходе расширенные материалы передаются сразу.', tradeoffs: 'На переносном компьютере это расходует дополнительный заряд.', recommendation: 'Оставляйте учёт питания включённым.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting\BypassPowerThrottling: 0 — учитывать питание, 1 — обходить ограничение.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  managed: {title: 'Учитывать питание', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: BypassPowerThrottling, view: registry64, value: 0}]}
+  bypassed: {title: 'Отправлять от батареи', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: BypassPowerThrottling, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: managed}, {os: windows11, builds: [22000, 26200], state: managed}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: BypassPowerThrottling, view: registry64, states: {0: managed, 1: bypassed}, missing_state: managed}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

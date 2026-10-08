@@ -1,0 +1,19 @@
+id: desktop.search-diacritics
+title: 'Учёт диакритических знаков в поиске'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Определяет, считать ли слова с диакритическими знаками и без них разными.'
+explanation: {purpose: 'Настраивает точность сравнения слов в индексе Windows Search.', mechanism: 'Параметр AllowUsingDiacritics включает отдельное индексирование вариантов с диакритикой.', effect: 'В раздельном режиме похожие написания возвращают разные результаты.', tradeoffs: 'Строгий поиск точнее, но может пропустить ожидаемый вариант написания.', recommendation: 'Оставляйте варианты равнозначными, если строгая лингвистическая точность не нужна.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\AllowUsingDiacritics: 0 — равнозначны, 1 — различаются.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  equivalent: {title: 'Считать равнозначными', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: AllowUsingDiacritics, view: registry64, value: 0}]}
+  distinct: {title: 'Различать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: AllowUsingDiacritics, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: equivalent}, {os: windows11, builds: [22000, 26200], state: equivalent}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: AllowUsingDiacritics, view: registry64, states: {0: equivalent, 1: distinct}, missing_state: equivalent}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

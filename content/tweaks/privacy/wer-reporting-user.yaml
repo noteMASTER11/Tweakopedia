@@ -1,0 +1,19 @@
+id: privacy.wer-reporting-user
+title: 'Отчёты об ошибках для текущего пользователя'
+category: privacy
+subcategory: diagnostics
+kind: setting
+summary: 'Включает или отключает Windows Error Reporting в текущем профиле.'
+explanation: {purpose: 'Управляет сбором сведений о сбоях приложений пользователя.', mechanism: 'Инвертированный параметр Disabled включает или останавливает Windows Error Reporting.', effect: 'При отключении отчёты не отправляются и поиск известных решений недоступен.', tradeoffs: 'Становится меньше диагностических сведений для анализа повторяющихся сбоев.', recommendation: 'Оставляйте включённым, если используете штатную диагностику сбоев.', technical_details: 'DWORD HKCU\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting\Disabled: 0 — включено, 1 — отключено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  enabled: {title: 'Включено', operations: [{type: registry.set_dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: Disabled, view: registry64, value: 0}]}
+  disabled: {title: 'Отключено', operations: [{type: registry.set_dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: Disabled, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: Disabled, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

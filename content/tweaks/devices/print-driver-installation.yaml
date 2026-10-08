@@ -1,0 +1,19 @@
+id: devices.print-driver-installation
+title: 'Установка драйверов печати обычными пользователями'
+category: devices
+subcategory: printing
+kind: setting
+summary: 'Определяет, кто может устанавливать драйвер при подключении общего принтера.'
+explanation: {purpose: 'Ограничивает установку драйверов печати учётными записями администраторов.', mechanism: 'Параметр RestrictDriverInstallationToAdministrators задаёт требуемый уровень полномочий.', effect: 'В ограниченном режиме обычный пользователь не установит новый драйвер.', tradeoffs: 'Подключение незнакомого принтера потребует участия администратора.', recommendation: 'Оставляйте установку только администраторам.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Printers\PointAndPrint\RestrictDriverInstallationToAdministrators: 0 — разрешить пользователям, 1 — только администраторы.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  users_allowed: {title: 'Разрешить пользователям', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers\PointAndPrint', value_name: RestrictDriverInstallationToAdministrators, view: registry64, value: 0}]}
+  admin_only: {title: 'Только администраторы', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers\PointAndPrint', value_name: RestrictDriverInstallationToAdministrators, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: admin_only}, {os: windows11, builds: [22000, 26200], state: admin_only}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers\PointAndPrint', value_name: RestrictDriverInstallationToAdministrators, view: registry64, states: {0: users_allowed, 1: admin_only}, missing_state: admin_only}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

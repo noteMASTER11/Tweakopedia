@@ -1,0 +1,19 @@
+id: privacy.wer-logging-device
+title: 'Локальный журнал отчётов на компьютере'
+category: privacy
+subcategory: diagnostics
+kind: setting
+summary: 'Задаёт общее правило журналирования Windows Error Reporting.'
+explanation: {purpose: 'Управляет сохранением локальных событий подсистемы отчётов.', mechanism: 'Системный параметр LoggingDisabled включает или выключает журналирование WER.', effect: 'При выключении сведения о новых отчётах не добавляются в журнал.', tradeoffs: 'История сбоев становится менее полной.', recommendation: 'Оставляйте включённым для последующего анализа.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting\LoggingDisabled: 0 — журнал включён, 1 — отключён.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  enabled: {title: 'Журнал включён', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: LoggingDisabled, view: registry64, value: 0}]}
+  disabled: {title: 'Журнал отключён', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: LoggingDisabled, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: LoggingDisabled, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

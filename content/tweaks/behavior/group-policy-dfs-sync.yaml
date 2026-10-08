@@ -1,0 +1,19 @@
+id: behavior.group-policy-dfs-sync
+title: 'Синхронизация AD и DFS при обновлении политик'
+category: behavior
+subcategory: group-policy
+kind: setting
+summary: 'Подключает клиент групповой политики к контроллеру домена AD при доступе к ресурсам DFS.'
+explanation: {purpose: 'Согласует выбор контроллера домена для групповых политик и распределённых ресурсов.', mechanism: 'Параметр ResetDfsClientInfoDuringRefreshPolicy обновляет сведения клиента DFS во время обработки политики.', effect: 'Доступ к DFS выполняется через контроллер, выбранный Active Directory.', tradeoffs: 'На автономном компьютере параметр практической пользы не даёт.', recommendation: 'Включайте только в доменной среде с DFS.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\System\ResetDfsClientInfoDuringRefreshPolicy: 0 — выключено, 1 — включено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  disabled: {title: 'Выключено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: ResetDfsClientInfoDuringRefreshPolicy, view: registry64, value: 0}]}
+  enabled: {title: 'Включено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: ResetDfsClientInfoDuringRefreshPolicy, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: disabled}, {os: windows11, builds: [22000, 26200], state: disabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: ResetDfsClientInfoDuringRefreshPolicy, view: registry64, states: {0: disabled, 1: enabled}, missing_state: disabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,19 @@
+id: devices.print-add-printers
+title: 'Добавление принтеров пользователем'
+category: devices
+subcategory: printing
+kind: setting
+summary: 'Разрешает или запрещает текущему пользователю добавлять принтеры.'
+explanation: {purpose: 'Управляет самостоятельным подключением новых принтеров.', mechanism: 'Политика NoAddPrinter блокирует соответствующие команды интерфейса.', effect: 'При запрете пользователь не сможет добавить локальный или сетевой принтер.', tradeoffs: 'Подключение должен будет выполнить администратор или управляющий инструмент.', recommendation: 'Оставляйте разрешённым на личном компьютере.', technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoAddPrinter: 0 — разрешено, 1 — запрещено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  allowed: {title: 'Разрешено', operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoAddPrinter, view: registry64, value: 0}]}
+  blocked: {title: 'Запрещено', operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoAddPrinter, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: allowed}, {os: windows11, builds: [22000, 26200], state: allowed}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoAddPrinter, view: registry64, states: {0: allowed, 1: blocked}, missing_state: allowed}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

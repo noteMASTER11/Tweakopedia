@@ -1,0 +1,19 @@
+id: desktop.search-indexed-locations-user
+title: 'Изменение индексируемых расположений пользователем'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Задаёт пользовательское правило редактирования списка индексируемых папок.'
+explanation: {purpose: 'Позволяет ограничить изменение индекса только для текущего профиля.', mechanism: 'Пользовательская политика PreventModifyingIndexedLocations блокирует диалог расположений.', effect: 'При блокировке пользователь не сможет добавить или убрать папку через интерфейс.', tradeoffs: 'Охват поиска останется заданным внешними настройками.', recommendation: 'Используйте для управляемого профиля; на личном ПК оставляйте доступным.', technical_details: 'DWORD HKCU\SOFTWARE\Policies\Microsoft\Windows\Windows Search\PreventModifyingIndexedLocations: 0 — разрешено, 1 — заблокировано.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  editable: {title: 'Можно изменять', operations: [{type: registry.set_dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventModifyingIndexedLocations, view: registry64, value: 0}]}
+  locked: {title: 'Изменение заблокировано', operations: [{type: registry.set_dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventModifyingIndexedLocations, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: editable}, {os: windows11, builds: [22000, 26200], state: editable}]
+detect: {type: registry.dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventModifyingIndexedLocations, view: registry64, states: {0: editable, 1: locked}, missing_state: editable}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

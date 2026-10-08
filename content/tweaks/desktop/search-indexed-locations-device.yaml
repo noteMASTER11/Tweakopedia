@@ -1,0 +1,19 @@
+id: desktop.search-indexed-locations-device
+title: 'Изменение индексируемых расположений на компьютере'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Разрешает изменять список индексируемых папок через Панель управления.'
+explanation: {purpose: 'Определяет, могут ли пользователи менять охват индекса поиска.', mechanism: 'Политика PreventModifyingIndexedLocations блокирует диалог изменения расположений.', effect: 'При блокировке существующий список действует, но его нельзя править через интерфейс.', tradeoffs: 'Новые папки нельзя самостоятельно добавить в быстрый поиск.', recommendation: 'Оставляйте редактирование доступным на личном компьютере.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\PreventModifyingIndexedLocations: 0 — разрешено, 1 — заблокировано.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  editable: {title: 'Можно изменять', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventModifyingIndexedLocations, view: registry64, value: 0}]}
+  locked: {title: 'Изменение заблокировано', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventModifyingIndexedLocations, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: editable}, {os: windows11, builds: [22000, 26200], state: editable}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventModifyingIndexedLocations, view: registry64, states: {0: editable, 1: locked}, missing_state: editable}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

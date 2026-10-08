@@ -1,0 +1,19 @@
+id: behavior.local-group-policy-processing
+title: 'Обработка локальных групповых политик'
+category: behavior
+subcategory: group-policy
+kind: setting
+summary: 'Включает или исключает локальные объекты из обработки групповых политик.'
+explanation: {purpose: 'Определяет, применяются ли настройки локального редактора политик.', mechanism: 'Инвертированный параметр DisableLGPOProcessing запрещает обработку всех локальных объектов.', effect: 'При отключении локальные политики игнорируются, а доменные продолжают применяться.', tradeoffs: 'На компьютере рабочей группы параметр игнорируется; в домене исчезают локальные дополнения.', recommendation: 'Оставляйте обработку включённой, если доменная схема не требует обратного.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\System\DisableLGPOProcessing: 0 — обрабатывать, 1 — игнорировать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  enabled: {title: 'Обрабатывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: DisableLGPOProcessing, view: registry64, value: 0}]}
+  disabled: {title: 'Игнорировать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: DisableLGPOProcessing, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: DisableLGPOProcessing, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

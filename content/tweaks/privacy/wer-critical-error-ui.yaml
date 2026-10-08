@@ -1,0 +1,19 @@
+id: privacy.wer-critical-error-ui
+title: 'Окно отчёта при критическом сбое'
+category: privacy
+subcategory: diagnostics
+kind: setting
+summary: 'Показывает или скрывает интерфейс Windows Error Reporting при критических ошибках.'
+explanation: {purpose: 'Определяет, увидит ли пользователь диалог WER после критического сбоя.', mechanism: 'Параметр DontShowUI скрывает пользовательский интерфейс подсистемы отчётов.', effect: 'При скрытии обработка выполняется без интерактивного окна.', tradeoffs: 'Пользователь не видит состояние отправки и доступные варианты действий.', recommendation: 'Показывайте на личном ПК; скрывайте в автоматизированных сценариях.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting\DontShowUI: 0 — показывать, 1 — скрывать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  shown: {title: 'Показывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: DontShowUI, view: registry64, value: 0}]}
+  hidden: {title: 'Скрывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: DontShowUI, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: shown}, {os: windows11, builds: [22000, 26200], state: shown}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: DontShowUI, view: registry64, states: {0: shown, 1: hidden}, missing_state: shown}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

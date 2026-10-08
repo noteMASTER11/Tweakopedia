@@ -1,0 +1,19 @@
+id: behavior.background-group-policy-refresh
+title: 'Фоновое обновление групповых политик'
+category: behavior
+subcategory: group-policy
+kind: setting
+summary: 'Разрешает обновлять групповые политики во время активного сеанса пользователя.'
+explanation: {purpose: 'Применяет новые политики без ожидания выхода пользователя.', mechanism: 'Инвертированный параметр DisableBkGndGroupPolicy разрешает фоновое обновление либо оставляет только обработку при входе.', effect: 'При отключении изменения применяются после выхода или перезапуска.', tradeoffs: 'Фоновая обработка может кратковременно использовать сеть и процессор.', recommendation: 'Оставляйте включённой в управляемой среде.', technical_details: 'DWORD HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\DisableBkGndGroupPolicy: 0 — обновлять в фоне, 1 — только при входе.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  enabled: {title: 'Обновлять в фоне', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System', value_name: DisableBkGndGroupPolicy, view: registry64, value: 0}]}
+  disabled: {title: 'Только при входе', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System', value_name: DisableBkGndGroupPolicy, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System', value_name: DisableBkGndGroupPolicy, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

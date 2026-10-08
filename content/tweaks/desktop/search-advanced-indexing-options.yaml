@@ -1,0 +1,19 @@
+id: desktop.search-advanced-indexing-options
+title: 'Дополнительные параметры индексирования'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Показывает или скрывает диалог дополнительных параметров Windows Search.'
+explanation: {purpose: 'Управляет доступом к перестроению индекса, типам файлов и расположению базы.', mechanism: 'Политика PreventUsingAdvancedIndexingOptions скрывает кнопку дополнительных параметров.', effect: 'При скрытии пользователь не сможет менять расширенные настройки через Панель управления.', tradeoffs: 'Диагностика и ручное перестроение индекса становятся менее доступными.', recommendation: 'Оставляйте диалог доступным на личном компьютере.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\PreventUsingAdvancedIndexingOptions: 0 — показывать, 1 — скрывать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  shown: {title: 'Показывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventUsingAdvancedIndexingOptions, view: registry64, value: 0}]}
+  hidden: {title: 'Скрывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventUsingAdvancedIndexingOptions, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: shown}, {os: windows11, builds: [22000, 26200], state: shown}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: PreventUsingAdvancedIndexingOptions, view: registry64, states: {0: shown, 1: hidden}, missing_state: shown}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

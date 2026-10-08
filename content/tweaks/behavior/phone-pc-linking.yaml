@@ -1,0 +1,19 @@
+id: behavior.phone-pc-linking
+title: 'Связывание телефона с компьютером'
+category: behavior
+subcategory: system-components
+kind: setting
+summary: 'Разрешает регистрировать телефон и использовать сценарии продолжения на ПК.'
+explanation: {purpose: 'Управляет системной возможностью связи телефона и Windows.', mechanism: 'Параметр EnableMmx разрешает регистрацию устройства в функции телефон–ПК.', effect: 'При отключении компьютер удаляется из списка связанных телефонов.', tradeoffs: 'Передача действий и связанные функции телефона перестают работать.', recommendation: 'Отключайте, если телефон с Windows не связывается.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\System\EnableMmx: 0 — выключено, 1 — включено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 17134}
+states:
+  disabled: {title: 'Выключено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnableMmx, view: registry64, value: 0}]}
+  enabled: {title: 'Включено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnableMmx, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [17134, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnableMmx, view: registry64, states: {0: disabled, 1: enabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

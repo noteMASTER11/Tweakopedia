@@ -1,0 +1,19 @@
+id: desktop.search-unc-locations-user
+title: 'Добавление сетевых UNC-папок в индекс пользователем'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Задаёт пользовательское правило добавления сетевых UNC-папок в индекс.'
+explanation: {purpose: 'Позволяет отдельно настроить доступ текущего пользователя к добавлению сетевых расположений.', mechanism: 'Пользовательская политика HideUNCTab управляет соответствующим элементом параметров индексирования.', effect: 'При запрете пользователь не сможет добавить новый UNC-путь.', tradeoffs: 'Уже добавленные сетевые расположения сохраняются.', recommendation: 'Используйте, когда общее правило компьютера менять не требуется.', technical_details: 'DWORD HKCU\SOFTWARE\Policies\Microsoft\Windows\Windows Search\HideUNCTab: 0 — разрешено, 1 — запрещено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  allowed: {title: 'Разрешено', operations: [{type: registry.set_dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: HideUNCTab, view: registry64, value: 0}]}
+  blocked: {title: 'Запрещено', operations: [{type: registry.set_dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: HideUNCTab, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: allowed}, {os: windows11, builds: [22000, 26200], state: allowed}]
+detect: {type: registry.dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: HideUNCTab, view: registry64, states: {0: allowed, 1: blocked}, missing_state: allowed}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

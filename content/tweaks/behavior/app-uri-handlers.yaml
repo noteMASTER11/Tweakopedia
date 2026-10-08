@@ -1,0 +1,19 @@
+id: behavior.app-uri-handlers
+title: 'Открытие веб-ссылок связанными приложениями'
+category: behavior
+subcategory: system-components
+kind: setting
+summary: 'Разрешает приложениям перехватывать сопоставленные HTTP- и HTTPS-ссылки.'
+explanation: {purpose: 'Связывает веб-адреса с установленными приложениями через App URI Handlers.', mechanism: 'Параметр EnableAppUriHandlers разрешает запуск сопоставленного приложения вместо браузера.', effect: 'При отключении такие ссылки всегда открываются браузером по умолчанию.', tradeoffs: 'Глубокие ссылки в приложениях могут перестать работать.', recommendation: 'Оставляйте включённым, если используете приложения со связанными веб-ссылками.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\System\EnableAppUriHandlers: 0 — выключено, 1 — включено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  disabled: {title: 'Открывать в браузере', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnableAppUriHandlers, view: registry64, value: 0}]}
+  enabled: {title: 'Разрешить приложениям', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnableAppUriHandlers, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnableAppUriHandlers, view: registry64, states: {0: disabled, 1: enabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

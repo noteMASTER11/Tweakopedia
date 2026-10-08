@@ -1,0 +1,19 @@
+id: desktop.cortana-above-lock
+title: 'Cortana на экране блокировки'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Разрешает Cortana отвечать на запросы до разблокировки Windows 10.'
+explanation: {purpose: 'Управляет доступностью голосового помощника на заблокированном компьютере.', mechanism: 'Параметр AllowCortanaAboveLock включает или отключает работу Cortana поверх экрана блокировки.', effect: 'При отключении помощник доступен только после входа.', tradeoffs: 'Быстрые голосовые команды без разблокировки перестают работать.', recommendation: 'Отключайте, если Cortana на экране блокировки не используется.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\AllowCortanaAboveLock: 0 — выключено, 1 — включено.'}
+compatibility: {architectures: [x64], os: [windows10], min_build: 10240}
+states:
+  disabled: {title: 'Выключено', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: AllowCortanaAboveLock, view: registry64, value: 0}]}
+  enabled: {title: 'Включено', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: AllowCortanaAboveLock, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: AllowCortanaAboveLock, view: registry64, states: {0: disabled, 1: enabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

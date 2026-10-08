@@ -1,0 +1,19 @@
+id: privacy.wer-archive-user
+title: 'Архив отчётов об ошибках пользователя'
+category: privacy
+subcategory: diagnostics
+kind: setting
+summary: 'Включает или отключает локальное архивирование отчётов текущего пользователя.'
+explanation: {purpose: 'Сохраняет копии обработанных отчётов для последующего просмотра.', mechanism: 'Инвертированный параметр DisableArchive управляет архивом Windows Error Reporting.', effect: 'При отключении завершённые отчёты не остаются в пользовательском архиве.', tradeoffs: 'Освобождается место, но теряется локальная история материалов отчёта.', recommendation: 'Оставляйте архив включённым для диагностики; отключайте при ненужности истории.', technical_details: 'DWORD HKCU\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting\DisableArchive: 0 — архив включён, 1 — отключён.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  enabled: {title: 'Архив включён', operations: [{type: registry.set_dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: DisableArchive, view: registry64, value: 0}]}
+  disabled: {title: 'Архив отключён', operations: [{type: registry.set_dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: DisableArchive, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKCU, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: DisableArchive, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,19 @@
+id: desktop.search-encrypted-items
+title: 'Индексирование зашифрованных файлов'
+category: desktop
+subcategory: search
+kind: setting
+summary: 'Разрешает службе Windows Search расшифровывать и индексировать содержимое защищённых файлов.'
+explanation: {purpose: 'Добавляет содержимое зашифрованных объектов в результаты поиска.', mechanism: 'Параметр AllowIndexingEncryptedStoresOrItems разрешает индексатору читать содержимое при наличии доступа.', effect: 'Включение запускает полное перестроение индекса.', tradeoffs: 'Метаданные индекса хранятся отдельно; для индексируемого расположения уместно шифрование всего тома.', recommendation: 'Оставляйте выключенным, если поиск внутри таких файлов не требуется.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search\AllowIndexingEncryptedStoresOrItems: 0 — выключено, 1 — включено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 14393}
+states:
+  disabled: {title: 'Не индексировать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: AllowIndexingEncryptedStoresOrItems, view: registry64, value: 0}]}
+  enabled: {title: 'Индексировать', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: AllowIndexingEncryptedStoresOrItems, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [14393, 19045], state: disabled}, {os: windows11, builds: [22000, 26200], state: disabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Search', value_name: AllowIndexingEncryptedStoresOrItems, view: registry64, states: {0: disabled, 1: enabled}, missing_state: disabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

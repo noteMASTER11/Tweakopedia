@@ -14,6 +14,10 @@ categories:
         title: Носители и автозапуск
       - id: control-panel
         title: Панель управления и Параметры
+      - id: system-components
+        title: Системные компоненты
+      - id: group-policy
+        title: Групповые политики
   - id: boot
     title: Загрузка и вход
     subcategories:
@@ -131,6 +135,8 @@ categories:
         title: Метаданные и сопутствующие приложения
       - id: installation
         title: Установка устройств и драйверов
+      - id: printing
+        title: Печать и принтеры
   - id: experimental
     title: Экспериментальные функции
     subcategories:

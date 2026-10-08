@@ -1,0 +1,19 @@
+id: privacy.wer-additional-data-device
+title: 'Дополнительные данные отчётов на компьютере'
+category: privacy
+subcategory: diagnostics
+kind: setting
+summary: 'Задаёт общее правило отправки дополнительных материалов Windows Error Reporting.'
+explanation: {purpose: 'Управляет расширенным сбором сведений после базового отчёта.', mechanism: 'Системная политика DontSendAdditionalData разрешает либо блокирует дополнительные данные.', effect: 'При блокировке отправляется только первоначальный набор сведений.', tradeoffs: 'Отчёт содержит меньше контекста для анализа причины.', recommendation: 'Выбирайте блокировку, если расширенный сбор не нужен.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting\DontSendAdditionalData: 0 — разрешено, 1 — запрещено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  allowed: {title: 'Разрешено', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: DontSendAdditionalData, view: registry64, value: 0}]}
+  blocked: {title: 'Запрещено', operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: DontSendAdditionalData, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: allowed}, {os: windows11, builds: [22000, 26200], state: allowed}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting', value_name: DontSendAdditionalData, view: registry64, states: {0: allowed, 1: blocked}, missing_state: allowed}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

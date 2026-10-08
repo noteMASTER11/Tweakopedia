@@ -1,0 +1,19 @@
+id: devices.print-software-rasterization
+title: 'Программная растеризация печати'
+category: devices
+subcategory: printing
+kind: setting
+summary: 'Заставляет Windows всегда преобразовывать печатное содержимое программным растеризатором.'
+explanation: {purpose: 'Обходит несовместимость аппаратного или драйверного растеризатора.', mechanism: 'Параметр ForceSoftwareRasterization принудительно выбирает программную обработку.', effect: 'Печать может стать предсказуемее на проблемном драйвере.', tradeoffs: 'Обработка способна сильнее загружать процессор.', recommendation: 'Включайте только при графических дефектах или сбоях печати.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Printers\ForceSoftwareRasterization: 0 — автоматически, 1 — программно.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  automatic: {title: 'Автоматически', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: ForceSoftwareRasterization, view: registry64, value: 0}]}
+  software: {title: 'Всегда программно', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: ForceSoftwareRasterization, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: automatic}, {os: windows11, builds: [22000, 26200], state: automatic}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Printers', value_name: ForceSoftwareRasterization, view: registry64, states: {0: automatic, 1: software}, missing_state: automatic}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false
