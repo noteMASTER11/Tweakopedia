@@ -1,0 +1,11 @@
+categories:
+  - id: filesystem
+    title: Файловая система
+    subcategories:
+      - id: paths
+        title: Пути
+      - id: paths
+        title: Пути повторно
+  - id: filesystem
+    title: Файловая система повторно
+    subcategories: []

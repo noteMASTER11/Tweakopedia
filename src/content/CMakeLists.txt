@@ -1,5 +1,9 @@
 add_library(TweakopediaContent STATIC
     CatalogError.h
+    CategoryCatalog.cpp
+    CategoryCatalog.h
+    CategoryCatalogLoader.cpp
+    CategoryCatalogLoader.h
     TweakCatalog.cpp
     TweakCatalog.h
     TweakCatalogLoader.cpp

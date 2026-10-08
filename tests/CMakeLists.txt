@@ -40,6 +40,24 @@ target_link_libraries(TweakCatalogLoaderTest
 add_test(NAME TweakCatalogLoader COMMAND TweakCatalogLoaderTest)
 add_test(NAME ContentCatalog COMMAND TweakCatalogLoaderTest loadsRealCatalog)
 
+add_executable(CategoryCatalogLoaderTest
+    content/CategoryCatalogLoaderTest.cpp
+)
+
+target_compile_definitions(CategoryCatalogLoaderTest
+    PRIVATE
+        TWEAKOPEDIA_CATEGORY_FIXTURES="${PROJECT_SOURCE_DIR}/tests/fixtures/categories"
+        TWEAKOPEDIA_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content"
+)
+
+target_link_libraries(CategoryCatalogLoaderTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaContent
+)
+
+add_test(NAME CategoryCatalogLoader COMMAND CategoryCatalogLoaderTest)
+
 add_executable(CompatibilityEvaluatorTest
     detection/CompatibilityEvaluatorTest.cpp
 )

@@ -1,0 +1,7 @@
+categories:
+  - id: filesystem
+    title: Файловая система
+    unexpected: true
+    subcategories:
+      - id: paths
+        title: Пути

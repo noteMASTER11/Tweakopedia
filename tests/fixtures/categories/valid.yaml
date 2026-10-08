@@ -1,0 +1,13 @@
+categories:
+  - id: filesystem
+    title: Накопители, NTFS и файловая система
+    subcategories:
+      - id: paths
+        title: Пути и совместимость приложений
+      - id: storage
+        title: Накопители
+  - id: privacy
+    title: Конфиденциальность
+    subcategories:
+      - id: telemetry
+        title: Диагностика и телеметрия
