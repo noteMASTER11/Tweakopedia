@@ -14,6 +14,7 @@ public:
     ShellWaitStatus waitResult{ShellWaitStatus::Exited};
     ShellLaunchRequest request;
     bool closed{};
+    bool terminated{};
 
     ShellStartResult start(const ShellLaunchRequest& value) override
     {
@@ -22,6 +23,7 @@ public:
     }
 
     ShellWaitStatus wait(quintptr, int) override { return waitResult; }
+    bool terminate(quintptr) override { terminated = true; return true; }
     void close(quintptr) override { closed = true; }
 };
 
@@ -86,6 +88,7 @@ private slots:
 
         QVERIFY(!result.success);
         QCOMPARE(result.code, u"launch.timeout"_s);
+        QVERIFY(backend.terminated);
         QVERIFY(backend.closed);
     }
 

@@ -39,9 +39,12 @@ QVariant HistoryListModel::data(const QModelIndex& index, int role) const
     case StatusRole: return persistence::transactionStatusName(record.status);
     case UpdatedAtRole: return record.updatedAtUtc;
     case ErrorRole: return record.error;
-    case CanRollbackRole:
-        return record.status == persistence::TransactionStatus::Succeeded
-            && hasCompleteSnapshot(record.directory);
+    case CanRollbackRole: {
+        const auto recoverable = record.status == persistence::TransactionStatus::Succeeded
+            || record.status == persistence::TransactionStatus::Failed
+            || record.status == persistence::TransactionStatus::Interrupted;
+        return recoverable && hasCompleteSnapshot(record.directory);
+    }
     default: return {};
     }
 }

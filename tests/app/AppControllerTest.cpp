@@ -1,6 +1,9 @@
 #include "app/AppController.h"
 #include "content/TweakCatalogLoader.h"
 
+#include <QDir>
+#include <QFile>
+#include <QTemporaryDir>
 #include <QtTest/QTest>
 
 using namespace tweakopedia;
@@ -142,6 +145,26 @@ private slots:
         QVERIFY(!explanation.value(u"mechanism"_s).toString().isEmpty());
         QVERIFY(!explanation.contains(u"article"_s));
         QVERIFY(!explanation.contains(u"sources"_s));
+    }
+
+    void interruptedTransactionWithSnapshotCanBeRolledBack()
+    {
+        QTemporaryDir root;
+        QVERIFY(root.isValid());
+        const auto directory = root.filePath(u"transaction"_s);
+        QVERIFY(QDir{}.mkpath(directory));
+        QFile before(QDir(directory).filePath(u"before.json"_s));
+        QVERIFY(before.open(QIODevice::WriteOnly));
+        QVERIFY(before.write(R"({"operations":[{"snapshot":true}]})") > 0);
+        before.close();
+
+        auto record = persistence::TransactionRecord::pending(
+            QUuid::createUuid(), u"Прерванный пакет"_s, directory);
+        record.status = persistence::TransactionStatus::Interrupted;
+        app::HistoryListModel model;
+        model.reset({record});
+
+        QVERIFY(model.data(model.index(0), app::HistoryListModel::CanRollbackRole).toBool());
     }
 };
 

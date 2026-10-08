@@ -49,6 +49,11 @@ ShellWaitStatus WindowsShellExecuteBackend::wait(quintptr handle, int timeoutMs)
     return ShellWaitStatus::Failed;
 }
 
+bool WindowsShellExecuteBackend::terminate(quintptr handle)
+{
+    return handle && TerminateProcess(reinterpret_cast<HANDLE>(handle), ERROR_TIMEOUT);
+}
+
 void WindowsShellExecuteBackend::close(quintptr handle)
 {
     if (handle) CloseHandle(reinterpret_cast<HANDLE>(handle));
@@ -89,10 +94,14 @@ ExecutorMonitorResult ExecutorLauncher::monitor(
 {
     if (!session.started) return {.code = session.code, .message = session.message};
     const auto status = backend_->wait(session.handle, timeoutMs);
-    backend_->close(session.handle);
     if (status == ShellWaitStatus::Timeout) {
+        if (backend_->terminate(session.handle)) {
+            (void)backend_->wait(session.handle, 5000);
+        }
+        backend_->close(session.handle);
         return {.code = u"launch.timeout"_s, .message = u"Executor не завершился вовремя."_s};
     }
+    backend_->close(session.handle);
     if (status != ShellWaitStatus::Exited) {
         return {.code = u"launch.wait_failed"_s, .message = u"Не удалось дождаться Executor."_s};
     }

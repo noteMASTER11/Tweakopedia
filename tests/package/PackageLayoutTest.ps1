@@ -62,4 +62,23 @@ if ($leaks.Count -gt 0) {
     throw "В portable-комплекте найдены абсолютные build-пути: $($leaks.Path -join ', ')"
 }
 
+$binaryLeaks = @()
+$binaryFiles = @(Get-ChildItem -LiteralPath $packageRoot -Recurse -File | Where-Object {
+    $_.Extension -in @('.exe', '.dll')
+})
+foreach ($file in $binaryFiles) {
+    $bytes = [IO.File]::ReadAllBytes($file.FullName)
+    $ascii = [Text.Encoding]::ASCII.GetString($bytes)
+    $unicode = [Text.Encoding]::Unicode.GetString($bytes)
+    if ($ascii.Contains('D:/ChatGPT/Projects/Tweakopedia/') `
+        -or $ascii.Contains('D:\ChatGPT\Projects\Tweakopedia\') `
+        -or $unicode.Contains('D:/ChatGPT/Projects/Tweakopedia/') `
+        -or $unicode.Contains('D:\ChatGPT\Projects\Tweakopedia\')) {
+        $binaryLeaks += $file.FullName
+    }
+}
+if ($binaryLeaks.Count -gt 0) {
+    throw "В бинарниках portable-комплекта найдены абсолютные пути проекта: $($binaryLeaks -join ', ')"
+}
+
 Write-Output "PASS: portable layout verified at $packageRoot"

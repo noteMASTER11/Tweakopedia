@@ -52,6 +52,7 @@ public:
     {
         return execution::ShellWaitStatus::Failed;
     }
+    bool terminate(quintptr) override { return true; }
     void close(quintptr) override {}
 };
 

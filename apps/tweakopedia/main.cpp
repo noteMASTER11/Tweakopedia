@@ -47,9 +47,13 @@ public:
     content::CatalogLoadResult loadCatalog() override
     {
         const auto portable = paths_.contentRoot() + u"/tweaks"_s;
+#ifdef TWEAKOPEDIA_SOURCE_CONTENT_ROOT
         const auto root = QFileInfo::exists(portable)
             ? portable
             : QStringLiteral(TWEAKOPEDIA_SOURCE_CONTENT_ROOT);
+#else
+        const auto& root = portable;
+#endif
         return content::TweakCatalogLoader{}.loadDirectory(root);
     }
 

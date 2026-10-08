@@ -91,6 +91,19 @@ private slots:
         QVERIFY(result.hasError(u"transaction.invalid_id"));
     }
 
+    void rejectsEmptyPlan()
+    {
+        const auto now = QDateTime::currentDateTimeUtc();
+        auto candidate = plan(now);
+        candidate.operations.clear();
+        const auto hash = ExecutionProtocol::bodyHash(candidate);
+
+        const auto result = PlanValidator{}.validate(candidate, profile(), now, hash, hash);
+
+        QVERIFY(!result.accepted);
+        QVERIFY(result.hasError(u"operations.empty"));
+    }
+
     void rejectsExpiredPlan()
     {
         const auto now = QDateTime::currentDateTimeUtc();

@@ -26,6 +26,7 @@ public:
     virtual ~IShellExecuteBackend() = default;
     [[nodiscard]] virtual ShellStartResult start(const ShellLaunchRequest& request) = 0;
     [[nodiscard]] virtual ShellWaitStatus wait(quintptr handle, int timeoutMs) = 0;
+    [[nodiscard]] virtual bool terminate(quintptr handle) = 0;
     virtual void close(quintptr handle) = 0;
 };
 
@@ -34,6 +35,7 @@ class WindowsShellExecuteBackend final : public IShellExecuteBackend
 public:
     [[nodiscard]] ShellStartResult start(const ShellLaunchRequest& request) override;
     [[nodiscard]] ShellWaitStatus wait(quintptr handle, int timeoutMs) override;
+    [[nodiscard]] bool terminate(quintptr handle) override;
     void close(quintptr handle) override;
 };
 

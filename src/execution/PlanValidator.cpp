@@ -56,6 +56,9 @@ PlanValidationResult PlanValidator::validate(
     if (expectedBodyHash.size() != 64 || expectedBodyHash != actualBodyHash) {
         addError(result, u"hash.mismatch"_s, u"Ожидаемый SHA-256 плана не совпадает с полученным."_s);
     }
+    if (plan.operations.isEmpty()) {
+        addError(result, u"operations.empty"_s, u"План не содержит операций."_s);
+    }
 
     static const QRegularExpression fingerprintPattern(u"^[0-9a-f]{64}$"_s);
     for (const auto& operationVariant : plan.operations) {

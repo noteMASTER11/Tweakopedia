@@ -3,9 +3,11 @@ qt_add_executable(Tweakopedia WIN32
     resources.qrc
 )
 
-target_compile_definitions(Tweakopedia PRIVATE
-    TWEAKOPEDIA_SOURCE_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content/tweaks"
-)
+if(BUILD_TESTING)
+    target_compile_definitions(Tweakopedia PRIVATE
+        TWEAKOPEDIA_SOURCE_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content/tweaks"
+    )
+endif()
 
 target_link_libraries(Tweakopedia PRIVATE
     Qt6::Core
