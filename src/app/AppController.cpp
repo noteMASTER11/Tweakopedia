@@ -29,11 +29,20 @@ QString registryObject(const domain::RegistryLocation& location)
 } // namespace
 
 AppController::AppController(IAppServices& services, QObject* parent)
-    : QObject(parent), services_(&services), tweaksModel_(this), queueModel_(this), historyModel_(this)
+    : QObject(parent)
+    , services_(&services)
+    , tweaksModel_(this)
+    , filteredTweaksModel_(this)
+    , categoriesModel_(this)
+    , queueModel_(this)
+    , historyModel_(this)
 {
+    filteredTweaksModel_.setSourceModel(&tweaksModel_);
 }
 
 TweakListModel* AppController::tweaks() noexcept { return &tweaksModel_; }
+TweakFilterProxyModel* AppController::filteredTweaks() noexcept { return &filteredTweaksModel_; }
+CategoryListModel* AppController::categories() noexcept { return &categoriesModel_; }
 QueueListModel* AppController::queue() noexcept { return &queueModel_; }
 HistoryListModel* AppController::history() noexcept { return &historyModel_; }
 QString AppController::previewSummary() const { return preview_ ? preview_->summary : QString{}; }
@@ -69,12 +78,30 @@ bool AppController::startup()
         return false;
     }
     catalog_ = *loaded.catalog;
+    const auto loadedCategories = services_->loadCategories();
+    if (!loadedCategories.catalog) {
+        setError(u"categories.load_failed"_s,
+                 loadedCategories.errors.isEmpty() ? QString{} : loadedCategories.errors.first().message);
+        return false;
+    }
+    categoryCatalog_ = *loadedCategories.catalog;
+    categoriesModel_.reset(categoryCatalog_);
     profile_ = services_->currentProfile();
     refreshDetectedStates();
     refreshModels();
     historyModel_.reset(services_->history());
     setError({});
     return true;
+}
+
+void AppController::setTweakSearch(const QString& query)
+{
+    filteredTweaksModel_.setQuery(query);
+}
+
+void AppController::setTweakCategory(const QString& categoryId)
+{
+    filteredTweaksModel_.setCategoryId(categoryId);
 }
 
 bool AppController::selectTarget(const QString& id, const QString& state)

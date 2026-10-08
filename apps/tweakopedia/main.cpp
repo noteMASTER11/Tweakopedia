@@ -1,5 +1,6 @@
 #include "app/AppController.h"
 #include "content/TweakCatalogLoader.h"
+#include "content/CategoryCatalogLoader.h"
 #include "detection/RegistryDwordStateDetector.h"
 #include "execution/ExecutionProtocol.h"
 #include "execution/ExecutorLauncher.h"
@@ -51,11 +52,24 @@ public:
 #ifdef TWEAKOPEDIA_SOURCE_CONTENT_ROOT
         const auto root = QFileInfo::exists(portable)
             ? portable
-            : QStringLiteral(TWEAKOPEDIA_SOURCE_CONTENT_ROOT);
+            : QStringLiteral(TWEAKOPEDIA_SOURCE_CONTENT_ROOT) + u"/tweaks"_s;
 #else
         const auto& root = portable;
 #endif
         return content::TweakCatalogLoader{}.loadDirectory(root);
+    }
+
+    content::CategoryCatalogLoadResult loadCategories() override
+    {
+        const auto portable = paths_.contentRoot() + u"/categories.yaml"_s;
+#ifdef TWEAKOPEDIA_SOURCE_CONTENT_ROOT
+        const auto path = QFileInfo::exists(portable)
+            ? portable
+            : QStringLiteral(TWEAKOPEDIA_SOURCE_CONTENT_ROOT) + u"/categories.yaml"_s;
+#else
+        const auto& path = portable;
+#endif
+        return content::CategoryCatalogLoader{}.loadFile(path);
     }
 
     domain::SystemProfile currentProfile() const override { return profile_.current(); }

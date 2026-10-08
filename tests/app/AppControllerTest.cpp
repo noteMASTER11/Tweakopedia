@@ -15,6 +15,11 @@ class FakeAppServices final : public app::IAppServices
 {
 public:
     content::TweakCatalog catalog;
+    content::CategoryCatalog categoryCatalog{QVector<content::CategoryDefinition>{{
+        .id = u"filesystem"_s,
+        .title = u"Накопители, NTFS и файловая система"_s,
+        .subcategories = {{.id = u"paths"_s, .title = u"Пути"_s}},
+    }}};
     domain::SystemProfile profile{
         .family = domain::WindowsFamily::Windows11,
         .build = 26200,
@@ -34,6 +39,10 @@ public:
     int rollbackCalls{};
 
     content::CatalogLoadResult loadCatalog() override { return {.catalog = catalog}; }
+    content::CategoryCatalogLoadResult loadCategories() override
+    {
+        return {.catalog = categoryCatalog};
+    }
     domain::SystemProfile currentProfile() const override { return profile; }
     domain::DetectedState detect(
         const domain::TweakDefinition&,
@@ -90,6 +99,22 @@ class AppControllerTest final : public QObject
     Q_OBJECT
 
 private slots:
+    void startupExposesCategoriesAndFilteredTweaks()
+    {
+        auto backend = services();
+        app::AppController controller(backend);
+
+        QVERIFY(controller.startup());
+        QCOMPARE(controller.categories()->rowCount(), 2);
+        QCOMPARE(controller.categories()->data(
+                     controller.categories()->index(0), app::CategoryListModel::TitleRole).toString(),
+                 u"Все категории"_s);
+        QCOMPARE(controller.categories()->data(
+                     controller.categories()->index(1), app::CategoryListModel::IdRole).toString(),
+                 u"filesystem"_s);
+        QCOMPARE(controller.filteredTweaks()->rowCount(), 1);
+    }
+
     void returningToggleToActualStateRemovesQueueItem()
     {
         auto backend = services();

@@ -1,9 +1,12 @@
 #pragma once
 
 #include "app/HistoryListModel.h"
+#include "app/CategoryListModel.h"
 #include "app/QueueListModel.h"
 #include "app/TweakListModel.h"
+#include "app/TweakFilterProxyModel.h"
 #include "content/CatalogError.h"
+#include "content/CategoryCatalogLoader.h"
 #include "content/TweakCatalogLoader.h"
 #include "planning/ExecutionPlan.h"
 
@@ -32,6 +35,7 @@ class IAppServices
 public:
     virtual ~IAppServices() = default;
     [[nodiscard]] virtual content::CatalogLoadResult loadCatalog() = 0;
+    [[nodiscard]] virtual content::CategoryCatalogLoadResult loadCategories() = 0;
     [[nodiscard]] virtual domain::SystemProfile currentProfile() const = 0;
     [[nodiscard]] virtual domain::DetectedState detect(
         const domain::TweakDefinition& tweak,
@@ -50,6 +54,8 @@ class AppController final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(TweakListModel* tweaks READ tweaks CONSTANT)
+    Q_PROPERTY(TweakFilterProxyModel* filteredTweaks READ filteredTweaks CONSTANT)
+    Q_PROPERTY(CategoryListModel* categories READ categories CONSTANT)
     Q_PROPERTY(QueueListModel* queue READ queue CONSTANT)
     Q_PROPERTY(HistoryListModel* history READ history CONSTANT)
     Q_PROPERTY(QString previewSummary READ previewSummary NOTIFY previewChanged)
@@ -64,6 +70,8 @@ public:
     explicit AppController(IAppServices& services, QObject* parent = nullptr);
 
     [[nodiscard]] TweakListModel* tweaks() noexcept;
+    [[nodiscard]] TweakFilterProxyModel* filteredTweaks() noexcept;
+    [[nodiscard]] CategoryListModel* categories() noexcept;
     [[nodiscard]] QueueListModel* queue() noexcept;
     [[nodiscard]] HistoryListModel* history() noexcept;
     [[nodiscard]] QString previewSummary() const;
@@ -75,6 +83,8 @@ public:
     [[nodiscard]] QString applyMessage() const;
 
     Q_INVOKABLE bool startup();
+    Q_INVOKABLE void setTweakSearch(const QString& query);
+    Q_INVOKABLE void setTweakCategory(const QString& categoryId);
     Q_INVOKABLE bool selectTarget(const QString& id, const QString& state);
     Q_INVOKABLE bool removeFromQueue(const QString& id);
     Q_INVOKABLE QVariantMap openExplanation(const QString& id) const;
@@ -94,12 +104,15 @@ private:
 
     IAppServices* services_{};
     content::TweakCatalog catalog_;
+    content::CategoryCatalog categoryCatalog_;
     domain::SystemProfile profile_;
     QHash<domain::TweakId, domain::DetectedState> detected_;
     QHash<domain::TweakId, bool> supported_;
     planning::TweakQueue queueData_;
     std::optional<planning::ExecutionPlan> preview_;
     TweakListModel tweaksModel_;
+    TweakFilterProxyModel filteredTweaksModel_;
+    CategoryListModel categoriesModel_;
     QueueListModel queueModel_;
     HistoryListModel historyModel_;
     QString lastErrorCode_;

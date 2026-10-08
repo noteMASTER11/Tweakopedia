@@ -251,6 +251,13 @@ target_compile_definitions(TweakListModelTest PRIVATE
 target_link_libraries(TweakListModelTest PRIVATE Qt6::Test TweakopediaApp TweakopediaContent)
 add_test(NAME TweakListModel COMMAND TweakListModelTest)
 
+add_executable(TweakFilterProxyModelTest app/TweakFilterProxyModelTest.cpp)
+target_compile_definitions(TweakFilterProxyModelTest PRIVATE
+    TWEAKOPEDIA_TEST_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content/tweaks"
+)
+target_link_libraries(TweakFilterProxyModelTest PRIVATE Qt6::Test TweakopediaApp TweakopediaContent)
+add_test(NAME TweakFilterProxyModel COMMAND TweakFilterProxyModelTest)
+
 add_executable(QmlComponentTests qml/QmlTestMain.cpp)
 target_link_libraries(QmlComponentTests PRIVATE Qt6::QuickTest Qt6::QuickControls2)
 add_test(NAME QmlPlanPreviewHistory COMMAND QmlComponentTests -input ${PROJECT_SOURCE_DIR}/tests/qml)

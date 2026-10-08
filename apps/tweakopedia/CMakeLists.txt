@@ -5,7 +5,7 @@ qt_add_executable(Tweakopedia WIN32
 
 if(BUILD_TESTING)
     target_compile_definitions(Tweakopedia PRIVATE
-        TWEAKOPEDIA_SOURCE_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content/tweaks"
+        TWEAKOPEDIA_SOURCE_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content"
     )
 endif()
 
