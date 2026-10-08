@@ -1,0 +1,69 @@
+id: accounts.uac-standard-user-prompt
+title: 'Запрос повышения прав для обычных пользователей'
+category: accounts
+subcategory: uac
+kind: setting
+summary: 'Выбирает реакцию Windows на запрос административных прав обычным пользователем.'
+explanation:
+  purpose: 'Выбирает реакцию Windows на запрос административных прав обычным пользователем.'
+  mechanism: 'ConsentPromptBehaviorUser определяет отказ либо запрос административных учётных данных.'
+  effect: 'Пользователь без административных прав сможет ввести данные администратора либо получит автоматический отказ.'
+  tradeoffs: 'Автоматический отказ мешает самостоятельной установке и настройке программ; запрос данных требует участия администратора.'
+  recommendation: 'На личном ПК используйте запрос учётных данных; на управляемом устройстве уместен автоматический отказ.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\ConsentPromptBehaviorUser.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  deny:
+    title: 'Автоматически отклонять'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: ConsentPromptBehaviorUser
+        view: registry64
+        value: 0
+  credentials_secure:
+    title: 'Учётные данные на изолированном рабочем столе'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: ConsentPromptBehaviorUser
+        view: registry64
+        value: 1
+  credentials:
+    title: 'Запрос учётных данных'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: ConsentPromptBehaviorUser
+        view: registry64
+        value: 3
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: credentials
+  - os: windows11
+    builds: [22000, 26200]
+    state: credentials
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+  value_name: ConsentPromptBehaviorUser
+  view: registry64
+  states:
+    0: deny
+    1: credentials_secure
+    3: credentials
+  missing_state: credentials
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,99 @@
+id: accounts.uac-admin-prompt
+title: 'Запрос повышения прав для администраторов'
+category: accounts
+subcategory: uac
+kind: setting
+summary: 'Выбирает поведение запроса UAC для пользователей из группы администраторов.'
+explanation:
+  purpose: 'Выбирает поведение запроса UAC для пользователей из группы администраторов.'
+  mechanism: 'ConsentPromptBehaviorAdmin задаёт один из шести режимов подтверждения или ввода учётных данных.'
+  effect: 'Можно выбрать автоматическое повышение, подтверждение либо ввод данных на обычном или изолированном рабочем столе.'
+  tradeoffs: 'Автоматическое повышение убирает контроль перед административными действиями; ввод данных создаёт больше остановок в работе.'
+  recommendation: 'Для обычного ПК подходит подтверждение для программ не из Windows.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\ConsentPromptBehaviorAdmin, значения 0–5.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  no_prompt:
+    title: 'Повышать без запроса'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: ConsentPromptBehaviorAdmin
+        view: registry64
+        value: 0
+  credentials_secure:
+    title: 'Учётные данные на изолированном рабочем столе'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: ConsentPromptBehaviorAdmin
+        view: registry64
+        value: 1
+  consent_secure:
+    title: 'Подтверждение на изолированном рабочем столе'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: ConsentPromptBehaviorAdmin
+        view: registry64
+        value: 2
+  credentials:
+    title: 'Запрос учётных данных'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: ConsentPromptBehaviorAdmin
+        view: registry64
+        value: 3
+  consent:
+    title: 'Запрос подтверждения'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: ConsentPromptBehaviorAdmin
+        view: registry64
+        value: 4
+  non_windows_consent:
+    title: 'Подтверждение для программ не из Windows'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: ConsentPromptBehaviorAdmin
+        view: registry64
+        value: 5
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: non_windows_consent
+  - os: windows11
+    builds: [22000, 26200]
+    state: non_windows_consent
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+  value_name: ConsentPromptBehaviorAdmin
+  view: registry64
+  states:
+    0: no_prompt
+    1: credentials_secure
+    2: consent_secure
+    3: credentials
+    4: consent
+    5: non_windows_consent
+  missing_state: non_windows_consent
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

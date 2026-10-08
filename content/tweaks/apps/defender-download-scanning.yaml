@@ -1,0 +1,59 @@
+id: apps.defender-download-scanning
+title: 'Проверка загруженных файлов Defender'
+category: apps
+subcategory: defender
+kind: setting
+summary: 'Управляет проверкой файлов и вложений, полученных из Интернета и других внешних источников.'
+explanation:
+  purpose: 'Управляет проверкой файлов и вложений, полученных из Интернета и других внешних источников.'
+  mechanism: 'DisableIOAVProtection переключает интеграцию Defender с диспетчером вложений Windows.'
+  effect: 'При включении загруженные файлы и вложения анализируются до обычного использования.'
+  tradeoffs: 'Если включена системная защита параметров Defender, локальная политика может быть принята не сразу или переопределена.'
+  recommendation: 'Отключайте проверку только для воспроизводимого теста; для постоянного исключения лучше использовать точечное исключение.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection\DisableIOAVProtection.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14393
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows Defender\Real-Time Protection'
+        value_name: DisableIOAVProtection
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows Defender\Real-Time Protection'
+        value_name: DisableIOAVProtection
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [14393, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows Defender\Real-Time Protection'
+  value_name: DisableIOAVProtection
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

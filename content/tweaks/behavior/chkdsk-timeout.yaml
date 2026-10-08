@@ -1,0 +1,79 @@
+id: behavior.chkdsk-timeout
+title: 'Ожидание перед CHKDSK при загрузке'
+category: behavior
+subcategory: windows
+kind: setting
+summary: 'Задаёт время для отмены автоматической проверки диска перед запуском Windows.'
+explanation:
+  purpose: 'Задаёт время для отмены автоматической проверки диска перед запуском Windows.'
+  mechanism: 'AutoChkTimeout хранит длительность обратного отсчёта в секундах.'
+  effect: 'Большая пауза даёт больше времени нажать клавишу и пропустить проверку; ноль запускает её без ожидания.'
+  tradeoffs: 'Слишком короткий отсчёт почти не оставляет времени на отмену, а длинный задерживает каждую назначенную проверку.'
+  recommendation: 'Оставляйте 10 секунд или увеличьте до 30, если клавиатура определяется поздно.'
+  technical_details: 'DWORD HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\AutoChkTimeout, секунды.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  immediate:
+    title: 'Без ожидания'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Session Manager'
+        value_name: AutoChkTimeout
+        view: registry64
+        value: 0
+  five:
+    title: '5 секунд'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Session Manager'
+        value_name: AutoChkTimeout
+        view: registry64
+        value: 5
+  ten:
+    title: '10 секунд'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Session Manager'
+        value_name: AutoChkTimeout
+        view: registry64
+        value: 10
+  thirty:
+    title: '30 секунд'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Session Manager'
+        value_name: AutoChkTimeout
+        view: registry64
+        value: 30
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: ten
+  - os: windows11
+    builds: [22000, 26200]
+    state: ten
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\Session Manager'
+  value_name: AutoChkTimeout
+  view: registry64
+  states:
+    0: immediate
+    5: five
+    10: ten
+    30: thirty
+  missing_state: ten
+dependencies: []
+conflicts: []
+restart: reboot
+impact: low
+reversibility: reversible
+requires_network: false

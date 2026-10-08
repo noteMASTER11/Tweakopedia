@@ -1,0 +1,79 @@
+id: desktop.taskbar-flash-count
+title: 'Количество миганий кнопки панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Задаёт, сколько раз кнопка приложения мигает, когда окно требует внимания.'
+explanation:
+  purpose: 'Задаёт, сколько раз кнопка приложения мигает, когда окно требует внимания.'
+  mechanism: 'ForegroundFlashCount хранит число циклов мигания до перехода кнопки в постоянное выделение.'
+  effect: 'Меньшее значение делает уведомление спокойнее; ноль отключает повторное мигание.'
+  tradeoffs: 'Слишком малое число легко пропустить, а частое мигание отвлекает.'
+  recommendation: 'Семь — стандартное поведение; три подходит для менее навязчивого интерфейса.'
+  technical_details: 'DWORD HKCU\Control Panel\Desktop\ForegroundFlashCount.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  none:
+    title: 'Не мигать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Control Panel\Desktop'
+        value_name: ForegroundFlashCount
+        view: registry64
+        value: 0
+  three:
+    title: '3 раза'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Control Panel\Desktop'
+        value_name: ForegroundFlashCount
+        view: registry64
+        value: 3
+  five:
+    title: '5 раз'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Control Panel\Desktop'
+        value_name: ForegroundFlashCount
+        view: registry64
+        value: 5
+  seven:
+    title: '7 раз'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Control Panel\Desktop'
+        value_name: ForegroundFlashCount
+        view: registry64
+        value: 7
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: seven
+  - os: windows11
+    builds: [22000, 26200]
+    state: seven
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Control Panel\Desktop'
+  value_name: ForegroundFlashCount
+  view: registry64
+  states:
+    0: none
+    3: three
+    5: five
+    7: seven
+  missing_state: seven
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

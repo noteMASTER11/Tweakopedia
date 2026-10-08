@@ -1,0 +1,79 @@
+id: desktop.wallpaper-jpeg-quality
+title: 'Качество JPEG-обоев'
+category: desktop
+subcategory: effects
+kind: setting
+summary: 'Задаёт качество, с которым Windows сохраняет JPEG-копию обоев рабочего стола.'
+explanation:
+  purpose: 'Задаёт качество, с которым Windows сохраняет JPEG-копию обоев рабочего стола.'
+  mechanism: 'JPEGImportQuality задаёт процент качества при подготовке системной копии изображения.'
+  effect: 'Значение 100 уменьшает артефакты повторного сжатия; меньшие значения сокращают размер кэша обоев.'
+  tradeoffs: 'Высокое качество увеличивает размер системной копии, но обычно почти не влияет на производительность.'
+  recommendation: 'Для фотографий и градиентов используйте 100; стандартные 85 подходят большинству изображений.'
+  technical_details: 'DWORD HKCU\Control Panel\Desktop\JPEGImportQuality, диапазон 60–100.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  compact:
+    title: '60%'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Control Panel\Desktop'
+        value_name: JPEGImportQuality
+        view: registry64
+        value: 60
+  balanced:
+    title: '75%'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Control Panel\Desktop'
+        value_name: JPEGImportQuality
+        view: registry64
+        value: 75
+  standard:
+    title: '85% (стандарт)'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Control Panel\Desktop'
+        value_name: JPEGImportQuality
+        view: registry64
+        value: 85
+  maximum:
+    title: '100%'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Control Panel\Desktop'
+        value_name: JPEGImportQuality
+        view: registry64
+        value: 100
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: standard
+  - os: windows11
+    builds: [22000, 26200]
+    state: standard
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Control Panel\Desktop'
+  value_name: JPEGImportQuality
+  view: registry64
+  states:
+    60: compact
+    75: balanced
+    85: standard
+    100: maximum
+  missing_state: standard
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

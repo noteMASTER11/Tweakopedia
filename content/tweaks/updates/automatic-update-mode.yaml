@@ -1,0 +1,69 @@
+id: updates.automatic-update-mode
+title: 'Режим автоматических обновлений'
+category: updates
+subcategory: automatic
+kind: setting
+summary: 'Выбирает, уведомлять ли о загрузке, загружать автоматически или устанавливать по расписанию.'
+explanation:
+  purpose: 'Выбирает, уведомлять ли о загрузке, загружать автоматически или устанавливать по расписанию.'
+  mechanism: 'AUOptions задаёт один из поддерживаемых режимов клиента Automatic Updates.'
+  effect: 'Режим меняет момент загрузки пакетов и то, требуется ли действие пользователя перед установкой.'
+  tradeoffs: 'Уведомительный режим требует регулярного внимания; автоматическая загрузка использует трафик в фоне.'
+  recommendation: 'Для личного ПК используйте автоматическую загрузку с уведомлением; режим по расписанию удобен для постоянно включённого устройства.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU\AUOptions: 2, 3 или 4.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  notify_download:
+    title: 'Уведомлять перед загрузкой'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
+        value_name: AUOptions
+        view: registry64
+        value: 2
+  auto_download:
+    title: 'Загружать и уведомлять'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
+        value_name: AUOptions
+        view: registry64
+        value: 3
+  scheduled_install:
+    title: 'Загружать и ставить по расписанию'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
+        value_name: AUOptions
+        view: registry64
+        value: 4
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: auto_download
+  - os: windows11
+    builds: [22000, 26200]
+    state: auto_download
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
+  value_name: AUOptions
+  view: registry64
+  states:
+    2: notify_download
+    3: auto_download
+    4: scheduled_install
+  missing_state: auto_download
+dependencies: []
+conflicts: []
+restart: service
+impact: medium
+reversibility: reversible
+requires_network: true

@@ -1,0 +1,59 @@
+id: apps.defender-archive-scanning
+title: 'Проверка архивов Defender'
+category: apps
+subcategory: defender
+kind: setting
+summary: 'Управляет анализом содержимого ZIP, CAB и других поддерживаемых архивов.'
+explanation:
+  purpose: 'Управляет анализом содержимого ZIP, CAB и других поддерживаемых архивов.'
+  mechanism: 'DisableArchiveScanning включает или отключает раскрытие архивов во время проверки.'
+  effect: 'При включении Defender проверяет файлы внутри архивов, а не только сам контейнер.'
+  tradeoffs: 'Проверка крупных архивов занимает больше процессорного времени и может заметно увеличить длительность сканирования.'
+  recommendation: 'Оставляйте включённой; временно отключайте только при измерении производительности на известных данных.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Scan\DisableArchiveScanning.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14393
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows Defender\Scan'
+        value_name: DisableArchiveScanning
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows Defender\Scan'
+        value_name: DisableArchiveScanning
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [14393, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows Defender\Scan'
+  value_name: DisableArchiveScanning
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

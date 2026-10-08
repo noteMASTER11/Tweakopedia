@@ -1,0 +1,79 @@
+id: apps.defender-sample-submission
+title: 'Отправка образцов Defender'
+category: apps
+subcategory: defender
+kind: setting
+summary: 'Выбирает, когда Defender может отправлять образцы файлов для дополнительного анализа.'
+explanation:
+  purpose: 'Выбирает, когда Defender может отправлять образцы файлов для дополнительного анализа.'
+  mechanism: 'SubmitSamplesConsent задаёт запрос подтверждения, автоматическую отправку безопасных образцов, полный запрет или отправку всех образцов.'
+  effect: 'От режима зависит, будет ли облачный анализ получать файлы, для которых локального решения недостаточно.'
+  tradeoffs: 'Запрет отправки уменьшает объём данных наружу, но может замедлить классификацию нового файла; отправка всех образцов включает больше содержимого.'
+  recommendation: 'Сбалансированный вариант — автоматически отправлять только образцы, которые Defender относит к безопасным для отправки.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Spynet\SubmitSamplesConsent, значения 0–3.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  prompt:
+    title: 'Всегда спрашивать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows Defender\Spynet'
+        value_name: SubmitSamplesConsent
+        view: registry64
+        value: 0
+  safe_samples:
+    title: 'Отправлять безопасные образцы'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows Defender\Spynet'
+        value_name: SubmitSamplesConsent
+        view: registry64
+        value: 1
+  never:
+    title: 'Никогда не отправлять'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows Defender\Spynet'
+        value_name: SubmitSamplesConsent
+        view: registry64
+        value: 2
+  all_samples:
+    title: 'Отправлять все образцы'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows Defender\Spynet'
+        value_name: SubmitSamplesConsent
+        view: registry64
+        value: 3
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: safe_samples
+  - os: windows11
+    builds: [22000, 26200]
+    state: safe_samples
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows Defender\Spynet'
+  value_name: SubmitSamplesConsent
+  view: registry64
+  states:
+    0: prompt
+    1: safe_samples
+    2: never
+    3: all_samples
+  missing_state: safe_samples
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: true

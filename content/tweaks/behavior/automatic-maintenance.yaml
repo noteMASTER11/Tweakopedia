@@ -1,0 +1,59 @@
+id: behavior.automatic-maintenance
+title: 'Автоматическое обслуживание Windows'
+category: behavior
+subcategory: windows
+kind: setting
+summary: 'Разрешает или запрещает ежедневное автоматическое обслуживание во время простоя.'
+explanation:
+  purpose: 'Разрешает или запрещает ежедневное автоматическое обслуживание во время простоя.'
+  mechanism: 'MaintenanceDisabled блокирует запуск объединённого задания обслуживания, которое координирует обновления, диагностику и другие фоновые задачи.'
+  effect: 'При выключении Windows не запускает общий цикл автоматического обслуживания по расписанию.'
+  tradeoffs: 'Связанные задания перестают автоматически использовать период простоя и могут выполняться позже другим способом либо не выполняться вовсе.'
+  recommendation: 'Оставляйте включённым; временное выключение полезно для поиска причины нагрузки во время простоя.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance\MaintenanceDisabled: 1 — запретить, 0 — разрешить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance'
+        value_name: MaintenanceDisabled
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance'
+        value_name: MaintenanceDisabled
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance'
+  value_name: MaintenanceDisabled
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

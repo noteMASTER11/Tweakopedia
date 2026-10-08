@@ -1,0 +1,59 @@
+id: network.ip-routing
+title: 'Маршрутизация IPv4'
+category: network
+subcategory: routing
+kind: setting
+summary: 'Разрешает Windows пересылать IPv4-пакеты между сетевыми интерфейсами.'
+explanation:
+  purpose: 'Разрешает Windows пересылать IPv4-пакеты между сетевыми интерфейсами.'
+  mechanism: 'IPEnableRouter включает системную пересылку пакетов в стеке TCP/IP.'
+  effect: 'Компьютер может выступать маршрутизатором между подключёнными сетями для программ VPN и лабораторных стендов.'
+  tradeoffs: 'Одного параметра недостаточно для полноценного шлюза: могут потребоваться правила брандмауэра, NAT и корректные маршруты.'
+  recommendation: 'Оставляйте выключенным, если компьютер не используется как маршрутизатор или VPN-шлюз.'
+  technical_details: 'DWORD HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\IPEnableRouter.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Services\Tcpip\Parameters'
+        value_name: IPEnableRouter
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Services\Tcpip\Parameters'
+        value_name: IPEnableRouter
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Services\Tcpip\Parameters'
+  value_name: IPEnableRouter
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

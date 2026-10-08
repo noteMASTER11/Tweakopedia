@@ -1,0 +1,59 @@
+id: accounts.uac-built-in-administrator
+title: 'UAC для встроенной учётной записи Administrator'
+category: accounts
+subcategory: uac
+kind: setting
+summary: 'Применяет режим подтверждения действий к встроенной учётной записи Administrator.'
+explanation:
+  purpose: 'Применяет режим подтверждения действий к встроенной учётной записи Administrator.'
+  mechanism: 'FilterAdministratorToken включает Admin Approval Mode для встроенной учётной записи Administrator.'
+  effect: 'Даже встроенный Administrator получает разделённый маркер доступа и подтверждает повышение прав.'
+  tradeoffs: 'При выключении встроенная учётная запись запускает программы сразу с полными административными правами.'
+  recommendation: 'Изменяйте параметр осознанно и сохраняйте запрос подтверждения для административных действий.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\FilterAdministratorToken.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: FilterAdministratorToken
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: FilterAdministratorToken
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+  value_name: FilterAdministratorToken
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

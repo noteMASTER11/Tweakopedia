@@ -1,0 +1,59 @@
+id: desktop.legacy-balloon-notifications
+title: 'Классические всплывающие уведомления'
+category: desktop
+subcategory: notifications
+kind: setting
+summary: 'Выбирает классические всплывающие подсказки вместо преобразования старых уведомлений в современные баннеры.'
+explanation:
+  purpose: 'Выбирает классические всплывающие подсказки вместо преобразования старых уведомлений в современные баннеры.'
+  mechanism: 'EnableLegacyBalloonNotifications управляет отображением уведомлений, которые приложения отправляют через старый интерфейс области уведомлений.'
+  effect: 'При включении совместимые старые программы показывают «облачка» около системного трея.'
+  tradeoffs: 'На новых версиях Windows часть старого оформления может игнорироваться, а современные уведомления не меняются.'
+  recommendation: 'Включайте только если формат уведомлений старой программы удобнее современного баннера.'
+  technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows\Explorer\EnableLegacyBalloonNotifications.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Современные баннеры'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: EnableLegacyBalloonNotifications
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Классические подсказки'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: EnableLegacyBalloonNotifications
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\Explorer'
+  value_name: EnableLegacyBalloonNotifications
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

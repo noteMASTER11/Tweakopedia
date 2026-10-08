@@ -26,6 +26,8 @@ categories:
         title: Проверка подлинности и системные процессы
       - id: microsoft
         title: Учётная запись Microsoft
+      - id: uac
+        title: Контроль учётных записей
   - id: desktop
     title: Рабочий стол и панель задач
     subcategories:
@@ -41,6 +43,8 @@ categories:
         title: Анимации и эффекты
       - id: spotlight
         title: Рекомендации и Windows Spotlight
+      - id: explorer
+        title: Проводник и контекстные меню
   - id: privacy
     title: Конфиденциальность и облачные функции
     subcategories:
@@ -76,6 +80,8 @@ categories:
         title: Удалённый доступ
       - id: authentication
         title: Сетевая проверка подлинности
+      - id: routing
+        title: Маршрутизация IP
   - id: apps
     title: Компоненты и приложения Windows
     subcategories:
@@ -85,6 +91,10 @@ categories:
         title: Разработка и развёртывание
       - id: cloud-storage
         title: Облачное хранилище
+      - id: defender
+        title: Microsoft Defender
+      - id: store
+        title: Microsoft Store
   - id: devices
     title: Устройства и датчики
     subcategories:
@@ -111,3 +121,5 @@ categories:
         title: Перезагрузка после обновлений
       - id: delivery
         title: Доставка обновлений
+      - id: automatic
+        title: Автоматическая установка

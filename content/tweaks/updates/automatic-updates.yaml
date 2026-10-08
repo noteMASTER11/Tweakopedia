@@ -1,0 +1,59 @@
+id: updates.automatic-updates
+title: 'Автоматические обновления Windows'
+category: updates
+subcategory: automatic
+kind: setting
+summary: 'Разрешает или запрещает клиенту Windows Update автоматически искать и устанавливать обновления.'
+explanation:
+  purpose: 'Разрешает или запрещает клиенту Windows Update автоматически искать и устанавливать обновления.'
+  mechanism: 'NoAutoUpdate отключает механизм Automatic Updates без удаления службы Windows Update.'
+  effect: 'При выключении автоматического режима проверку и установку нужно запускать вручную либо другим средством управления.'
+  tradeoffs: 'Компьютер может долго оставаться без исправлений, если ручная процедура не выполняется регулярно.'
+  recommendation: 'Оставляйте включённым; при ручном управлении заранее определите регулярный график проверки.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU\NoAutoUpdate: 0 — включено, 1 — выключено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
+        value_name: NoAutoUpdate
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
+        value_name: NoAutoUpdate
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
+  value_name: NoAutoUpdate
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: service
+impact: high
+reversibility: reversible
+requires_network: true

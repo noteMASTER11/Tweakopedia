@@ -1,0 +1,59 @@
+id: desktop.version-watermark
+title: 'Версия Windows на рабочем столе'
+category: desktop
+subcategory: effects
+kind: setting
+summary: 'Показывает номер версии и сборки Windows в правом нижнем углу рабочего стола.'
+explanation:
+  purpose: 'Показывает номер версии и сборки Windows в правом нижнем углу рабочего стола.'
+  mechanism: 'PaintDesktopVersion просит оболочку рисовать сведения о сборке поверх обоев рабочего стола.'
+  effect: 'Номер версии постоянно виден без запуска winver или раздела «Система».'
+  tradeoffs: 'Надпись занимает место на обоях и может дублировать служебный водяной знак предварительной сборки.'
+  recommendation: 'Полезно при тестировании нескольких компьютеров и сборок; для обычного рабочего стола чаще не нужно.'
+  technical_details: 'DWORD HKCU\Control Panel\Desktop\PaintDesktopVersion.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Control Panel\Desktop'
+        value_name: PaintDesktopVersion
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Control Panel\Desktop'
+        value_name: PaintDesktopVersion
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Control Panel\Desktop'
+  value_name: PaintDesktopVersion
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

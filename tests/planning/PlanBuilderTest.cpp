@@ -132,6 +132,41 @@ private slots:
         QVERIFY(!result.plan->transactionId.isNull());
     }
 
+    void usesFingerprintOfEachRegistryLocationForCompositeState()
+    {
+        auto tweak = definition(u"filesystem.composite", u"Primary");
+        const RegistryLocation secondary{
+            .hive = RegistryHive::LocalMachine,
+            .key = u"SOFTWARE\\Tweakopedia"_s,
+            .valueName = u"Secondary"_s,
+            .view = RegistryView::Registry64,
+        };
+        tweak.states[1].operations.append(SetRegistryDwordOperation{
+            .location = secondary,
+            .value = 1,
+        });
+        const auto primary = std::get<SetRegistryDwordOperation>(
+            tweak.states[1].operations.first()).location;
+        auto detectedState = state(u"disabled", "primary-before");
+        detectedState.registryFingerprints = {
+            {.location = primary, .fingerprint = "primary-before"},
+            {.location = secondary, .fingerprint = "secondary-before"},
+        };
+        const TweakCatalog catalog({tweak});
+        TweakQueue queue;
+        QVERIFY(queue.setTarget(tweak, u"enabled").accepted);
+
+        const auto result = PlanBuilder{}.build(
+            catalog, queue, {{tweak.id, detectedState}}, profile());
+
+        QVERIFY(result.plan.has_value());
+        QCOMPARE(result.plan->operations.size(), 2);
+        QCOMPARE(std::get<PlannedRegistryDwordChange>(result.plan->operations[0]).beforeFingerprint,
+                 QByteArray("primary-before"));
+        QCOMPARE(std::get<PlannedRegistryDwordChange>(result.plan->operations[1]).beforeFingerprint,
+                 QByteArray("secondary-before"));
+    }
+
     void sortsOperationsByStableTweakId()
     {
         const auto alpha = definition(u"filesystem.alpha", u"Alpha");

@@ -1,0 +1,59 @@
+id: apps.store-auto-updates
+title: 'Автообновление приложений Microsoft Store'
+category: apps
+subcategory: store
+kind: setting
+summary: 'Управляет автоматической загрузкой и установкой обновлений приложений Store.'
+explanation:
+  purpose: 'Управляет автоматической загрузкой и установкой обновлений приложений Store.'
+  mechanism: 'Политика AutoDownload использует значение 2 для запрета и 4 для разрешения автоматических обновлений.'
+  effect: 'При выключении обновления приложений придётся запускать вручную через Microsoft Store.'
+  tradeoffs: 'Отключение экономит фоновый трафик, но установленные приложения могут долго оставаться на старых версиях.'
+  recommendation: 'Оставляйте включённым, если обновления приложений не управляются другим средством.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\WindowsStore\AutoDownload: 2 — запретить, 4 — разрешить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\WindowsStore'
+        value_name: AutoDownload
+        view: registry64
+        value: 2
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\WindowsStore'
+        value_name: AutoDownload
+        view: registry64
+        value: 4
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\WindowsStore'
+  value_name: AutoDownload
+  view: registry64
+  states:
+    2: disabled
+    4: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: true

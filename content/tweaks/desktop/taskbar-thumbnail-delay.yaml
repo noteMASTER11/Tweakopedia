@@ -1,0 +1,79 @@
+id: desktop.taskbar-thumbnail-delay
+title: 'Задержка миниатюр панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Задаёт паузу перед появлением миниатюр окон при наведении на кнопку панели задач.'
+explanation:
+  purpose: 'Задаёт паузу перед появлением миниатюр окон при наведении на кнопку панели задач.'
+  mechanism: 'ExtendedUIHoverTime хранит задержку наведения в миллисекундах.'
+  effect: 'Нулевая задержка показывает миниатюры почти сразу; увеличенная снижает число случайных появлений.'
+  tradeoffs: 'Большая задержка замедляет выбор окна мышью, а мгновенная может раздражать при движении по панели.'
+  recommendation: 'Используйте стандартные 400 мс или увеличьте задержку, если миниатюры появляются случайно.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\ExtendedUIHoverTime, миллисекунды.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  instant:
+    title: 'Без задержки'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ExtendedUIHoverTime
+        view: registry64
+        value: 0
+  normal:
+    title: '400 мс'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ExtendedUIHoverTime
+        view: registry64
+        value: 400
+  slow:
+    title: '800 мс'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ExtendedUIHoverTime
+        view: registry64
+        value: 800
+  very_slow:
+    title: '1200 мс'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ExtendedUIHoverTime
+        view: registry64
+        value: 1200
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: normal
+  - os: windows11
+    builds: [22000, 26200]
+    state: normal
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: ExtendedUIHoverTime
+  view: registry64
+  states:
+    0: instant
+    400: normal
+    800: slow
+    1200: very_slow
+  missing_state: normal
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

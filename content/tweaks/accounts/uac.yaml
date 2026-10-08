@@ -1,0 +1,59 @@
+id: accounts.uac
+title: 'Контроль учётных записей (UAC)'
+category: accounts
+subcategory: uac
+kind: setting
+summary: 'Включает основной механизм разделения обычных и повышенных прав.'
+explanation:
+  purpose: 'Включает основной механизм разделения обычных и повышенных прав.'
+  mechanism: 'EnableLUA переводит администраторов в режим подтверждения административных действий.'
+  effect: 'При включении приложения обычно работают с обычными правами и запрашивают повышение только при необходимости.'
+  tradeoffs: 'Выключение меняет модель запуска приложений, нарушает работу части компонентов Windows и требует перезагрузки.'
+  recommendation: 'Оставляйте включённым; выключение пригодно лишь для узких тестовых сценариев.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\EnableLUA: 1 — включено, 0 — выключено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: EnableLUA
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: EnableLUA
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+  value_name: EnableLUA
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

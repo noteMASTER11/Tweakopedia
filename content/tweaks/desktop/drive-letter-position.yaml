@@ -1,0 +1,79 @@
+id: desktop.drive-letter-position
+title: 'Положение букв дисков в Проводнике'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Выбирает, где и для каких дисков Проводник показывает букву относительно метки тома.'
+explanation:
+  purpose: 'Выбирает, где и для каких дисков Проводник показывает букву относительно метки тома.'
+  mechanism: 'ShowDriveLettersFirst задаёт один из четырёх режимов оформления имён дисков.'
+  effect: 'Буквы можно поставить перед всеми метками, оставить после них, вынести вперёд только для сетевых дисков или скрыть.'
+  tradeoffs: 'Скрытие букв усложняет сопоставление диска с путём; изменение влияет только на оформление Проводника.'
+  recommendation: 'Буква перед меткой удобна, если вы часто работаете с путями и несколькими накопителями.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\ShowDriveLettersFirst: 0, 1, 2 или 4.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  after_label:
+    title: 'После метки'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: ShowDriveLettersFirst
+        view: registry64
+        value: 0
+  network_first:
+    title: 'Перед меткой только у сетевых'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: ShowDriveLettersFirst
+        view: registry64
+        value: 1
+  hidden:
+    title: 'Скрыть буквы'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: ShowDriveLettersFirst
+        view: registry64
+        value: 2
+  before_label:
+    title: 'Перед меткой'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: ShowDriveLettersFirst
+        view: registry64
+        value: 4
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: after_label
+  - os: windows11
+    builds: [22000, 26200]
+    state: after_label
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+  value_name: ShowDriveLettersFirst
+  view: registry64
+  states:
+    0: after_label
+    1: network_first
+    2: hidden
+    4: before_label
+  missing_state: after_label
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

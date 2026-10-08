@@ -111,11 +111,30 @@ PlanBuildResult PlanBuilder::build(
 
         for (const auto& operation : target->operations) {
             if (const auto* registry = std::get_if<domain::SetRegistryDwordOperation>(&operation)) {
+                auto beforeFingerprint = current.fingerprint;
+                if (!current.registryFingerprints.isEmpty()) {
+                    const auto captured = std::find_if(
+                        current.registryFingerprints.cbegin(),
+                        current.registryFingerprints.cend(),
+                        [&](const domain::DetectedRegistryFingerprint& item) {
+                            return item.location == registry->location;
+                        });
+                    if (captured == current.registryFingerprints.cend()
+                        || captured->fingerprint.isEmpty()) {
+                        addIssue(
+                            result,
+                            item.tweakId,
+                            u"state.fingerprint_missing"_s,
+                            u"Нет отпечатка исходного значения одной из операций."_s);
+                        continue;
+                    }
+                    beforeFingerprint = captured->fingerprint;
+                }
                 plan.operations.append(PlannedRegistryDwordChange{
                     .tweakId = item.tweakId,
                     .targetState = item.targetState,
                     .change = *registry,
-                    .beforeFingerprint = current.fingerprint,
+                    .beforeFingerprint = std::move(beforeFingerprint),
                     .restart = tweak->restart,
                 });
             }

@@ -1,0 +1,69 @@
+id: privacy.diagnostic-data-level
+title: 'Уровень диагностических данных Windows'
+category: privacy
+subcategory: diagnostics
+kind: setting
+summary: 'Выбирает объём диагностических данных, который компоненты Windows могут отправлять Microsoft.'
+explanation:
+  purpose: 'Выбирает объём диагностических данных, который компоненты Windows могут отправлять Microsoft.'
+  mechanism: 'AllowTelemetry задаёт выключенный, обязательный или дополнительный уровень системной диагностики.'
+  effect: 'Более высокий уровень включает больше сведений об использовании компонентов и работе устройства.'
+  tradeoffs: 'Уровень 0 полностью действует только в поддерживаемых корпоративных редакциях; в остальных редакциях Windows применяет минимально допустимый уровень.'
+  recommendation: 'Для обычного ПК выбирайте обязательные данные; дополнительный уровень полезен при участии в диагностике предварительных функций.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\DataCollection\AllowTelemetry: 0 — выключено, 1 — обязательные, 3 — дополнительные.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  off:
+    title: 'Выключено, если редакция поддерживает'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\DataCollection'
+        value_name: AllowTelemetry
+        view: registry64
+        value: 0
+  required:
+    title: 'Только обязательные'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\DataCollection'
+        value_name: AllowTelemetry
+        view: registry64
+        value: 1
+  optional:
+    title: 'Обязательные и дополнительные'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\DataCollection'
+        value_name: AllowTelemetry
+        view: registry64
+        value: 3
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: optional
+  - os: windows11
+    builds: [22000, 26200]
+    state: optional
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\DataCollection'
+  value_name: AllowTelemetry
+  view: registry64
+  states:
+    0: off
+    1: required
+    3: optional
+  missing_state: optional
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

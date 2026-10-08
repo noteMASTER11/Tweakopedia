@@ -1,0 +1,59 @@
+id: desktop.taskbar-clock-seconds
+title: 'Секунды в часах панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Показывает секунды рядом с часами и минутами на панели задач.'
+explanation:
+  purpose: 'Показывает секунды рядом с часами и минутами на панели задач.'
+  mechanism: 'ShowSecondsInSystemClock переключает отображение секунд системными часами панели задач.'
+  effect: 'Время обновляется и отображается с точностью до секунды.'
+  tradeoffs: 'Часы меняются каждую секунду; визуально строка времени становится шире.'
+  recommendation: 'Включайте, если точное время постоянно нужно перед глазами.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\ShowSecondsInSystemClock.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14393
+states:
+  disabled:
+    title: 'Не показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowSecondsInSystemClock
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowSecondsInSystemClock
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: ShowSecondsInSystemClock
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

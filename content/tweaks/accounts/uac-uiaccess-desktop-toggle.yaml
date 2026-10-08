@@ -1,0 +1,59 @@
+id: accounts.uac-uiaccess-desktop-toggle
+title: 'UIAccess без изолированного рабочего стола'
+category: accounts
+subcategory: uac
+kind: setting
+summary: 'Разрешает UIAccess-программам переносить запрос UAC на обычный рабочий стол.'
+explanation:
+  purpose: 'Разрешает UIAccess-программам переносить запрос UAC на обычный рабочий стол.'
+  mechanism: 'EnableUIADesktopToggle позволяет программам специальных возможностей отключать изолированный рабочий стол для запроса.'
+  effect: 'Удалённая помощь и специальные средства могут взаимодействовать с запросом повышения.'
+  tradeoffs: 'Запрос перестаёт быть отделён от остальных окон текущего рабочего стола.'
+  recommendation: 'Оставляйте выключённым, если функция не нужна для удалённой помощи или специальных средств.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\EnableUIADesktopToggle.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не разрешать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: EnableUIADesktopToggle
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Разрешать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: EnableUIADesktopToggle
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+  value_name: EnableUIADesktopToggle
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

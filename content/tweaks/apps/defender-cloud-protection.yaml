@@ -1,0 +1,69 @@
+id: apps.defender-cloud-protection
+title: 'Облачная проверка Defender'
+category: apps
+subcategory: defender
+kind: setting
+summary: 'Подключает Defender к облачной службе оценки новых и неизвестных объектов.'
+explanation:
+  purpose: 'Подключает Defender к облачной службе оценки новых и неизвестных объектов.'
+  mechanism: 'SpynetReporting задаёт отсутствие участия либо базовый или расширенный режим Microsoft MAPS.'
+  effect: 'При включении локальный анализ может быстрее получать облачную оценку неизвестного файла.'
+  tradeoffs: 'Для работы нужен Интернет; Defender передаёт сведения об обнаруженном объекте, а расширенный режим включает больше технических данных.'
+  recommendation: 'На современном Windows используйте расширенный режим: базовый режим фактически обрабатывается так же.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Spynet\SpynetReporting: 0 — выключено, 1 — базовый, 2 — расширенный.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows Defender\Spynet'
+        value_name: SpynetReporting
+        view: registry64
+        value: 0
+  basic:
+    title: 'Базовый режим'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows Defender\Spynet'
+        value_name: SpynetReporting
+        view: registry64
+        value: 1
+  advanced:
+    title: 'Расширенный режим'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows Defender\Spynet'
+        value_name: SpynetReporting
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows Defender\Spynet'
+  value_name: SpynetReporting
+  view: registry64
+  states:
+    0: disabled
+    1: basic
+    2: advanced
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: true

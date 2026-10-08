@@ -37,8 +37,10 @@ TweakDefinition definition()
     tweak.compatibility.operatingSystems = {WindowsFamily::Windows10, WindowsFamily::Windows11};
     tweak.compatibility.minimumBuild = 14393;
     tweak.states = {
-        {.id = u"disabled"_s, .title = u"Выключено"_s},
-        {.id = u"enabled"_s, .title = u"Включено"_s},
+        {.id = u"disabled"_s, .title = u"Выключено"_s,
+         .operations = {SetRegistryDwordOperation{.location = location(), .value = 0}}},
+        {.id = u"enabled"_s, .title = u"Включено"_s,
+         .operations = {SetRegistryDwordOperation{.location = location(), .value = 1}}},
     };
     tweak.detection = RegistryDwordDetection{
         .location = location(),
@@ -76,6 +78,35 @@ private slots:
         QCOMPARE(result.status, DetectionStatus::Named);
         QCOMPARE(result.stateId, u"enabled"_s);
         QVERIFY(!result.fingerprint.isEmpty());
+    }
+
+    void capturesFingerprintForEveryRegistryOperation()
+    {
+        auto tweak = definition();
+        const RegistryLocation secondary{
+            .hive = RegistryHive::LocalMachine,
+            .key = u"SYSTEM\\CurrentControlSet\\Control\\CrashControl"_s,
+            .valueName = u"DisableEmoticon"_s,
+            .view = RegistryView::Registry64,
+        };
+        tweak.states[1].operations.append(SetRegistryDwordOperation{
+            .location = secondary,
+            .value = 1,
+        });
+        FakeRegistryBackend backend;
+        backend.setReadResult(location(), RegistryReadResult::present(
+            RegistryValueType::Dword, dwordBytes(0)));
+        backend.setReadResult(secondary, RegistryReadResult::present(
+            RegistryValueType::Dword, dwordBytes(1)));
+
+        const auto result = RegistryDwordStateDetector{}.detect(tweak, backend, profile());
+
+        QCOMPARE(result.registryFingerprints.size(), 2);
+        QVERIFY(std::any_of(
+            result.registryFingerprints.cbegin(), result.registryFingerprints.cend(),
+            [&](const DetectedRegistryFingerprint& item) {
+                return item.location == secondary && !item.fingerprint.isEmpty();
+            }));
     }
 
     void mapsDwordZeroToDisabled()

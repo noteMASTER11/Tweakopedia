@@ -1,0 +1,71 @@
+id: behavior.crash-on-ctrl-scroll-lock
+title: 'Ручная критическая ошибка Ctrl+Scroll Lock'
+category: behavior
+subcategory: windows
+kind: setting
+summary: 'Разрешает вручную вызвать критическую ошибку правым Ctrl и двойным нажатием Scroll Lock.'
+explanation:
+  purpose: 'Разрешает вручную вызвать критическую ошибку правым Ctrl и двойным нажатием Scroll Lock.'
+  mechanism: 'CrashOnCtrlScroll включается одновременно для USB-клавиатур kbdhid и контроллера PS/2 i8042prt.'
+  effect: 'Комбинация создаёт принудительный bug check для проверки дампов памяти и отладочных процедур.'
+  tradeoffs: 'Случайное нажатие немедленно останавливает Windows и приводит к потере несохранённых данных.'
+  recommendation: 'Включайте только на тестовом компьютере, когда действительно проверяете создание дампов.'
+  technical_details: 'DWORD CrashOnCtrlScroll в параметрах служб kbdhid и i8042prt; применяется после перезагрузки.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Services\kbdhid\Parameters'
+        value_name: CrashOnCtrlScroll
+        view: registry64
+        value: 0
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Services\i8042prt\Parameters'
+        value_name: CrashOnCtrlScroll
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Services\kbdhid\Parameters'
+        value_name: CrashOnCtrlScroll
+        view: registry64
+        value: 1
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Services\i8042prt\Parameters'
+        value_name: CrashOnCtrlScroll
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Services\kbdhid\Parameters'
+  value_name: CrashOnCtrlScroll
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,71 @@
+id: behavior.bsod-details
+title: 'Подробности на экране критической ошибки'
+category: behavior
+subcategory: windows
+kind: setting
+summary: 'Показывает технические параметры критической ошибки вместо упрощённого оформления.'
+explanation:
+  purpose: 'Показывает технические параметры критической ошибки вместо упрощённого оформления.'
+  mechanism: 'DisplayParameters включает вывод параметров bug check, а DisableEmoticon убирает графический смайлик.'
+  effect: 'Экран критической ошибки содержит код и дополнительные параметры, полезные при диагностике.'
+  tradeoffs: 'Технический экран менее дружелюбен и обычно остаётся видимым недолго при включённой автоматической перезагрузке.'
+  recommendation: 'Включайте на тестовых системах или при поиске редкого сбоя.'
+  technical_details: 'DWORD DisplayParameters и DisableEmoticon в HKLM\SYSTEM\CurrentControlSet\Control\CrashControl.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Упрощённый экран'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\CrashControl'
+        value_name: DisplayParameters
+        view: registry64
+        value: 0
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\CrashControl'
+        value_name: DisableEmoticon
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Подробный экран'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\CrashControl'
+        value_name: DisplayParameters
+        view: registry64
+        value: 1
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\CrashControl'
+        value_name: DisableEmoticon
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\CrashControl'
+  value_name: DisplayParameters
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: low
+reversibility: reversible
+requires_network: false

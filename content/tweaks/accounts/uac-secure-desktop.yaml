@@ -1,0 +1,59 @@
+id: accounts.uac-secure-desktop
+title: 'Изолированный рабочий стол для запросов UAC'
+category: accounts
+subcategory: uac
+kind: setting
+summary: 'Показывает запросы повышения прав на отдельном затемнённом рабочем столе.'
+explanation:
+  purpose: 'Показывает запросы повышения прав на отдельном затемнённом рабочем столе.'
+  mechanism: 'PromptOnSecureDesktop переключает запрос UAC между изолированным и обычным рабочим столом.'
+  effect: 'При включении остальные окна временно недоступны, пока пользователь не ответит на запрос.'
+  tradeoffs: 'Переключение экрана заметнее и может мешать удалённой помощи либо записи рабочего стола.'
+  recommendation: 'Оставляйте включённым, если нет конкретной проблемы с удалённым управлением.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\PromptOnSecureDesktop.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Обычный рабочий стол'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: PromptOnSecureDesktop
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Изолированный рабочий стол'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: PromptOnSecureDesktop
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+  value_name: PromptOnSecureDesktop
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

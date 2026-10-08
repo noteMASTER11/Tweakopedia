@@ -1,0 +1,59 @@
+id: accounts.uac-installer-detection
+title: 'Распознавание установщиков UAC'
+category: accounts
+subcategory: uac
+kind: setting
+summary: 'Разрешает Windows распознавать установщики и предлагать повышение прав.'
+explanation:
+  purpose: 'Разрешает Windows распознавать установщики и предлагать повышение прав.'
+  mechanism: 'EnableInstallerDetection включает эвристику обнаружения установочных пакетов, которым нужны административные права.'
+  effect: 'Старые установщики без корректного манифеста чаще получают запрос повышения автоматически.'
+  tradeoffs: 'Некоторые обычные программы могут быть ошибочно приняты за установщик; без распознавания старый установщик может завершиться ошибкой.'
+  recommendation: 'Оставляйте включённым на домашнем ПК; в управляемой среде ориентируйтесь на манифесты приложений.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\EnableInstallerDetection.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: EnableInstallerDetection
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: EnableInstallerDetection
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+  value_name: EnableInstallerDetection
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

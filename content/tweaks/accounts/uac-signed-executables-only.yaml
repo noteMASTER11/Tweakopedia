@@ -1,0 +1,59 @@
+id: accounts.uac-signed-executables-only
+title: 'Повышение прав только для подписанных программ'
+category: accounts
+subcategory: uac
+kind: setting
+summary: 'Разрешает повышение прав лишь исполняемым файлам с проверяемой цифровой подписью.'
+explanation:
+  purpose: 'Разрешает повышение прав лишь исполняемым файлам с проверяемой цифровой подписью.'
+  mechanism: 'ValidateAdminCodeSignatures требует успешной проверки подписи перед выдачей административных прав.'
+  effect: 'Неподписанные административные утилиты и установщики не смогут получить повышение.'
+  tradeoffs: 'Многие легитимные старые и самостоятельно собранные программы не имеют подходящей подписи.'
+  recommendation: 'Включайте только там, где весь административный набор программ подписан и проверен.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\ValidateAdminCodeSignatures.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не требовать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: ValidateAdminCodeSignatures
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Требовать подпись'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: ValidateAdminCodeSignatures
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+  value_name: ValidateAdminCodeSignatures
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

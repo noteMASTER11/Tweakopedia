@@ -1,0 +1,89 @@
+id: desktop.multi-file-context-menu-limit
+title: 'Команды контекстного меню для многих файлов'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Задаёт предел числа выбранных файлов, до которого Проводник показывает команды «Открыть», «Изменить» и «Печать».'
+explanation:
+  purpose: 'Задаёт предел числа выбранных файлов, до которого Проводник показывает команды «Открыть», «Изменить» и «Печать».'
+  mechanism: 'MultipleInvokePromptMinimum изменяет порог скрытия команд, запускающих отдельное действие для каждого файла.'
+  effect: 'Увеличенный порог позволяет выполнить одну команду сразу для большего набора файлов.'
+  tradeoffs: 'Запуск сотен обработчиков одновременно может надолго занять систему или открыть слишком много окон.'
+  recommendation: 'Увеличивайте предел умеренно; 30 или 50 обычно достаточно.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MultipleInvokePromptMinimum.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  fifteen:
+    title: '15 файлов'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: MultipleInvokePromptMinimum
+        view: registry64
+        value: 15
+  thirty:
+    title: '30 файлов'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: MultipleInvokePromptMinimum
+        view: registry64
+        value: 30
+  fifty:
+    title: '50 файлов'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: MultipleInvokePromptMinimum
+        view: registry64
+        value: 50
+  hundred:
+    title: '100 файлов'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: MultipleInvokePromptMinimum
+        view: registry64
+        value: 100
+  two_hundred:
+    title: '200 файлов'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: MultipleInvokePromptMinimum
+        view: registry64
+        value: 200
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: fifteen
+  - os: windows11
+    builds: [22000, 26200]
+    state: fifteen
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+  value_name: MultipleInvokePromptMinimum
+  view: registry64
+  states:
+    15: fifteen
+    30: thirty
+    50: fifty
+    100: hundred
+    200: two_hundred
+  missing_state: fifteen
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

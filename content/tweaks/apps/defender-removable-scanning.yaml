@@ -1,0 +1,59 @@
+id: apps.defender-removable-scanning
+title: 'Проверка съёмных накопителей Defender'
+category: apps
+subcategory: defender
+kind: setting
+summary: 'Включает съёмные накопители в ручное и запланированное полное сканирование.'
+explanation:
+  purpose: 'Включает съёмные накопители в ручное и запланированное полное сканирование.'
+  mechanism: 'DisableRemovableDriveScanning определяет, проверять ли подключённые USB-накопители при полном сканировании.'
+  effect: 'При включении полная проверка охватывает содержимое съёмных дисков.'
+  tradeoffs: 'Полное сканирование медленного или большого USB-накопителя заметно увеличит длительность задания.'
+  recommendation: 'Включайте, если съёмные носители регулярно переносят файлы между компьютерами.'
+  technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Scan\DisableRemovableDriveScanning.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14393
+states:
+  disabled:
+    title: 'Не проверять'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows Defender\Scan'
+        value_name: DisableRemovableDriveScanning
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Проверять'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows Defender\Scan'
+        value_name: DisableRemovableDriveScanning
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [14393, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows Defender\Scan'
+  value_name: DisableRemovableDriveScanning
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

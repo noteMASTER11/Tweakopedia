@@ -1,0 +1,59 @@
+id: desktop.last-active-taskbar-window
+title: 'Последнее окно по клику на группу панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Открывает последнее активное окно сразу по клику на сгруппированную кнопку панели задач.'
+explanation:
+  purpose: 'Открывает последнее активное окно сразу по клику на сгруппированную кнопку панели задач.'
+  mechanism: 'LastActiveClick заменяет показ миниатюр первым кликом на переключение к последнему окну группы.'
+  effect: 'Повторный клик циклически переключает окна приложения без дополнительного выбора миниатюры.'
+  tradeoffs: 'Список миниатюр по обычному клику становится менее доступным и требует наведения или другой команды.'
+  recommendation: 'Подходит пользователям, которые часто переключаются между двумя окнами одного приложения.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\LastActiveClick.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Показывать миниатюры'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: LastActiveClick
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Открывать последнее окно'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: LastActiveClick
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: LastActiveClick
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

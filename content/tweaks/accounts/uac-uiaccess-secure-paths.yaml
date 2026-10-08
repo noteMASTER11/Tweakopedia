@@ -1,0 +1,59 @@
+id: accounts.uac-uiaccess-secure-paths
+title: 'UIAccess только из системных каталогов'
+category: accounts
+subcategory: uac
+kind: setting
+summary: 'Ограничивает запуск UIAccess-программ доверенными системными каталогами.'
+explanation:
+  purpose: 'Ограничивает запуск UIAccess-программ доверенными системными каталогами.'
+  mechanism: 'EnableSecureUIAPaths разрешает UIAccess только приложениям из Windows и Program Files.'
+  effect: 'Программы специальных возможностей вне этих каталогов не смогут использовать повышенный уровень UIAccess.'
+  tradeoffs: 'Портативные средства специальных возможностей могут перестать взаимодействовать с повышенными окнами.'
+  recommendation: 'Оставляйте ограничение включённым; выключайте лишь для конкретного проверенного приложения.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\EnableSecureUIAPaths.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Разрешить любой путь'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: EnableSecureUIAPaths
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Только системные каталоги'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: EnableSecureUIAPaths
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+  value_name: EnableSecureUIAPaths
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false
