@@ -85,8 +85,17 @@ QJsonObject errorResult(QString code, QString message)
 
 void sendAndQuit(execution::ExecutorClient& client, const QJsonObject& result, int exitCode)
 {
-    (void)client.sendResult(result);
-    QTimer::singleShot(100, qApp, [exitCode] { QCoreApplication::exit(exitCode); });
+    QObject::connect(
+        &client,
+        &execution::ExecutorClient::resultAcknowledged,
+        qApp,
+        [exitCode] { QCoreApplication::exit(exitCode); },
+        Qt::SingleShotConnection);
+    if (!client.sendResult(result)) {
+        QCoreApplication::exit(18);
+        return;
+    }
+    QTimer::singleShot(5000, qApp, [] { QCoreApplication::exit(18); });
 }
 
 } // namespace

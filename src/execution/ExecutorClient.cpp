@@ -79,6 +79,8 @@ void ExecutorClient::handleMessage(const QJsonObject& message)
             id,
             message.value(u"data_root"_s).toString(),
             message.value(u"transaction_directory"_s).toString());
+    } else if (type == u"result_ack") {
+        emit resultAcknowledged();
     } else if (type == u"error") {
         emit failed(message.value(u"code"_s).toString());
     } else {
@@ -91,7 +93,9 @@ bool ExecutorClient::send(const QJsonObject& message)
     if (socket_->state() != QLocalSocket::ConnectedState) return false;
     auto bytes = QJsonDocument(message).toJson(QJsonDocument::Compact);
     bytes.append('\n');
-    return socket_->write(bytes) == bytes.size() && socket_->flush();
+    if (socket_->write(bytes) != bytes.size()) return false;
+    (void)socket_->flush();
+    return true;
 }
 
 } // namespace tweakopedia::execution

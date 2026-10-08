@@ -57,6 +57,27 @@ class ExecutorIpcTest final : public QObject
     Q_OBJECT
 
 private slots:
+    void acknowledgesDeliveredResult()
+    {
+        const auto serverName = u"tweakopedia-ack-test-"_s
+            + QUuid::createUuid().toString(QUuid::WithoutBraces);
+        const auto nonce = QUuid::createUuid().toString(QUuid::WithoutBraces);
+        execution::ExecutorServer server;
+        QVERIFY2(server.listen(serverName, nonce), qPrintable(server.errorString()));
+        server.setExpectedProcessId(QCoreApplication::applicationPid());
+
+        execution::ExecutorClient client;
+        QSignalSpy authenticated(&server, &execution::ExecutorServer::authenticated);
+        QSignalSpy completed(&server, &execution::ExecutorServer::completed);
+        QSignalSpy acknowledged(&client, &execution::ExecutorClient::resultAcknowledged);
+        client.connectToServer(serverName, nonce);
+
+        QTRY_COMPARE_WITH_TIMEOUT(authenticated.size(), 1, 3000);
+        QVERIFY(client.sendResult({{u"status"_s, u"succeeded"_s}}));
+        QTRY_COMPARE_WITH_TIMEOUT(completed.size(), 1, 3000);
+        QTRY_COMPARE_WITH_TIMEOUT(acknowledged.size(), 1, 3000);
+    }
+
     void runsOneShotAuthenticatedExecutorSession()
     {
         const auto serverName = u"tweakopedia-test-"_s
@@ -112,7 +133,9 @@ private slots:
         QTRY_VERIFY_WITH_TIMEOUT(!secondRejected.isEmpty(), 3000);
         QVERIFY(!rejected.isEmpty());
 
-        QVERIFY(process.waitForFinished(5000));
+        if (process.state() != QProcess::NotRunning) {
+            QVERIFY(process.waitForFinished(5000));
+        }
         QCOMPARE(process.exitStatus(), QProcess::NormalExit);
         QCOMPARE(process.exitCode(), 0);
     }

@@ -31,6 +31,7 @@ signals:
         const QUuid& transactionId,
         const QString& dataRoot,
         const QString& transactionDirectory);
+    void resultAcknowledged();
     void failed(const QString& code);
 
 private:

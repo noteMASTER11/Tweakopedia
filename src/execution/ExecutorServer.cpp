@@ -151,6 +151,7 @@ void ExecutorServer::handleMessage(QLocalSocket* socket, const QJsonObject& mess
         emit progressReceived(message.value(u"percent"_s).toInt(), message.value(u"message"_s).toString());
     } else if (type == u"result" && message.value(u"result"_s).isObject()) {
         emit completed(message.value(u"result"_s).toObject());
+        (void)send(socket, {{u"type"_s, u"result_ack"_s}});
     } else {
         reject(socket, u"message.unexpected"_s);
     }
@@ -176,7 +177,9 @@ bool ExecutorServer::send(QLocalSocket* socket, const QJsonObject& message)
     if (!socket || socket->state() != QLocalSocket::ConnectedState) return false;
     auto bytes = QJsonDocument(message).toJson(QJsonDocument::Compact);
     bytes.append('\n');
-    return socket->write(bytes) == bytes.size() && socket->flush();
+    if (socket->write(bytes) != bytes.size()) return false;
+    (void)socket->flush();
+    return true;
 }
 
 } // namespace tweakopedia::execution
