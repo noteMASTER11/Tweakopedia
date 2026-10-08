@@ -95,6 +95,33 @@ private slots:
         QCOMPARE(operation->state, FeatureEnabledState::Enabled);
     }
 
+    void loadsDependencyAndConflictIds()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        copyFixture(u"valid/win32-long-paths.yaml"_s, directory.path());
+        copyFixture(u"valid/related-tweaks.yaml"_s, directory.path());
+
+        const auto result = TweakCatalogLoader{}.loadDirectory(directory.path());
+
+        QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
+        QVERIFY(result.catalog.has_value());
+        const auto* tweak = result.catalog->find(*TweakId::parse(u"filesystem.related-test"_s));
+        QVERIFY(tweak != nullptr);
+        QCOMPARE(tweak->dependencies.size(), 1);
+        QCOMPARE(tweak->dependencies.first().toString(), u"filesystem.win32-long-paths"_s);
+        QCOMPARE(tweak->conflicts.size(), 1);
+        QCOMPARE(tweak->conflicts.first().toString(), u"filesystem.win32-long-paths"_s);
+    }
+
+    void rejectsUnknownRelationId()
+    {
+        const auto result = loadSingleFixture(u"invalid/unknown-relation.yaml"_s);
+
+        QVERIFY(!result.catalog.has_value());
+        QVERIFY(hasErrorCode(result, u"relation.unknown"));
+    }
+
     void rejectsMissingRequiredField()
     {
         const auto result = loadSingleFixture(u"invalid/missing-title.yaml"_s);

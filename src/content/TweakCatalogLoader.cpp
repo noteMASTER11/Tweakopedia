@@ -440,6 +440,31 @@ std::optional<RestartRequirement> parseRestart(ParseContext& context, const YAML
     return std::nullopt;
 }
 
+QVector<TweakId> parseRelations(
+    ParseContext& context, const YAML::Node& root, const char* field)
+{
+    QVector<TweakId> relations;
+    const auto node = required(context, root, field);
+    if (!node) return relations;
+    if (!node.IsSequence()) {
+        addError(context, u"type.sequence_required"_s, u"Связи должны быть массивом."_s, node);
+        return relations;
+    }
+    for (const auto& entry : node) {
+        if (!entry.IsScalar()) {
+            addError(context, u"type.string_required"_s, u"ID связи должен быть строкой."_s, entry);
+            continue;
+        }
+        const auto parsed = TweakId::parse(nodeText(entry));
+        if (!parsed) {
+            addError(context, u"relation.id_invalid"_s, u"Некорректный ID связи."_s, entry);
+            continue;
+        }
+        relations.append(*parsed);
+    }
+    return relations;
+}
+
 std::optional<TweakDefinition> parseDefinition(ParseContext& context, const YAML::Node& root)
 {
     const auto errorCountBefore = context.errors->size();
@@ -487,6 +512,8 @@ std::optional<TweakDefinition> parseDefinition(ParseContext& context, const YAML
     definition.states = parseStates(context, required(context, root, "states"));
     definition.windowsDefaults = parseWindowsDefaults(context, required(context, root, "windows_defaults"));
     parseDetection(context, required(context, root, "detect"), definition);
+    definition.dependencies = parseRelations(context, root, "dependencies");
+    definition.conflicts = parseRelations(context, root, "conflicts");
 
     const auto restartNode = required(context, root, "restart");
     if (restartNode) {
@@ -506,13 +533,6 @@ std::optional<TweakDefinition> parseDefinition(ParseContext& context, const YAML
             definition.requiresNetwork = requiresNetwork.as<bool>();
         } catch (const YAML::Exception&) {
             addError(context, u"type.bool_required"_s, u"requires_network должен быть true либо false."_s, requiresNetwork);
-        }
-    }
-
-    for (const auto* relation : {"dependencies", "conflicts"}) {
-        const auto relationNode = required(context, root, relation);
-        if (relationNode && !relationNode.IsSequence()) {
-            addError(context, u"type.sequence_required"_s, u"Связи должны быть массивом."_s, relationNode);
         }
     }
 
@@ -604,6 +624,23 @@ CatalogLoadResult TweakCatalogLoader::loadDirectory(const QString& directory) co
                 .column = mark.is_null() ? 1 : mark.column + 1,
             });
         }
+    }
+
+    for (const auto& definition : definitions) {
+        const auto verify = [&](const QVector<TweakId>& relations) {
+            for (const auto& relation : relations) {
+                if (sourceById.contains(relation)) continue;
+                result.errors.append(CatalogError{
+                    .code = u"relation.unknown"_s,
+                    .message = u"Связь ссылается на отсутствующий ID: "_s + relation.toString(),
+                    .filePath = sourceById.value(definition.id),
+                    .line = 1,
+                    .column = 1,
+                });
+            }
+        };
+        verify(definition.dependencies);
+        verify(definition.conflicts);
     }
 
     if (result.errors.isEmpty()) {

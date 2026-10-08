@@ -89,6 +89,8 @@ struct TweakDefinition {
     std::optional<RegistryDwordDetection> detection;
     std::optional<AppxPackageDetection> appxDetection;
     std::optional<FeatureStateDetection> featureDetection;
+    QVector<TweakId> dependencies;
+    QVector<TweakId> conflicts;
     Impact impact{Impact::Low};
     Reversibility reversibility{Reversibility::Reversible};
     RestartRequirement restart{RestartRequirement::None};
