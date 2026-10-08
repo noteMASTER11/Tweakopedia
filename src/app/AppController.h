@@ -47,6 +47,7 @@ public:
     [[nodiscard]] virtual AppOperationResult rollback(
         const QUuid& transactionId,
         const ProgressCallback& progress) = 0;
+    [[nodiscard]] virtual bool restartComputer() = 0;
     [[nodiscard]] virtual QVector<persistence::TransactionRecord> history() const = 0;
 };
 
@@ -65,6 +66,7 @@ class AppController final : public QObject
     Q_PROPERTY(int applyProgress READ applyProgress NOTIFY operationChanged)
     Q_PROPERTY(QString applyStatus READ applyStatus NOTIFY operationChanged)
     Q_PROPERTY(QString applyMessage READ applyMessage NOTIFY operationChanged)
+    Q_PROPERTY(bool rebootRequired READ rebootRequired NOTIFY operationChanged)
 
 public:
     explicit AppController(IAppServices& services, QObject* parent = nullptr);
@@ -81,6 +83,7 @@ public:
     [[nodiscard]] int applyProgress() const noexcept;
     [[nodiscard]] QString applyStatus() const;
     [[nodiscard]] QString applyMessage() const;
+    [[nodiscard]] bool rebootRequired() const noexcept;
 
     Q_INVOKABLE bool startup();
     Q_INVOKABLE void setTweakSearch(const QString& query);
@@ -91,6 +94,7 @@ public:
     Q_INVOKABLE bool buildPreview();
     Q_INVOKABLE bool applyQueue(const QString& packageName);
     Q_INVOKABLE bool rollback(const QString& transactionId);
+    Q_INVOKABLE bool restartComputer();
 
 signals:
     void previewChanged();
@@ -100,6 +104,7 @@ signals:
 private:
     void refreshDetectedStates();
     void refreshModels();
+    void resetOperationState();
     void setError(QString code, QString message = {});
 
     IAppServices* services_{};
@@ -120,6 +125,7 @@ private:
     int applyProgress_{};
     QString applyStatus_{QStringLiteral("idle")};
     QString applyMessage_;
+    bool rebootRequired_{};
 };
 
 } // namespace tweakopedia::app

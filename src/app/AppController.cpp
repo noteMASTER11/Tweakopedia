@@ -68,6 +68,7 @@ QString AppController::lastErrorCode() const { return lastErrorCode_; }
 int AppController::applyProgress() const noexcept { return applyProgress_; }
 QString AppController::applyStatus() const { return applyStatus_; }
 QString AppController::applyMessage() const { return applyMessage_; }
+bool AppController::rebootRequired() const noexcept { return rebootRequired_; }
 
 bool AppController::startup()
 {
@@ -119,6 +120,7 @@ bool AppController::selectTarget(const QString& id, const QString& state)
         (void)tweaksModel_.setTargetState(*parsed, {});
         queueModel_.reset(catalog_, queueData_, detected_);
         emit previewChanged();
+        resetOperationState();
         setError({});
         return true;
     }
@@ -131,6 +133,7 @@ bool AppController::selectTarget(const QString& id, const QString& state)
     (void)tweaksModel_.setTargetState(*parsed, state);
     queueModel_.reset(catalog_, queueData_, detected_);
     emit previewChanged();
+    resetOperationState();
     setError({});
     return true;
 }
@@ -143,6 +146,7 @@ bool AppController::removeFromQueue(const QString& id)
     (void)tweaksModel_.setTargetState(*parsed, {});
     queueModel_.reset(catalog_, queueData_, detected_);
     emit previewChanged();
+    resetOperationState();
     return true;
 }
 
@@ -193,9 +197,11 @@ bool AppController::applyQueue(const QString& packageName)
         return false;
     }
     if (!buildPreview() || !preview_ || preview_->operations.isEmpty()) return false;
+    const auto requiresReboot = preview_->restart == domain::RestartRequirement::Reboot;
     applyProgress_ = 0;
     applyStatus_ = u"running"_s;
     applyMessage_ = u"Запуск Executor"_s;
+    rebootRequired_ = false;
     emit operationChanged();
     const auto result = services_->apply(
         *preview_,
@@ -215,6 +221,7 @@ bool AppController::applyQueue(const QString& packageName)
     applyProgress_ = 100;
     applyStatus_ = u"succeeded"_s;
     applyMessage_ = u"Пакет применён и проверен."_s;
+    rebootRequired_ = requiresReboot;
     emit operationChanged();
     const auto queued = queueData_.items();
     for (const auto& item : queued) (void)queueData_.remove(item.tweakId);
@@ -261,6 +268,20 @@ bool AppController::rollback(const QString& transactionId)
     return true;
 }
 
+bool AppController::restartComputer()
+{
+    if (applyStatus_ != u"succeeded" || !rebootRequired_) {
+        setError(u"restart.not_required"_s);
+        return false;
+    }
+    if (!services_->restartComputer()) {
+        setError(u"restart.launch_failed"_s);
+        return false;
+    }
+    setError({});
+    return true;
+}
+
 void AppController::refreshDetectedStates()
 {
     detected_.clear();
@@ -279,6 +300,18 @@ void AppController::refreshModels()
         (void)tweaksModel_.setTargetState(item.tweakId, item.targetState);
     }
     queueModel_.reset(catalog_, queueData_, detected_);
+}
+
+void AppController::resetOperationState()
+{
+    if (applyStatus_ == u"running") return;
+    if (applyStatus_ == u"idle" && applyProgress_ == 0
+        && applyMessage_.isEmpty() && !rebootRequired_) return;
+    applyProgress_ = 0;
+    applyStatus_ = u"idle"_s;
+    applyMessage_.clear();
+    rebootRequired_ = false;
+    emit operationChanged();
 }
 
 void AppController::setError(QString code, QString message)

@@ -1,22 +1,42 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import "../components"
 import "../style"
 
 Page {
     id: root
-    required property var controller
-    padding: 24
 
+    required property var controller
+    readonly property bool applying: controller.applyStatus === "running"
+    readonly property bool showSuccess: controller.applyStatus === "succeeded"
+        && controller.queue.count === 0
+
+    function generatedPackageName() {
+        return "Изменения Windows — " + Qt.formatDateTime(new Date(), "dd.MM.yyyy HH:mm")
+    }
+
+    padding: 24
     background: Rectangle { objectName: "queueBackground"; color: FluentTheme.canvas }
 
     ColumnLayout {
         anchors.fill: parent
         spacing: 12
+        visible: !root.showSuccess
 
-        Text { text: "Очередь"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 28; font.weight: Font.DemiBold }
-        Text { text: "Перед применением будет показан пересчитанный итоговый план."; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 13 }
+        Text {
+            text: "Очередь"
+            color: FluentTheme.textPrimary
+            font.family: FluentTheme.fontFamily
+            font.pixelSize: 28
+            font.weight: Font.DemiBold
+        }
+
+        Text {
+            text: "Проверьте выбранные изменения и примените их одним пакетом."
+            color: FluentTheme.textSecondary
+            font.family: FluentTheme.fontFamily
+            font.pixelSize: 13
+        }
 
         Item {
             Layout.fillWidth: true
@@ -38,38 +58,186 @@ Page {
                 clip: true
                 spacing: 8
                 model: root.controller.queue
+
                 delegate: Rectangle {
                     width: ListView.view.width
                     height: 64
                     radius: 8
                     color: FluentTheme.surface
                     border.color: FluentTheme.stroke
+
                     RowLayout {
                         anchors.fill: parent
                         anchors.margins: 14
-                        Text { Layout.fillWidth: true; text: model.title + "   " + model.currentState + " → " + model.targetState; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; elide: Text.ElideRight }
-                        Button { text: "Удалить"; onClicked: root.controller.removeFromQueue(model.id) }
+                        spacing: 14
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: model.title + "   " + model.currentState + " → " + model.targetState
+                            color: FluentTheme.textPrimary
+                            font.family: FluentTheme.fontFamily
+                            elide: Text.ElideRight
+                        }
+
+                        Button {
+                            id: cancelButton
+                            objectName: "cancelQueueItemButton"
+                            text: "Отменить"
+                            hoverEnabled: true
+                            Accessible.name: text + " изменение «" + model.title + "»"
+                            Layout.preferredWidth: 112
+                            onClicked: root.controller.removeFromQueue(model.id)
+
+                            contentItem: Text {
+                                text: cancelButton.text
+                                color: "white"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                font.family: FluentTheme.fontFamily
+                                font.weight: Font.DemiBold
+                            }
+                            background: Rectangle {
+                                objectName: "cancelQueueItemBackground"
+                                implicitHeight: 36
+                                radius: 6
+                                color: cancelButton.hovered
+                                    ? FluentTheme.dangerHover : FluentTheme.danger
+                            }
+                        }
                     }
                 }
             }
         }
 
-        PlanPreview {
-            objectName: "queuePlanPreview"
+        Text {
+            objectName: "applyErrorMessage"
             Layout.fillWidth: true
-            visible: queueList.count > 0
-            previewReady: root.controller.previewReady
-            summary: root.controller.previewSummary
-            operations: root.controller.previewOperations
-            onPreviewRequested: root.controller.buildPreview()
-            onApplyConfirmed: packageName => root.controller.applyQueue(packageName)
+            visible: root.controller.applyStatus === "failed"
+                || root.controller.applyStatus === "cancelled"
+            text: root.controller.applyMessage
+            color: FluentTheme.danger
+            wrapMode: Text.WordWrap
+            font.family: FluentTheme.fontFamily
+            font.pixelSize: 13
         }
-        ApplyProgress {
+
+        RowLayout {
             Layout.fillWidth: true
-            visible: root.controller.applyStatus !== "idle"
-            progress: root.controller.applyProgress
-            status: root.controller.applyStatus
-            message: root.controller.applyMessage
+            Layout.preferredHeight: visible ? 40 : 0
+            visible: queueList.count > 0
+            spacing: 10
+
+            Item { Layout.fillWidth: true }
+
+            BusyIndicator {
+                objectName: "applySpinner"
+                visible: root.applying
+                running: root.applying
+                Layout.preferredWidth: 24
+                Layout.preferredHeight: 24
+                palette.dark: FluentTheme.accent
+            }
+
+            Button {
+                id: applyButton
+                objectName: "applyQueueButton"
+                visible: queueList.count > 0
+                enabled: !root.applying
+                text: "Применить"
+                hoverEnabled: true
+                Accessible.name: text
+                Layout.preferredWidth: 140
+                onClicked: root.controller.applyQueue(root.generatedPackageName())
+
+                contentItem: Text {
+                    text: applyButton.text
+                    color: applyButton.enabled ? "white" : FluentTheme.disabledText
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    font.family: FluentTheme.fontFamily
+                    font.weight: Font.DemiBold
+                }
+                background: Rectangle {
+                    objectName: "applyQueueButtonBackground"
+                    implicitHeight: 38
+                    radius: 6
+                    color: !applyButton.enabled
+                        ? FluentTheme.disabledSurface
+                        : applyButton.hovered ? FluentTheme.accentHover : FluentTheme.accent
+                }
+            }
+        }
+    }
+
+    Item {
+        objectName: "applySuccessView"
+        anchors.fill: parent
+        visible: root.showSuccess
+
+        ColumnLayout {
+            anchors.centerIn: parent
+            width: Math.min(parent.width - 48, 620)
+            spacing: 14
+
+            Text {
+                objectName: "applySuccessCheck"
+                Layout.alignment: Qt.AlignHCenter
+                text: "✓"
+                color: FluentTheme.stateOn
+                font.family: FluentTheme.fontFamily
+                font.pixelSize: 84
+                font.weight: Font.DemiBold
+            }
+
+            Text {
+                objectName: "applySuccessTitle"
+                Layout.alignment: Qt.AlignHCenter
+                text: "Настройки применены"
+                color: FluentTheme.textPrimary
+                horizontalAlignment: Text.AlignHCenter
+                font.family: FluentTheme.fontFamily
+                font.pixelSize: 28
+                font.weight: Font.DemiBold
+            }
+
+            Text {
+                objectName: "rebootRequirementText"
+                Layout.fillWidth: true
+                visible: root.controller.rebootRequired
+                text: "Некоторые из применённых настроек требуют перезагрузки ПК"
+                color: FluentTheme.textSecondary
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                font.family: FluentTheme.fontFamily
+                font.pixelSize: 14
+            }
+
+            Button {
+                id: restartButton
+                objectName: "restartComputerButton"
+                Layout.alignment: Qt.AlignHCenter
+                visible: root.controller.rebootRequired
+                text: "Перезагрузить"
+                hoverEnabled: true
+                Accessible.name: text
+                Layout.preferredWidth: 160
+                onClicked: root.controller.restartComputer()
+
+                contentItem: Text {
+                    text: restartButton.text
+                    color: "white"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    font.family: FluentTheme.fontFamily
+                    font.weight: Font.DemiBold
+                }
+                background: Rectangle {
+                    implicitHeight: 38
+                    radius: 6
+                    color: restartButton.hovered
+                        ? FluentTheme.accentHover : FluentTheme.accent
+                }
+            }
         }
     }
 }

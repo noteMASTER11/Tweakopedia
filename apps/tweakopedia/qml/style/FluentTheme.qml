@@ -18,6 +18,8 @@ QtObject {
     readonly property color stateOn: "#107C10"
     readonly property color stateOff: "#C42B1C"
     readonly property color stateUnknown: "#687487"
+    readonly property color danger: "#C42B1C"
+    readonly property color dangerHover: "#A4262C"
 
     readonly property string fontFamily: "SF Pro"
     readonly property int navigationExpandedWidth: 220

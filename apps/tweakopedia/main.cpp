@@ -21,6 +21,7 @@
 #include <QGuiApplication>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QProcess>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
@@ -175,6 +176,16 @@ public:
             if (record.error.isEmpty()) record.error = result->value(u"message"_s).toString();
         }
         return records;
+    }
+
+    bool restartComputer() override
+    {
+#ifdef Q_OS_WIN
+        return QProcess::startDetached(
+            u"shutdown.exe"_s, {u"/r"_s, u"/t"_s, u"0"_s});
+#else
+        return false;
+#endif
     }
 
     bool databaseReady() const { return repository_ != nullptr && database_.isOpen(); }

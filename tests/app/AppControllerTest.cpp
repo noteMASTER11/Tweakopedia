@@ -38,6 +38,13 @@ public:
     QVector<persistence::TransactionRecord> records;
     int applyCalls{};
     int rollbackCalls{};
+    int restartCalls{};
+
+    bool restartComputer() override
+    {
+        ++restartCalls;
+        return true;
+    }
 
     content::CatalogLoadResult loadCatalog() override { return {.catalog = catalog}; }
     content::CategoryCatalogLoadResult loadCategories() override
@@ -203,6 +210,36 @@ private slots:
         QVERIFY(!explanation.value(u"mechanism"_s).toString().isEmpty());
         QVERIFY(!explanation.contains(u"article"_s));
         QVERIFY(!explanation.contains(u"sources"_s));
+    }
+
+    void successfulRebootPlanExposesRequirementAndRestartCommand()
+    {
+        auto backend = services();
+        const auto loaded = content::TweakCatalogLoader{}.loadDirectory(
+            QStringLiteral(TWEAKOPEDIA_TEST_CONTENT_ROOT));
+        QVERIFY(loaded.catalog.has_value());
+        const auto id = *domain::TweakId::parse(u"boot.verbose-logon-messages");
+        const auto* tweak = loaded.catalog->find(id);
+        QVERIFY(tweak != nullptr);
+        backend.catalog = content::TweakCatalog({*tweak});
+        backend.nextApply = {.status = app::AppOperationStatus::Succeeded};
+        app::AppController controller(backend);
+
+        QVERIFY(controller.startup());
+        QVERIFY(controller.selectTarget(id.toString(), u"enabled"_s));
+        QVERIFY(controller.applyQueue(u"Пакет перезагрузки"_s));
+        QVERIFY(controller.property("rebootRequired").toBool());
+
+        bool restarted{};
+        QVERIFY(QMetaObject::invokeMethod(
+            &controller, "restartComputer", Qt::DirectConnection,
+            Q_RETURN_ARG(bool, restarted)));
+        QVERIFY(restarted);
+        QCOMPARE(backend.restartCalls, 1);
+
+        QVERIFY(controller.selectTarget(id.toString(), u"disabled"_s));
+        QCOMPARE(controller.property("applyStatus").toString(), u"idle"_s);
+        QVERIFY(!controller.property("rebootRequired").toBool());
     }
 
     void interruptedTransactionWithSnapshotCanBeRolledBack()
