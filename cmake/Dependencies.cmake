@@ -1,5 +1,8 @@
 include(FetchContent)
 
+# Native bootstrap dependencies are declared separately with immutable archives
+# and SHA-256 hashes in BootstrapDependencies.cmake.
+
 set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
 set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)

@@ -32,5 +32,19 @@
       "archive": "ninja_win64.7z",
       "sha1": "540f19f3c38ce7e8b7b54b9283bac2165e30dee7"
     }
+  ],
+  "bootstrapDependencies": [
+    {
+      "name": "miniz",
+      "version": "3.1.2",
+      "archive": "https://github.com/richgel999/miniz/archive/refs/tags/3.1.2.zip",
+      "sha256": "F0446D863F9C19926AD9483C523FDC42E42B8D4A6A431D27E09D49C79A140D9A"
+    },
+    {
+      "name": "nlohmann/json",
+      "version": "3.12.0",
+      "archive": "https://github.com/nlohmann/json/releases/download/v3.12.0/include.zip",
+      "sha256": "B8CB0EF2DD7F57F18933997C9934BB1FA962594F701CD5A8D3C2C80541559372"
+    }
   ]
 }

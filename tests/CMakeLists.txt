@@ -9,6 +9,10 @@ target_link_libraries(BuildSmokeTest
 
 add_test(NAME BuildSmoke COMMAND BuildSmokeTest)
 
+add_executable(PackageFooterTest package/PackageFooterTest.cpp)
+target_link_libraries(PackageFooterTest PRIVATE Qt6::Test TweakopediaPackage)
+add_test(NAME PackageFooter COMMAND PackageFooterTest)
+
 add_executable(DomainTweakDefinitionTest
     domain/TweakDefinitionTest.cpp
 )
