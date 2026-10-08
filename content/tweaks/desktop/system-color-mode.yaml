@@ -1,0 +1,60 @@
+id: desktop.system-color-mode
+title: 'Цветовой режим Windows'
+category: desktop
+subcategory: effects
+kind: setting
+summary: 'Выбирает светлое или тёмное оформление системной оболочки Windows.'
+explanation:
+  purpose: 'Переключает цветовой режим панели задач, меню «Пуск» и других элементов оболочки.'
+  mechanism: 'SystemUsesLightTheme задаёт светлую или тёмную системную палитру.'
+  effect: 'Элементы оболочки и поддерживающие параметр системные окна меняют оформление.'
+  tradeoffs: 'Результат зависит от версии Windows и включённых эффектов прозрачности.'
+  recommendation: 'Выберите режим по предпочтению.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize\SystemUsesLightTheme: 0 — тёмный, 1 — светлый.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  dark:
+    title: 'Тёмный'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+        value_name: SystemUsesLightTheme
+        view: registry64
+        value: 0
+  light:
+    title: 'Светлый'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+        value_name: SystemUsesLightTheme
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: light
+  - os: windows11
+    builds: [22000, 26200]
+    state: light
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+  value_name: SystemUsesLightTheme
+  view: registry64
+  states:
+    0: dark
+    1: light
+  missing_state: light
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

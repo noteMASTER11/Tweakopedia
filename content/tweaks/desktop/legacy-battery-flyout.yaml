@@ -1,0 +1,58 @@
+id: desktop.legacy-battery-flyout
+title: 'Классическая панель батареи Windows 10'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Возвращает старую панель состояния батареи в ранних сборках Windows 10.'
+explanation:
+  purpose: 'Переключает современную панель батареи на классический интерфейс предыдущих версий Windows.'
+  mechanism: 'UseWin32BatteryFlyout выбирает старую Win32-панель батареи.'
+  effect: 'Щелчок по значку питания открывает классическую панель.'
+  tradeoffs: 'Механизм удалён из более новых сборок Windows 10 и не действует в Windows 11.'
+  recommendation: 'Используйте только на поддерживаемой ранней сборке Windows 10.'
+  technical_details: 'DWORD HKLM\Software\Microsoft\Windows\CurrentVersion\ImmersiveShell\UseWin32BatteryFlyout: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 10240
+  max_build: 10586
+states:
+  disabled:
+    title: 'Современная панель'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\ImmersiveShell'
+        value_name: UseWin32BatteryFlyout
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Классическая панель'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\ImmersiveShell'
+        value_name: UseWin32BatteryFlyout
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 10586]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Microsoft\Windows\CurrentVersion\ImmersiveShell'
+  value_name: UseWin32BatteryFlyout
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

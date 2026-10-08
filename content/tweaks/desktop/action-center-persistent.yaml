@@ -1,0 +1,57 @@
+id: desktop.action-center-persistent
+title: 'Закрепление открытого центра уведомлений'
+category: desktop
+subcategory: notifications
+kind: setting
+summary: 'Не закрывает центр уведомлений при щелчке за его пределами в Windows 10.'
+explanation:
+  purpose: 'Позволяет оставить панель центра уведомлений открытой при работе с другими элементами экрана.'
+  mechanism: 'DisableLightDismiss запрещает закрытие панели обычным щелчком за её пределами.'
+  effect: 'Центр уведомлений остаётся открытым, пока пользователь не закроет его явно.'
+  tradeoffs: 'Панель может перекрывать часть рабочего пространства.'
+  recommendation: 'Включайте, если регулярно работаете с несколькими уведомлениями подряд.'
+  technical_details: 'DWORD HKLM\Software\Microsoft\Windows\CurrentVersion\ImmersiveShell\Launcher\DisableLightDismiss: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Закрывать автоматически'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\ImmersiveShell\Launcher'
+        value_name: DisableLightDismiss
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Оставлять открытым'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\ImmersiveShell\Launcher'
+        value_name: DisableLightDismiss
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Microsoft\Windows\CurrentVersion\ImmersiveShell\Launcher'
+  value_name: DisableLightDismiss
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

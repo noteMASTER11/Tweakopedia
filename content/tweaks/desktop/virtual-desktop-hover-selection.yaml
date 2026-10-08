@@ -1,0 +1,57 @@
+id: desktop.virtual-desktop-hover-selection
+title: 'Выбор рабочего стола при наведении'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Переключает виртуальный рабочий стол при наведении на его миниатюру в представлении задач Windows 10.'
+explanation:
+  purpose: 'Определяет, требуется ли щелчок для выбора виртуального рабочего стола.'
+  mechanism: 'HoverSelectDesktops включает переключение по одному наведению указателя.'
+  effect: 'При включении задержка указателя над миниатюрой активирует соответствующий рабочий стол.'
+  tradeoffs: 'Наведение может вызывать случайные переключения.'
+  recommendation: 'Отключите, если предпочитаете явный выбор щелчком.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HoverSelectDesktops: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Требовать щелчок'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: HoverSelectDesktops
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Выбирать наведением'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: HoverSelectDesktops
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+  value_name: HoverSelectDesktops
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

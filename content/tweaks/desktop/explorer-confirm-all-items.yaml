@@ -1,0 +1,60 @@
+id: desktop.explorer-confirm-all-items
+title: 'Флажок «Для всех текущих элементов» по умолчанию'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Заранее устанавливает общий флажок в диалогах конфликтов копирования, перемещения и удаления.'
+explanation:
+  purpose: 'Сокращает число действий при одинаковом решении для группы конфликтующих файлов.'
+  mechanism: 'ConfirmationCheckBoxDoForAll задаёт начальное состояние флажка в диалогах операций Проводника.'
+  effect: 'Предлагаемое решение сразу распространяется на все текущие элементы, если пользователь не снимет флажок.'
+  tradeoffs: 'Невнимательное подтверждение может применить нежелательное действие сразу ко всей группе.'
+  recommendation: 'Включайте только при привычке проверять итоговое действие перед подтверждением.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager\ConfirmationCheckBoxDoForAll: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не устанавливать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager'
+        value_name: ConfirmationCheckBoxDoForAll
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Устанавливать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager'
+        value_name: ConfirmationCheckBoxDoForAll
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager'
+  value_name: ConfirmationCheckBoxDoForAll
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false
+

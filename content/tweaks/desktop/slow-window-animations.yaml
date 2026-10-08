@@ -1,0 +1,60 @@
+id: desktop.slow-window-animations
+title: 'Замедление анимаций клавишей Shift'
+category: desktop
+subcategory: effects
+kind: setting
+summary: 'Позволяет временно замедлять анимации окон удержанием клавиши Shift.'
+explanation:
+  purpose: 'Включает демонстрационный режим DWM для подробного просмотра анимаций окон.'
+  mechanism: 'AnimationsShiftKey заставляет диспетчер окон учитывать Shift во время запуска анимации.'
+  effect: 'При удержании Shift сворачивание, разворачивание и другие поддерживаемые переходы выполняются медленнее.'
+  tradeoffs: 'Это визуальная функция без практического ускорения работы.'
+  recommendation: 'Оставьте выключенным, если не изучаете поведение интерфейса.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\DWM\AnimationsShiftKey: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не замедлять'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\DWM'
+        value_name: AnimationsShiftKey
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Замедлять с Shift'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\DWM'
+        value_name: AnimationsShiftKey
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\DWM'
+  value_name: AnimationsShiftKey
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

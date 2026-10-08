@@ -1,0 +1,61 @@
+id: desktop.explorer-encryption-context-menu
+title: 'Команды шифрования в контекстном меню'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Показывает команды шифрования и расшифровки EFS в контекстном меню файлов и папок.'
+explanation:
+  purpose: 'Предоставляет быстрый доступ к встроенному шифрованию файловой системы NTFS.'
+  mechanism: 'EncryptionContextMenu включает команды EFS в меню Проводника.'
+  effect: 'Для подходящих объектов появляются команды шифрования и расшифровки.'
+  tradeoffs: 'EFS зависит от редакции Windows, NTFS и сертификата пользователя; команда не заменяет управление ключами.'
+  recommendation: 'Включайте, только если понимаете работу EFS и храните резервную копию сертификата.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\EncryptionContextMenu: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [efs]
+states:
+  disabled:
+    title: 'Скрывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: EncryptionContextMenu
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: EncryptionContextMenu
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: EncryptionContextMenu
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false
+

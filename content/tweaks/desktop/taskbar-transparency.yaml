@@ -1,0 +1,60 @@
+id: desktop.taskbar-transparency
+title: 'Эффекты прозрачности оболочки'
+category: desktop
+subcategory: effects
+kind: setting
+summary: 'Включает или отключает прозрачность панели задач и других элементов оболочки.'
+explanation:
+  purpose: 'Управляет стандартными эффектами прозрачности Windows.'
+  mechanism: 'EnableTransparency задаёт использование полупрозрачных материалов в системном интерфейсе.'
+  effect: 'Панель задач, меню «Пуск» и поддерживаемые системные поверхности становятся прозрачными или непрозрачными.'
+  tradeoffs: 'Отключение немного упрощает отрисовку и заметно меняет внешний вид.'
+  recommendation: 'Выберите по предпочтению; на современных видеокартах влияние на нагрузку обычно невелико.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize\EnableTransparency: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Непрозрачный интерфейс'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+        value_name: EnableTransparency
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Прозрачный интерфейс'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+        value_name: EnableTransparency
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
+  value_name: EnableTransparency
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false
+

@@ -1,0 +1,60 @@
+id: desktop.colored-title-bars
+title: 'Цвет в заголовках и границах окон'
+category: desktop
+subcategory: effects
+kind: setting
+summary: 'Применяет выбранный акцентный цвет к заголовкам и границам окон.'
+explanation:
+  purpose: 'Управляет использованием системного акцентного цвета в обычных окнах рабочего стола.'
+  mechanism: 'ColorPrevalence в разделе DWM включает цветные заголовки и границы.'
+  effect: 'Активные окна получают акцентный цвет вместо нейтрального оформления.'
+  tradeoffs: 'Приложения с собственным оформлением заголовка могут игнорировать параметр.'
+  recommendation: 'Включайте, если цвет помогает различать активные окна.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\DWM\ColorPrevalence: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10586
+states:
+  disabled:
+    title: 'Не использовать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\DWM'
+        value_name: ColorPrevalence
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Использовать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\DWM'
+        value_name: ColorPrevalence
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10586, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\DWM'
+  value_name: ColorPrevalence
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false
+

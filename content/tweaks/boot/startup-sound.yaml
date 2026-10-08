@@ -1,0 +1,60 @@
+id: boot.startup-sound
+title: 'Звук запуска Windows'
+category: boot
+subcategory: sign-in
+kind: setting
+summary: 'Включает или отключает воспроизведение системного звука при запуске Windows.'
+explanation:
+  purpose: 'Управляет звуковым сопровождением загрузки перед появлением рабочего стола.'
+  mechanism: 'DisableStartupSound в BootAnimation запрещает или разрешает воспроизведение звука запуска.'
+  effect: 'После следующего полного запуска Windows звук воспроизводится либо остаётся отключённым.'
+  tradeoffs: 'Быстрый запуск и особенности конкретной сборки могут влиять на момент воспроизведения.'
+  recommendation: 'Выберите по предпочтению.'
+  technical_details: 'DWORD HKLM\Software\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation\DisableStartupSound: 0 — включить звук, 1 — отключить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не воспроизводить'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation'
+        value_name: DisableStartupSound
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Воспроизводить'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation'
+        value_name: DisableStartupSound
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation'
+  value_name: DisableStartupSound
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: low
+reversibility: reversible
+requires_network: false
+

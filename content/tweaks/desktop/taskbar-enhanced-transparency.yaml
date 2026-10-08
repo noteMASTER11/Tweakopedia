@@ -1,0 +1,69 @@
+id: desktop.taskbar-enhanced-transparency
+title: 'Повышенная прозрачность панели задач Windows 10'
+category: desktop
+subcategory: effects
+kind: setting
+summary: 'Использует экспериментальный более прозрачный вариант панели задач Windows 10.'
+explanation:
+  purpose: 'Усиливает прозрачность классической панели задач относительно штатного уровня.'
+  mechanism: 'UseOLEDTaskbarTransparency вместе с ForceEffectMode активирует альтернативный режим композиции.'
+  effect: 'Фон панели задач становится заметно прозрачнее после перезапуска Проводника.'
+  tradeoffs: 'Это недокументированный режим Windows 10; результат зависит от сборки и обычной прозрачности.'
+  recommendation: 'Используйте только при включённых стандартных эффектах прозрачности.'
+  technical_details: 'DWORD HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\UseOLEDTaskbarTransparency и HKLM\Software\Microsoft\Windows\Dwm\ForceEffectMode.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Стандартная прозрачность'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: UseOLEDTaskbarTransparency
+        view: registry64
+        value: 0
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\Dwm'
+        value_name: ForceEffectMode
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Повышенная прозрачность'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: UseOLEDTaskbarTransparency
+        view: registry64
+        value: 1
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\Dwm'
+        value_name: ForceEffectMode
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: UseOLEDTaskbarTransparency
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false
+

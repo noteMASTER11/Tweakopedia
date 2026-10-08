@@ -1,0 +1,68 @@
+id: desktop.network-flyout
+title: 'Действие значка сети Windows 10'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Выбирает панель, которая открывается по щелчку значка сети в ранних сборках Windows 10.'
+explanation:
+  purpose: 'Перенаправляет щелчок значка сети на штатную панель, приложение «Параметры» или старую панель Windows 8.'
+  mechanism: 'ReplaceVan задаёт один из трёх обработчиков значка сети.'
+  effect: 'Щелчок открывает выбранный интерфейс управления подключениями.'
+  tradeoffs: 'Механизм относится к ранним сборкам Windows 10 и позднее был удалён.'
+  recommendation: 'Оставьте штатную панель, если нет конкретной причины использовать старый интерфейс.'
+  technical_details: 'DWORD HKLM\Software\Microsoft\Windows\CurrentVersion\Control Panel\Settings\Network\ReplaceVan: 0, 1 или 2.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 10240
+  max_build: 10586
+states:
+  default:
+    title: 'Штатная панель сети'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\Control Panel\Settings\Network'
+        value_name: ReplaceVan
+        view: registry64
+        value: 0
+  settings:
+    title: 'Приложение «Параметры»'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\Control Panel\Settings\Network'
+        value_name: ReplaceVan
+        view: registry64
+        value: 1
+  classic:
+    title: 'Панель Windows 8'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\Control Panel\Settings\Network'
+        value_name: ReplaceVan
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 10586]
+    state: default
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Microsoft\Windows\CurrentVersion\Control Panel\Settings\Network'
+  value_name: ReplaceVan
+  view: registry64
+  states:
+    0: default
+    1: settings
+    2: classic
+  missing_state: default
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false
+
