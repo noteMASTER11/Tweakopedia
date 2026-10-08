@@ -27,11 +27,11 @@ Rectangle {
     border.color: FluentTheme.stroke
 
     readonly property var primaryDestinations: [
-        {title: "Обзор", glyph: "⌂"},
-        {title: "Твики", glyph: "≡"},
-        {title: "Твикопедия", glyph: "▤"},
-        {title: "Очередь", glyph: "≣"},
-        {title: "История", glyph: "↶"}
+        {title: "Обзор", glyph: "\uE80F"},
+        {title: "Твики", glyph: "\uE8AB"},
+        {title: "Твикопедия", glyph: "\uE736"},
+        {title: "Очередь", glyph: "\uE8FD"},
+        {title: "История", glyph: "\uE81C"}
     ]
 
     Image {
@@ -188,9 +188,9 @@ Rectangle {
         onClicked: root.hideUnsupportedTweaksRequested(!root.hideUnsupportedTweaks)
 
         contentItem: Text {
-            text: root.hideUnsupportedTweaks ? "⊘" : "◉"
+            text: "\uE71C"
             color: root.hideUnsupportedTweaks ? FluentTheme.accent : FluentTheme.textPrimary
-            font.family: FluentTheme.fontFamily
+            font.family: "Segoe MDL2 Assets"
             font.pixelSize: 18
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
@@ -212,7 +212,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 12
         title: "Настройки"
-        glyph: "⚙"
+        glyph: "\uE713"
         compact: root.compact
         selected: root.currentIndex === 5
         destinationIndex: 5

@@ -121,6 +121,21 @@ TestCase {
         compare(spy.signalArguments[0][0], 3)
     }
 
+    function test_sidebarUsesThematicMdl2Glyphs() {
+        const navigation = createTemporaryObject(navigationComponent, this)
+        const expectedGlyphs = [
+            "\uE80F", "\uE8AB", "\uE736", "\uE8FD", "\uE81C", "\uE713"
+        ]
+        for (let index = 0; index < expectedGlyphs.length; ++index) {
+            const icon = findChild(navigation, "navIcon_" + index)
+            verify(icon)
+            compare(icon.font.family, "Segoe MDL2 Assets")
+            compare(icon.text, expectedGlyphs[index])
+            compare(icon.horizontalAlignment, Text.AlignHCenter)
+            compare(icon.verticalAlignment, Text.AlignVCenter)
+        }
+    }
+
     function test_unsupportedFilterUsesCheckboxAndCompactButton() {
         const navigation = createTemporaryObject(navigationComponent, this)
         const expandedFilter = findChild(navigation, "unsupportedTweaksCheckbox")

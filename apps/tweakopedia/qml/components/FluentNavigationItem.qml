@@ -27,10 +27,11 @@ AbstractButton {
             spacing: 12
 
             Text {
+                objectName: "navIcon_" + root.destinationIndex
                 width: root.compact ? parent.width : 24
                 text: root.glyph
                 color: root.selected ? FluentTheme.accent : FluentTheme.textPrimary
-                font.family: FluentTheme.fontFamily
+                font.family: "Segoe MDL2 Assets"
                 font.pixelSize: 18
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
