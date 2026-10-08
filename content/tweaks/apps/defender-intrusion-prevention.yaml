@@ -1,0 +1,19 @@
+id: apps.defender-intrusion-prevention
+title: Компонент предотвращения вторжений Defender
+category: apps
+subcategory: defender
+kind: setting
+summary: Управляет устаревающей политикой компонента предотвращения вторжений Defender.
+explanation: {purpose: 'Управляет соответствующим компонентом Defender на системах, где политика ещё применяется.', mechanism: 'DisableIntrusionPreventionSystem инвертированно отключает компонент.', effect: 'На поддерживаемых версиях меняется обработка обнаруженных попыток вторжения.', tradeoffs: 'Microsoft пометила политику устаревшей; новые версии могут её игнорировать.', recommendation: 'Изменяйте только для совместимости с конкретной конфигурацией.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection\DisableIntrusionPreventionSystem.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 14393}
+states:
+  disabled: {title: Выключено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Real-Time Protection', value_name: DisableIntrusionPreventionSystem, view: registry64, value: 1}]}
+  enabled: {title: Включено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Real-Time Protection', value_name: DisableIntrusionPreventionSystem, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [14393, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Real-Time Protection', value_name: DisableIntrusionPreventionSystem, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

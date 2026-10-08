@@ -1,0 +1,19 @@
+id: desktop.explorer-recycle-bin
+title: Использование корзины Проводником
+category: desktop
+subcategory: explorer
+kind: setting
+summary: Выбирает, перемещать ли удаляемые файлы в корзину или удалять сразу.
+explanation: {purpose: 'Управляет промежуточным хранением удалённых файлов.', mechanism: 'NoRecycleFiles заставляет Проводник обходить корзину.', effect: 'При обходе файлы удаляются сразу после подтверждения.', tradeoffs: 'Восстановить случайно удалённый файл из корзины не получится.', recommendation: 'Оставьте корзину включённой для обычной работы.', technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoRecycleFiles.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  bypass: {title: Удалять сразу, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoRecycleFiles, view: registry64, value: 1}]}
+  enabled: {title: Использовать корзину, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoRecycleFiles, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoRecycleFiles, view: registry64, states: {0: enabled, 1: bypass}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: explorer
+impact: high
+reversibility: reversible
+requires_network: false

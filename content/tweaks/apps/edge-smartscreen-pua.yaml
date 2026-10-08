@@ -1,0 +1,19 @@
+id: apps.edge-smartscreen-pua
+title: Блокировка нежелательных приложений SmartScreen в Edge
+category: apps
+subcategory: edge-ui
+kind: setting
+summary: Блокирует через Edge загрузки рекламных установщиков и других нежелательных приложений.
+explanation: {purpose: 'Управляет отдельной проверкой потенциально нежелательных загрузок.', mechanism: 'SmartScreenPuaEnabled включает классификацию PUA в SmartScreen Edge.', effect: 'Edge предупреждает и блокирует загрузки с нежелательным поведением.', tradeoffs: 'Под определение могут попасть упаковщики и утилиты, которые нужны пользователю.', recommendation: 'Включите для обычного браузинга.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Edge\SmartScreenPuaEnabled.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240, required_components: [edge]}
+states:
+  disabled: {title: Выключено, operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Edge', value_name: SmartScreenPuaEnabled, view: registry64, value: 0}]}
+  enabled: {title: Включено, operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Edge', value_name: SmartScreenPuaEnabled, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: disabled}, {os: windows11, builds: [22000, 26200], state: disabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Edge', value_name: SmartScreenPuaEnabled, view: registry64, states: {0: disabled, 1: enabled}, missing_state: disabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: true

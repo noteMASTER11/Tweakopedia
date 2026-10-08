@@ -1,0 +1,19 @@
+id: desktop.explorer-delete-confirmation
+title: Подтверждение удаления файлов
+category: desktop
+subcategory: explorer
+kind: setting
+summary: Показывает диалог подтверждения перед перемещением файла в корзину.
+explanation: {purpose: 'Возвращает дополнительное подтверждение обычного удаления.', mechanism: 'ConfirmFileDelete управляет диалогом Проводника.', effect: 'При включении Проводник спрашивает подтверждение перед удалением.', tradeoffs: 'Каждое удаление требует дополнительного клика.', recommendation: 'Включите, если часто удаляете файлы случайно.', technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\ConfirmFileDelete.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  disabled: {title: Не спрашивать, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: ConfirmFileDelete, view: registry64, value: 0}]}
+  enabled: {title: Спрашивать, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: ConfirmFileDelete, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: disabled}, {os: windows11, builds: [22000, 26200], state: disabled}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: ConfirmFileDelete, view: registry64, states: {0: disabled, 1: enabled}, missing_state: disabled}
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

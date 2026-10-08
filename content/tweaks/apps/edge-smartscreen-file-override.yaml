@@ -1,0 +1,19 @@
+id: apps.edge-smartscreen-file-override
+title: Обход предупреждений SmartScreen о загрузках в Edge
+category: apps
+subcategory: edge-ui
+kind: setting
+summary: Разрешает или запрещает сохранить файл после предупреждения SmartScreen.
+explanation: {purpose: 'Управляет обходом предупреждения о подозрительной загрузке.', mechanism: 'PreventSmartScreenPromptOverrideForFiles запрещает пользователю продолжить загрузку.', effect: 'При запрете файл нельзя сохранить через стандартное предупреждение Edge.', tradeoffs: 'Ложно сработавшую загрузку придётся получать другим способом.', recommendation: 'Запрещайте обход только при управляемых требованиях.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Edge\PreventSmartScreenPromptOverrideForFiles.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240, required_components: [edge]}
+states:
+  allowed: {title: Обход разрешён, operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Edge', value_name: PreventSmartScreenPromptOverrideForFiles, view: registry64, value: 0}]}
+  blocked: {title: Обход запрещён, operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Edge', value_name: PreventSmartScreenPromptOverrideForFiles, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: allowed}, {os: windows11, builds: [22000, 26200], state: allowed}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Edge', value_name: PreventSmartScreenPromptOverrideForFiles, view: registry64, states: {0: allowed, 1: blocked}, missing_state: allowed}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,19 @@
+id: desktop.explorer-folder-options
+title: Параметры папок в Проводнике
+category: desktop
+subcategory: explorer
+kind: setting
+summary: Показывает или скрывает доступ к окну параметров папок.
+explanation: {purpose: 'Управляет доступом пользователя к настройкам Проводника.', mechanism: 'NoFolderOptions скрывает команды и окно параметров папок.', effect: 'При скрытии пользователь не сможет менять параметры просмотра через интерфейс.', tradeoffs: 'Существующие параметры продолжают действовать, но редактировать их сложнее.', recommendation: 'Оставьте окно доступным на персональном ПК.', technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoFolderOptions.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  hidden: {title: Скрыто, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoFolderOptions, view: registry64, value: 1}]}
+  visible: {title: Доступно, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoFolderOptions, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: visible}, {os: windows11, builds: [22000, 26200], state: visible}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoFolderOptions, view: registry64, states: {0: visible, 1: hidden}, missing_state: visible}
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false

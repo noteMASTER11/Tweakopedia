@@ -1,0 +1,19 @@
+id: desktop.explorer-approved-shell-extensions
+title: Только разрешённые расширения оболочки
+category: desktop
+subcategory: explorer
+kind: setting
+summary: Ограничивает загрузку расширений Проводника списком, одобренным администратором.
+explanation: {purpose: 'Управляет тем, какие расширения оболочки может загрузить Проводник.', mechanism: 'EnforceShellExtensionSecurity включает список разрешённых расширений.', effect: 'Не внесённые в список расширения меню, панелей и обработчиков не загружаются.', tradeoffs: 'Сторонние архиваторы и файловые утилиты могут потерять интеграцию с Проводником.', recommendation: 'Не включайте без заранее подготовленного списка разрешённых CLSID.', technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\EnforceShellExtensionSecurity.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  all: {title: Все зарегистрированные, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: EnforceShellExtensionSecurity, view: registry64, value: 0}]}
+  approved: {title: Только разрешённые, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: EnforceShellExtensionSecurity, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: all}, {os: windows11, builds: [22000, 26200], state: all}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: EnforceShellExtensionSecurity, view: registry64, states: {0: all, 1: approved}, missing_state: all}
+dependencies: []
+conflicts: []
+restart: explorer
+impact: high
+reversibility: reversible
+requires_network: false

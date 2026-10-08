@@ -1,0 +1,19 @@
+id: desktop.explorer-network-actions
+title: Команды подключения сетевых дисков
+category: desktop
+subcategory: explorer
+kind: setting
+summary: Показывает или скрывает команды подключения и отключения сетевых дисков.
+explanation: {purpose: 'Управляет сетевыми командами Проводника.', mechanism: 'NoNetConnectDisconnect скрывает пункты подключения и отключения сетевого диска.', effect: 'Пользователь не сможет вызывать эти действия из интерфейса Проводника.', tradeoffs: 'Существующие подключения и командные способы остаются доступными.', recommendation: 'Оставьте команды видимыми, если используются сетевые ресурсы.', technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoNetConnectDisconnect.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  hidden: {title: Скрыты, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoNetConnectDisconnect, view: registry64, value: 1}]}
+  visible: {title: Показаны, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoNetConnectDisconnect, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: visible}, {os: windows11, builds: [22000, 26200], state: visible}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoNetConnectDisconnect, view: registry64, states: {0: visible, 1: hidden}, missing_state: visible}
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

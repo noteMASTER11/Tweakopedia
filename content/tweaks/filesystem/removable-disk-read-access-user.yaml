@@ -1,0 +1,19 @@
+id: filesystem.removable-disk-read-access-user
+title: Чтение со съёмных дисков для текущего пользователя
+category: filesystem
+subcategory: removable
+kind: setting
+summary: Разрешает или запрещает текущему пользователю читать съёмные диски.
+explanation: {purpose: 'Задаёт пользовательское правило чтения съёмных дисков.', mechanism: 'Deny_Read хранится в ветви HKCU и действует на текущую учётную запись.', effect: 'При запрете пользователь не сможет читать файлы со съёмных дисков.', tradeoffs: 'Машинный запрет имеет приоритет, а другие пользователи не затрагиваются.', recommendation: 'Используйте для раздельной настройки учётных записей.', technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}\Deny_Read.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  denied: {title: Чтение запрещено, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}', value_name: Deny_Read, view: registry64, value: 1}]}
+  allowed: {title: Чтение разрешено, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}', value_name: Deny_Read, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: allowed}, {os: windows11, builds: [22000, 26200], state: allowed}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}', value_name: Deny_Read, view: registry64, states: {0: allowed, 1: denied}, missing_state: allowed}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

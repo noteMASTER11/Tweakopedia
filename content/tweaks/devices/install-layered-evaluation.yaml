@@ -1,0 +1,19 @@
+id: devices.install-layered-evaluation
+title: Послойная проверка правил установки устройств
+category: devices
+subcategory: installation
+kind: setting
+summary: Выбирает современный или прежний порядок обработки разрешающих и запрещающих правил.
+explanation: {purpose: 'Определяет порядок оценки политик установки устройств.', mechanism: 'AllowDenyLayered включает послойную оценку по экземпляру, устройству, классу и съёмности.', effect: 'Windows применяет первое подходящее правило на наиболее точном уровне.', tradeoffs: 'Результат может отличаться от прежней схемы, где запрещающие правила имели общий приоритет.', recommendation: 'Используйте современный режим только при осознанно построенном наборе правил.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\DeviceInstall\Restrictions\AllowDenyLayered.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 17763}
+states:
+  legacy: {title: Прежний порядок, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Restrictions', value_name: AllowDenyLayered, view: registry64, value: 0}]}
+  layered: {title: Послойный порядок, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Restrictions', value_name: AllowDenyLayered, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [17763, 19045], state: legacy}, {os: windows11, builds: [22000, 26200], state: legacy}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Restrictions', value_name: AllowDenyLayered, view: registry64, states: {0: legacy, 1: layered}, missing_state: legacy}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

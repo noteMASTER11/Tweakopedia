@@ -1,0 +1,19 @@
+id: apps.defender-catchup-full-scan
+title: Догоняющая полная проверка Defender
+category: apps
+subcategory: defender
+kind: setting
+summary: Запускает пропущенную плановую полную проверку после следующего входа.
+explanation: {purpose: 'Компенсирует пропущенные полные проверки.', mechanism: 'DisableCatchupFullScan инвертированно управляет догоняющим запуском.', effect: 'После двух пропущенных запусков проверка выполняется при следующем входе.', tradeoffs: 'Проверка может заметно нагрузить компьютер сразу после входа.', recommendation: 'Оставьте включённым, если полная проверка действительно запланирована.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Scan\DisableCatchupFullScan: 0 — включено, 1 — выключено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 17763}
+states:
+  disabled: {title: Выключено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: DisableCatchupFullScan, view: registry64, value: 1}]}
+  enabled: {title: Включено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: DisableCatchupFullScan, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [17763, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: DisableCatchupFullScan, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

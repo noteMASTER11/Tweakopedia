@@ -1,0 +1,19 @@
+id: apps.defender-catchup-quick-scan
+title: Догоняющая быстрая проверка Defender
+category: apps
+subcategory: defender
+kind: setting
+summary: Запускает пропущенную плановую быструю проверку при следующем старте.
+explanation: {purpose: 'Компенсирует пропущенные быстрые проверки.', mechanism: 'DisableCatchupQuickScan инвертированно управляет догоняющим запуском.', effect: 'Пропущенная быстрая проверка выполняется после включения или пробуждения.', tradeoffs: 'Сразу после запуска возможна дополнительная нагрузка.', recommendation: 'Обычно стоит оставить включённым.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Scan\DisableCatchupQuickScan: 0 — включено, 1 — выключено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 17763}
+states:
+  disabled: {title: Выключено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: DisableCatchupQuickScan, view: registry64, value: 1}]}
+  enabled: {title: Включено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: DisableCatchupQuickScan, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [17763, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: DisableCatchupQuickScan, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

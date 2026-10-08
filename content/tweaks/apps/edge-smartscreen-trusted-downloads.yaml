@@ -1,0 +1,19 @@
+id: apps.edge-smartscreen-trusted-downloads
+title: Проверка доверенных загрузок SmartScreen в Edge
+category: apps
+subcategory: edge-ui
+kind: setting
+summary: Проверяет репутацию загрузок даже из локальной сети и доверенных зон.
+explanation: {purpose: 'Расширяет SmartScreen на загрузки из доверенных источников.', mechanism: 'SmartScreenForTrustedDownloadsEnabled включает проверку независимо от зоны источника.', effect: 'Edge проверяет также локальные, интранет- и доверенные загрузки.', tradeoffs: 'Внутренние файлы могут проходить лишнюю сетевую проверку.', recommendation: 'Оставьте включённым, если доверенные зоны не контролируются отдельно.', technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Edge\SmartScreenForTrustedDownloadsEnabled.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240, required_components: [edge]}
+states:
+  disabled: {title: Не проверять, operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Edge', value_name: SmartScreenForTrustedDownloadsEnabled, view: registry64, value: 0}]}
+  enabled: {title: Проверять, operations: [{type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Edge', value_name: SmartScreenForTrustedDownloadsEnabled, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'SOFTWARE\Policies\Microsoft\Edge', value_name: SmartScreenForTrustedDownloadsEnabled, view: registry64, states: {0: disabled, 1: enabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: true

@@ -1,0 +1,19 @@
+id: desktop.explorer-hardware-tab
+title: Вкладка «Оборудование» в свойствах устройств
+category: desktop
+subcategory: explorer
+kind: setting
+summary: Показывает или скрывает вкладку со списком оборудования в диалогах свойств.
+explanation: {purpose: 'Управляет доступом к вкладке «Оборудование».', mechanism: 'NoHardwareTab скрывает вкладку в поддерживаемых диалогах свойств устройств.', effect: 'При скрытии пользователь не сможет перейти к свойствам оборудования через эту вкладку.', tradeoffs: 'Диспетчер устройств и другие способы управления оборудованием не изменяются.', recommendation: 'Оставьте вкладку доступной на персональном ПК.', technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoHardwareTab.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  hidden: {title: Скрыта, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoHardwareTab, view: registry64, value: 1}]}
+  visible: {title: Показана, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoHardwareTab, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: visible}, {os: windows11, builds: [22000, 26200], state: visible}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoHardwareTab, view: registry64, states: {0: visible, 1: hidden}, missing_state: visible}
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

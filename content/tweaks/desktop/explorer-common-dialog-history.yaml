@@ -1,0 +1,19 @@
+id: desktop.explorer-common-dialog-history
+title: История файлов в стандартных диалогах
+category: desktop
+subcategory: explorer
+kind: setting
+summary: Сохраняет или отключает список недавно открытых файлов в стандартных диалогах.
+explanation: {purpose: 'Управляет историей в окнах открытия и сохранения файлов.', mechanism: 'NoFileMru инвертированно запрещает список недавно использованных файлов.', effect: 'При отключении стандартные диалоги не накапливают историю файлов.', tradeoffs: 'Быстрый возврат к недавним файлам станет недоступен.', recommendation: 'Отключайте, если история в диалогах не нужна.', technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Comdlg32\NoFileMru.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  disabled: {title: История выключена, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Comdlg32', value_name: NoFileMru, view: registry64, value: 1}]}
+  enabled: {title: История включена, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Comdlg32', value_name: NoFileMru, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Comdlg32', value_name: NoFileMru, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

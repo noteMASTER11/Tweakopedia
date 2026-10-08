@@ -1,0 +1,20 @@
+id: apps.defender-controlled-folder-access
+title: Контролируемый доступ к папкам
+category: apps
+subcategory: defender
+kind: setting
+summary: Ограничивает изменение защищённых папок неизвестными приложениями.
+explanation: {purpose: 'Управляет защитой папок от неразрешённых изменений.', mechanism: 'EnableControlledFolderAccess включает блокировку либо аудит обращений.', effect: 'Блокирующий режим не даёт неизвестным приложениям менять защищённые папки.', tradeoffs: 'Некоторые обычные программы потребуется добавить в исключения Defender.', recommendation: 'Перед блокировкой проверьте аудит.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Windows Defender Exploit Guard\Controlled Folder Access\EnableControlledFolderAccess.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 16299}
+states:
+  disabled: {title: Выключено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Windows Defender Exploit Guard\Controlled Folder Access', value_name: EnableControlledFolderAccess, view: registry64, value: 0}]}
+  block: {title: Блокировать, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Windows Defender Exploit Guard\Controlled Folder Access', value_name: EnableControlledFolderAccess, view: registry64, value: 1}]}
+  audit: {title: Только аудит, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Windows Defender Exploit Guard\Controlled Folder Access', value_name: EnableControlledFolderAccess, view: registry64, value: 2}]}
+windows_defaults: [{os: windows10, builds: [16299, 19045], state: disabled}, {os: windows11, builds: [22000, 26200], state: disabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Windows Defender Exploit Guard\Controlled Folder Access', value_name: EnableControlledFolderAccess, view: registry64, states: {0: disabled, 1: block, 2: audit}, missing_state: disabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,19 @@
+id: apps.smartscreen-shell
+title: Microsoft Defender SmartScreen в Windows
+category: apps
+subcategory: defender
+kind: setting
+summary: Проверяет репутацию загруженных файлов и запускаемых приложений в оболочке Windows.
+explanation: {purpose: 'Управляет системной проверкой репутации файлов.', mechanism: 'EnableSmartScreen задаёт работу SmartScreen для оболочки Windows.', effect: 'Windows предупреждает о файлах и приложениях с неизвестной или плохой репутацией.', tradeoffs: 'При отключении исчезают системные предупреждения SmartScreen.', recommendation: 'Оставьте включённым, если не используете отдельное решение для проверки репутации.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\System\EnableSmartScreen.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 15063}
+states:
+  disabled: {title: Выключено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnableSmartScreen, view: registry64, value: 0}]}
+  enabled: {title: Включено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnableSmartScreen, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [15063, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnableSmartScreen, view: registry64, states: {0: disabled, 1: enabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: true

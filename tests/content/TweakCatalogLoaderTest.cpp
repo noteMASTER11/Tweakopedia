@@ -192,7 +192,7 @@ private slots:
 
         QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 385);
+        QCOMPARE(result.catalog->size(), 435);
 
         const QStringList expectedIds{
             u"apps.windows-ink-workspace"_s,
@@ -515,6 +515,56 @@ private slots:
             u"network.rdp-wddm-driver"_s,
             u"network.rdp-client-hardware-mode"_s,
             u"network.rdp-avc444-mode"_s,
+            u"apps.defender-network-protection"_s,
+            u"apps.defender-controlled-folder-access"_s,
+            u"apps.defender-check-signatures-before-scan"_s,
+            u"apps.defender-mapped-drive-full-scan"_s,
+            u"apps.defender-catchup-full-scan"_s,
+            u"apps.defender-catchup-quick-scan"_s,
+            u"apps.defender-cpu-throttle-idle-scans"_s,
+            u"apps.defender-scan-only-if-idle"_s,
+            u"apps.defender-restore-point"_s,
+            u"apps.defender-randomize-scheduled-tasks"_s,
+            u"apps.defender-user-interface"_s,
+            u"apps.defender-intrusion-prevention"_s,
+            u"apps.defender-on-access-protection"_s,
+            u"apps.defender-block-at-first-sight"_s,
+            u"apps.smartscreen-shell"_s,
+            u"apps.edge-smartscreen"_s,
+            u"apps.edge-smartscreen-override"_s,
+            u"apps.edge-smartscreen-file-override"_s,
+            u"apps.edge-smartscreen-trusted-downloads"_s,
+            u"apps.edge-smartscreen-pua"_s,
+            u"devices.install-restore-point"_s,
+            u"devices.install-admin-override"_s,
+            u"devices.install-removable"_s,
+            u"devices.install-unspecified"_s,
+            u"devices.install-layered-evaluation"_s,
+            u"devices.install-driver-ranking"_s,
+            u"filesystem.removable-disk-read-access"_s,
+            u"filesystem.removable-disk-execute-access"_s,
+            u"filesystem.removable-storage-all-access"_s,
+            u"filesystem.cd-dvd-read-access"_s,
+            u"filesystem.cd-dvd-write-access"_s,
+            u"filesystem.cd-dvd-execute-access"_s,
+            u"filesystem.removable-disk-read-access-user"_s,
+            u"filesystem.removable-disk-write-access-user"_s,
+            u"filesystem.removable-disk-execute-access-user"_s,
+            u"filesystem.cd-dvd-read-access-user"_s,
+            u"filesystem.removable-storage-remote-session"_s,
+            u"desktop.explorer-delete-confirmation"_s,
+            u"desktop.windows-hotkeys"_s,
+            u"desktop.explorer-folder-options"_s,
+            u"desktop.explorer-security-tab"_s,
+            u"desktop.explorer-context-menus"_s,
+            u"desktop.explorer-manage-computer"_s,
+            u"desktop.explorer-cd-burning"_s,
+            u"desktop.explorer-common-dialog-history"_s,
+            u"desktop.explorer-network-actions"_s,
+            u"desktop.explorer-recycle-bin"_s,
+            u"desktop.explorer-approved-shell-extensions"_s,
+            u"desktop.explorer-hardware-tab"_s,
+            u"power.power-throttling"_s,
         };
         for (const auto& expectedId : expectedIds) {
             const auto id = TweakId::parse(expectedId);
@@ -634,6 +684,39 @@ private slots:
         const auto* orgMessages = result.catalog->find(orgMessagesId);
         QVERIFY(orgMessages != nullptr);
         QCOMPARE(orgMessages->compatibility.minimumBuild, 19041U);
+
+        const auto networkProtectionId = *TweakId::parse(u"apps.defender-network-protection"_s);
+        const auto* networkProtection = result.catalog->find(networkProtectionId);
+        QVERIFY(networkProtection != nullptr);
+        QCOMPARE(networkProtection->states.size(), 3);
+        QCOMPARE(networkProtection->detection->statesByValue.value(0), u"disabled"_s);
+        QCOMPARE(networkProtection->detection->statesByValue.value(1), u"block"_s);
+        QCOMPARE(networkProtection->detection->statesByValue.value(2), u"audit"_s);
+
+        const auto edgeSmartScreenId = *TweakId::parse(u"apps.edge-smartscreen"_s);
+        const auto* edgeSmartScreen = result.catalog->find(edgeSmartScreenId);
+        QVERIFY(edgeSmartScreen != nullptr);
+        QCOMPARE(edgeSmartScreen->compatibility.requiredComponents,
+                 QVector{u"edge"_s});
+
+        const auto removableUserId = *TweakId::parse(u"filesystem.removable-disk-read-access-user"_s);
+        const auto* removableUser = result.catalog->find(removableUserId);
+        QVERIFY(removableUser != nullptr);
+        QCOMPARE(removableUser->detection->location.hive, RegistryHive::CurrentUser);
+        QCOMPARE(removableUser->detection->location.valueName, u"Deny_Read"_s);
+
+        const auto driverRankingId = *TweakId::parse(u"devices.install-driver-ranking"_s);
+        const auto* driverRanking = result.catalog->find(driverRankingId);
+        QVERIFY(driverRanking != nullptr);
+        QCOMPARE(driverRanking->detection->location.valueName, u"AllSigningEqual"_s);
+        QCOMPARE(driverRanking->detection->statesByValue.value(0), u"ranked"_s);
+        QCOMPARE(driverRanking->detection->statesByValue.value(1), u"equal"_s);
+
+        const auto throttlingPolicyId = *TweakId::parse(u"power.power-throttling"_s);
+        const auto* throttlingPolicy = result.catalog->find(throttlingPolicyId);
+        QVERIFY(throttlingPolicy != nullptr);
+        QCOMPARE(throttlingPolicy->detection->statesByValue.value(0), u"enabled"_s);
+        QCOMPARE(throttlingPolicy->detection->statesByValue.value(1), u"disabled"_s);
     }
 };
 

@@ -127,6 +127,8 @@ categories:
         title: Камера
       - id: metadata
         title: Метаданные и сопутствующие приложения
+      - id: installation
+        title: Установка устройств и драйверов
   - id: experimental
     title: Экспериментальные функции
     subcategories:

@@ -1,0 +1,19 @@
+id: devices.install-restore-point
+title: Точка восстановления при установке драйвера
+category: devices
+subcategory: installation
+kind: setting
+summary: Разрешает Windows создавать точку восстановления перед установкой драйвера устройства.
+explanation: {purpose: 'Сохраняет состояние системы перед установкой драйвера.', mechanism: 'DisableSystemRestore инвертированно запрещает создание точки восстановления.', effect: 'Windows может создать точку восстановления перед установкой неподписанного или нового драйвера.', tradeoffs: 'Создание снимка занимает время и место; требуется работающая защита системы.', recommendation: 'Оставьте включённым, если защита системы используется.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\DeviceInstall\Settings\DisableSystemRestore: 0 — разрешено, 1 — запрещено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  disabled: {title: Запрещено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Settings', value_name: DisableSystemRestore, view: registry64, value: 1}]}
+  enabled: {title: Разрешено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Settings', value_name: DisableSystemRestore, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Settings', value_name: DisableSystemRestore, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

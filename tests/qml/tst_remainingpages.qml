@@ -87,6 +87,7 @@ TestCase {
     Component { id: overviewComponent; OverviewPage { width: 900; height: 620; controller: fakeController } }
     Component { id: queueComponent; QueuePage { width: 900; height: 620; controller: fakeController } }
     Component { id: historyComponent; HistoryPage { width: 900; height: 620; controller: fakeController } }
+    Component { id: signalSpyComponent; SignalSpy {} }
 
     function init() {
         queuedChanges.clear()
@@ -198,6 +199,17 @@ TestCase {
         compare(findChild(page, "rebootRequirementText").visible, false)
         compare(findChild(page, "restartComputerButton").visible, false)
 
+        const returnButton = findChild(page, "returnToTweaksButton")
+        verify(returnButton !== null)
+        compare(returnButton.visible, true)
+        compare(returnButton.text, "Вернуться к твикам")
+        const returnSpy = createTemporaryObject(signalSpyComponent, this, {
+            target: page,
+            signalName: "returnToTweaksRequested"
+        })
+        returnButton.clicked()
+        compare(returnSpy.count, 1)
+
         fakeController.rebootRequired = true
         const rebootText = findChild(page, "rebootRequirementText")
         const restart = findChild(page, "restartComputerButton")
@@ -205,6 +217,7 @@ TestCase {
         compare(rebootText.text, "Некоторые из применённых настроек требуют перезагрузки ПК")
         tryCompare(restart, "visible", true)
         compare(restart.text, "Перезагрузить")
+        compare(returnButton.visible, true)
         restart.clicked()
         compare(fakeController.restartCalls, 1)
     }

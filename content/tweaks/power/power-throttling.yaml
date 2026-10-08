@@ -1,0 +1,19 @@
+id: power.power-throttling
+title: Системное регулирование фоновой производительности
+category: power
+subcategory: sleep
+kind: setting
+summary: Разрешает Windows снижать ресурсы для фоновых процессов ради экономии энергии.
+explanation: {purpose: 'Управляет системным механизмом Power Throttling.', mechanism: 'PowerThrottlingOff инвертированно отключает регулирование фоновых процессов.', effect: 'При включённом регулировании Windows снижает приоритет работы подходящих фоновых процессов.', tradeoffs: 'Отключение может помочь отдельным фоновым задачам, но увеличивает расход энергии и нагрев.', recommendation: 'Оставьте регулирование включённым; отключайте только после измерений конкретной нагрузки.', technical_details: 'DWORD HKLM\System\CurrentControlSet\Control\Power\PowerThrottling\PowerThrottlingOff: 0 — регулирование включено, 1 — выключено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 15063}
+states:
+  disabled: {title: Регулирование выключено, operations: [{type: registry.set_dword, hive: HKLM, key: 'System\CurrentControlSet\Control\Power\PowerThrottling', value_name: PowerThrottlingOff, view: registry64, value: 1}]}
+  enabled: {title: Регулирование включено, operations: [{type: registry.set_dword, hive: HKLM, key: 'System\CurrentControlSet\Control\Power\PowerThrottling', value_name: PowerThrottlingOff, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [15063, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'System\CurrentControlSet\Control\Power\PowerThrottling', value_name: PowerThrottlingOff, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

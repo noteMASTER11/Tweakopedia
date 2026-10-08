@@ -8,6 +8,7 @@ Page {
     id: root
 
     required property var controller
+    signal returnToTweaksRequested()
     property bool wideLayout: width >= 900
     readonly property bool applying: controller.applyStatus === "running"
     readonly property bool showSuccess: controller.applyStatus === "succeeded"
@@ -250,30 +251,61 @@ Page {
                 font.pixelSize: 14
             }
 
-            Button {
-                id: restartButton
-                objectName: "restartComputerButton"
+            RowLayout {
                 Layout.alignment: Qt.AlignHCenter
-                visible: root.controller.rebootRequired
-                text: "Перезагрузить"
-                hoverEnabled: true
-                Accessible.name: text
-                Layout.preferredWidth: 160
-                onClicked: root.controller.restartComputer()
+                spacing: 10
 
-                contentItem: Text {
-                    text: restartButton.text
-                    color: "white"
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    font.family: FluentTheme.fontFamily
-                    font.weight: Font.DemiBold
+                Button {
+                    id: returnButton
+                    objectName: "returnToTweaksButton"
+                    text: "Вернуться к твикам"
+                    hoverEnabled: true
+                    Accessible.name: text
+                    Layout.preferredWidth: 190
+                    onClicked: root.returnToTweaksRequested()
+
+                    contentItem: Text {
+                        text: returnButton.text
+                        color: FluentTheme.textPrimary
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        font.family: FluentTheme.fontFamily
+                        font.weight: Font.DemiBold
+                    }
+                    background: Rectangle {
+                        implicitHeight: 38
+                        radius: 6
+                        color: returnButton.hovered
+                            ? FluentTheme.hover : FluentTheme.surface
+                        border.color: returnButton.hovered
+                            ? FluentTheme.accent : FluentTheme.stroke
+                    }
                 }
-                background: Rectangle {
-                    implicitHeight: 38
-                    radius: 6
-                    color: restartButton.hovered
-                        ? FluentTheme.accentHover : FluentTheme.accent
+
+                Button {
+                    id: restartButton
+                    objectName: "restartComputerButton"
+                    visible: root.controller.rebootRequired
+                    text: "Перезагрузить"
+                    hoverEnabled: true
+                    Accessible.name: text
+                    Layout.preferredWidth: visible ? 160 : 0
+                    onClicked: root.controller.restartComputer()
+
+                    contentItem: Text {
+                        text: restartButton.text
+                        color: "white"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        font.family: FluentTheme.fontFamily
+                        font.weight: Font.DemiBold
+                    }
+                    background: Rectangle {
+                        implicitHeight: 38
+                        radius: 6
+                        color: restartButton.hovered
+                            ? FluentTheme.accentHover : FluentTheme.accent
+                    }
                 }
             }
         }

@@ -1,0 +1,19 @@
+id: desktop.explorer-manage-computer
+title: Команда «Управление» для компьютера
+category: desktop
+subcategory: explorer
+kind: setting
+summary: Показывает или скрывает команду открытия «Управления компьютером».
+explanation: {purpose: 'Управляет командой «Управление» в контекстном меню компьютера.', mechanism: 'NoManageMyComputerVerb скрывает соответствующий пункт оболочки.', effect: 'При скрытии оснастку нельзя открыть этим пунктом меню.', tradeoffs: 'Сама оснастка остаётся доступной другими способами.', recommendation: 'Скрывайте только для упрощения интерфейса ограниченной учётной записи.', technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoManageMyComputerVerb.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  hidden: {title: Скрыта, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoManageMyComputerVerb, view: registry64, value: 1}]}
+  visible: {title: Показана, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoManageMyComputerVerb, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: visible}, {os: windows11, builds: [22000, 26200], state: visible}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoManageMyComputerVerb, view: registry64, states: {0: visible, 1: hidden}, missing_state: visible}
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

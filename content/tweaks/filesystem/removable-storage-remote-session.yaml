@@ -1,0 +1,19 @@
+id: filesystem.removable-storage-remote-session
+title: Прямой доступ к съёмным носителям в удалённых сеансах
+category: filesystem
+subcategory: removable
+kind: setting
+summary: Разрешает обычным пользователям открывать съёмные носители напрямую в удалённом сеансе.
+explanation: {purpose: 'Управляет прямым доступом к носителям в удалённых сеансах.', mechanism: 'AllowRemoteDASD разрешает открывать прямые дескрипторы устройств.', effect: 'При включении перенаправленные съёмные устройства доступны без административных полномочий.', tradeoffs: 'Удалённый сеанс получает более широкий доступ к подключённым носителям.', recommendation: 'Оставьте запрещённым, если прямой доступ не требуется.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\RemovableStorageDevices\AllowRemoteDASD.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 19041}
+states:
+  denied: {title: Доступ запрещён, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices', value_name: AllowRemoteDASD, view: registry64, value: 0}]}
+  allowed: {title: Доступ разрешён, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices', value_name: AllowRemoteDASD, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [19041, 19045], state: denied}, {os: windows11, builds: [22000, 26200], state: denied}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices', value_name: AllowRemoteDASD, view: registry64, states: {0: denied, 1: allowed}, missing_state: denied}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

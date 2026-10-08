@@ -1,0 +1,19 @@
+id: desktop.windows-hotkeys
+title: Горячие клавиши с клавишей Windows
+category: desktop
+subcategory: explorer
+kind: setting
+summary: Разрешает или запрещает системные сочетания Win+R, Win+E и другие.
+explanation: {purpose: 'Управляет сочетаниями клавиш оболочки Windows.', mechanism: 'NoWinKeys инвертированно отключает сочетания с клавишей Windows.', effect: 'При запрете большинство системных сочетаний Win+… перестаёт работать.', tradeoffs: 'Отключение ухудшает клавиатурную навигацию и привычные сценарии.', recommendation: 'Оставьте включёнными, если сочетания не мешают специализированному рабочему месту.', technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoWinKeys.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  disabled: {title: Выключены, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoWinKeys, view: registry64, value: 1}]}
+  enabled: {title: Включены, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoWinKeys, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoWinKeys, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false

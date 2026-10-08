@@ -1,0 +1,19 @@
+id: filesystem.cd-dvd-read-access-user
+title: Чтение CD и DVD для текущего пользователя
+category: filesystem
+subcategory: removable
+kind: setting
+summary: Разрешает или запрещает текущему пользователю читать оптические носители.
+explanation: {purpose: 'Задаёт пользовательское правило чтения CD и DVD.', mechanism: 'Deny_Read в HKCU применяется к текущей учётной записи.', effect: 'При запрете пользователь не сможет открыть содержимое оптического диска.', tradeoffs: 'Машинный запрет имеет приоритет, а другие пользователи не затрагиваются.', recommendation: 'Используйте, если ограничение требуется только одному пользователю.', technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f56308-b6bf-11d0-94f2-00a0c91efb8b}\Deny_Read.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  denied: {title: Чтение запрещено, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f56308-b6bf-11d0-94f2-00a0c91efb8b}', value_name: Deny_Read, view: registry64, value: 1}]}
+  allowed: {title: Чтение разрешено, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f56308-b6bf-11d0-94f2-00a0c91efb8b}', value_name: Deny_Read, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: allowed}, {os: windows11, builds: [22000, 26200], state: allowed}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f56308-b6bf-11d0-94f2-00a0c91efb8b}', value_name: Deny_Read, view: registry64, states: {0: allowed, 1: denied}, missing_state: allowed}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

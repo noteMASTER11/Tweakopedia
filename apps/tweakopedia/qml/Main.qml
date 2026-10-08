@@ -58,6 +58,7 @@ ApplicationWindow {
             QueuePage {
                 controller: appController
                 wideLayout: window.width >= 1180
+                onReturnToTweaksRequested: navigation.currentIndex = 1
             }
             HistoryPage { controller: appController }
             AboutPage {}

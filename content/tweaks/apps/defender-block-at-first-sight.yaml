@@ -1,0 +1,19 @@
+id: apps.defender-block-at-first-sight
+title: Блокировка Defender при первом обнаружении
+category: apps
+subcategory: defender
+kind: setting
+summary: Использует облачную проверку для быстрой блокировки новых подозрительных файлов.
+explanation: {purpose: 'Ускоряет реакцию Defender на недавно появившиеся угрозы.', mechanism: 'DisableBlockAtFirstSeen инвертированно управляет функцией Block at First Sight.', effect: 'Подозрительный файл может быть временно остановлен до получения облачной оценки.', tradeoffs: 'Работа зависит от облачной защиты и отправки образцов; возможна задержка запуска файла.', recommendation: 'Оставьте включённым вместе с облачной защитой Defender.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Spynet\DisableBlockAtFirstSeen.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 14393}
+states:
+  disabled: {title: Выключено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Spynet', value_name: DisableBlockAtFirstSeen, view: registry64, value: 1}]}
+  enabled: {title: Включено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Spynet', value_name: DisableBlockAtFirstSeen, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [14393, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Spynet', value_name: DisableBlockAtFirstSeen, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: true

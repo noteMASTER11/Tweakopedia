@@ -1,0 +1,19 @@
+id: filesystem.removable-disk-write-access-user
+title: Запись на съёмные диски для текущего пользователя
+category: filesystem
+subcategory: removable
+kind: setting
+summary: Разрешает или запрещает текущему пользователю записывать данные на съёмные диски.
+explanation: {purpose: 'Задаёт пользовательское правило записи на съёмные диски.', mechanism: 'Deny_Write в HKCU действует только на текущую учётную запись.', effect: 'При запрете пользователь может читать носитель, но не изменять его.', tradeoffs: 'Машинный запрет имеет приоритет, а другие пользователи не затрагиваются.', recommendation: 'Используйте, когда ограничение нужно только одной учётной записи.', technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}\Deny_Write.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  denied: {title: Запись запрещена, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}', value_name: Deny_Write, view: registry64, value: 1}]}
+  allowed: {title: Запись разрешена, operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}', value_name: Deny_Write, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: allowed}, {os: windows11, builds: [22000, 26200], state: allowed}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}', value_name: Deny_Write, view: registry64, states: {0: allowed, 1: denied}, missing_state: allowed}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

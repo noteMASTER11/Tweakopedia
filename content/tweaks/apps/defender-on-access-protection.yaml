@@ -1,0 +1,19 @@
+id: apps.defender-on-access-protection
+title: Проверка файлов при обращении Defender
+category: apps
+subcategory: defender
+kind: setting
+summary: Проверяет активность файлов и программ при обращении к ним.
+explanation: {purpose: 'Управляет наблюдением Defender за файловой активностью.', mechanism: 'DisableOnAccessProtection инвертированно отключает проверку при обращении.', effect: 'При включении Defender анализирует файлы во время открытия и использования.', tradeoffs: 'Отключение уменьшает объём проверок и может изменить работу защиты в реальном времени.', recommendation: 'Оставьте включённым, если нет конкретной причины для совместимости.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection\DisableOnAccessProtection.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 14393}
+states:
+  disabled: {title: Выключено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Real-Time Protection', value_name: DisableOnAccessProtection, view: registry64, value: 1}]}
+  enabled: {title: Включено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Real-Time Protection', value_name: DisableOnAccessProtection, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [14393, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Real-Time Protection', value_name: DisableOnAccessProtection, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

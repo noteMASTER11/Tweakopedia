@@ -1,0 +1,19 @@
+id: apps.defender-check-signatures-before-scan
+title: Обновление сигнатур перед плановой проверкой
+category: apps
+subcategory: defender
+kind: setting
+summary: Проверяет наличие свежих сигнатур перед плановым сканированием.
+explanation: {purpose: 'Обновляет данные обнаружения перед плановой проверкой.', mechanism: 'CheckForSignaturesBeforeRunningScan включает предварительную проверку обновлений.', effect: 'Плановое сканирование начинается после попытки получить свежие сигнатуры.', tradeoffs: 'Запуск проверки может задержаться и потребовать сетевого соединения.', recommendation: 'Включите для регулярно подключённого к сети ПК.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Scan\CheckForSignaturesBeforeRunningScan.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 17763}
+states:
+  disabled: {title: Выключено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: CheckForSignaturesBeforeRunningScan, view: registry64, value: 0}]}
+  enabled: {title: Включено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: CheckForSignaturesBeforeRunningScan, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [17763, 19045], state: disabled}, {os: windows11, builds: [22000, 26200], state: disabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: CheckForSignaturesBeforeRunningScan, view: registry64, states: {0: disabled, 1: enabled}, missing_state: disabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: true

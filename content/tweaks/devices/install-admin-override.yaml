@@ -1,0 +1,19 @@
+id: devices.install-admin-override
+title: Обход ограничений установки устройств администратором
+category: devices
+subcategory: installation
+kind: setting
+summary: Разрешает администраторам обходить политики запрета установки устройств.
+explanation: {purpose: 'Даёт администраторам исключение из ограничений установки устройств.', mechanism: 'AllowAdminInstall разрешает членам группы администраторов обходить запреты.', effect: 'Администратор сможет устанавливать устройства, запрещённые другими политиками ограничений.', tradeoffs: 'Централизованные запреты становятся необязательными для локальных администраторов.', recommendation: 'Включайте только когда администраторам действительно нужен такой обход.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\DeviceInstall\Restrictions\AllowAdminInstall.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  disabled: {title: Запрещено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Restrictions', value_name: AllowAdminInstall, view: registry64, value: 0}]}
+  enabled: {title: Разрешено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Restrictions', value_name: AllowAdminInstall, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: disabled}, {os: windows11, builds: [22000, 26200], state: disabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Restrictions', value_name: AllowAdminInstall, view: registry64, states: {0: disabled, 1: enabled}, missing_state: disabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

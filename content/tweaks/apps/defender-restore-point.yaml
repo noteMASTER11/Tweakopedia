@@ -1,0 +1,19 @@
+id: apps.defender-restore-point
+title: Точка восстановления перед очисткой Defender
+category: apps
+subcategory: defender
+kind: setting
+summary: Разрешает Defender создавать точку восстановления перед очисткой найденных объектов.
+explanation: {purpose: 'Добавляет системный снимок перед действиями по очистке.', mechanism: 'DisableRestorePoint инвертированно управляет созданием точки восстановления.', effect: 'Перед очисткой может создаваться точка восстановления Windows.', tradeoffs: 'Операция занимает место и работает только при включённой защите системы.', recommendation: 'Включайте, если защита системы настроена и нужен дополнительный путь возврата.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Scan\DisableRestorePoint: 0 — включено, 1 — выключено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 14393}
+states:
+  disabled: {title: Выключено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: DisableRestorePoint, view: registry64, value: 1}]}
+  enabled: {title: Включено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: DisableRestorePoint, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [14393, 19045], state: disabled}, {os: windows11, builds: [22000, 26200], state: disabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: DisableRestorePoint, view: registry64, states: {0: enabled, 1: disabled}, missing_state: disabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

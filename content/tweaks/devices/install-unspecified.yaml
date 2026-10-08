@@ -1,0 +1,19 @@
+id: devices.install-unspecified
+title: Установка устройств без отдельного правила
+category: devices
+subcategory: installation
+kind: setting
+summary: Определяет, можно ли устанавливать устройства, не охваченные другими политиками.
+explanation: {purpose: 'Задаёт завершающее правило для ограничений установки устройств.', mechanism: 'DenyUnspecified запрещает устройства, которые не разрешены отдельной политикой.', effect: 'При запрете работает модель явного разрешения устройств.', tradeoffs: 'Новая периферия перестанет устанавливаться без подготовленного правила.', recommendation: 'Не запрещайте на обычном ПК без списка разрешённых устройств.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\DeviceInstall\Restrictions\DenyUnspecified.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  allowed: {title: Разрешено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Restrictions', value_name: DenyUnspecified, view: registry64, value: 0}]}
+  blocked: {title: Запрещено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Restrictions', value_name: DenyUnspecified, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: allowed}, {os: windows11, builds: [22000, 26200], state: allowed}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Restrictions', value_name: DenyUnspecified, view: registry64, states: {0: allowed, 1: blocked}, missing_state: allowed}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

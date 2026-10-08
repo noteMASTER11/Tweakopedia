@@ -1,0 +1,19 @@
+id: apps.defender-scan-only-if-idle
+title: Плановая проверка Defender только при простое
+category: apps
+subcategory: defender
+kind: setting
+summary: Ограничивает плановые проверки периодами, когда компьютер не используется.
+explanation: {purpose: 'Уменьшает влияние плановых проверок на активную работу.', mechanism: 'ScanOnlyIfIdle разрешает запуск плановой проверки только при простое.', effect: 'Defender откладывает плановую проверку до периода бездействия.', tradeoffs: 'На постоянно используемом компьютере проверка может долго не запускаться.', recommendation: 'Включайте, если расписание регулярно совпадает с активной работой.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Scan\ScanOnlyIfIdle.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 17763}
+states:
+  disabled: {title: Выключено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: ScanOnlyIfIdle, view: registry64, value: 0}]}
+  enabled: {title: Включено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: ScanOnlyIfIdle, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [17763, 19045], state: disabled}, {os: windows11, builds: [22000, 26200], state: disabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: ScanOnlyIfIdle, view: registry64, states: {0: disabled, 1: enabled}, missing_state: disabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

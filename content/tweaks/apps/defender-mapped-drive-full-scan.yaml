@@ -1,0 +1,19 @@
+id: apps.defender-mapped-drive-full-scan
+title: Полная проверка подключённых сетевых дисков
+category: apps
+subcategory: defender
+kind: setting
+summary: Добавляет подключённые сетевые диски в полную проверку Defender.
+explanation: {purpose: 'Управляет проверкой подключённых сетевых дисков.', mechanism: 'DisableScanningMappedNetworkDrivesForFullScan инвертированно задаёт участие сетевых дисков.', effect: 'Полная проверка обходит файлы на подключённых сетевых ресурсах.', tradeoffs: 'Проверка выполняется дольше и создаёт сетевую нагрузку.', recommendation: 'Включайте при необходимости проверять общие хранилища этим компьютером.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Scan\DisableScanningMappedNetworkDrivesForFullScan: 0 — проверять, 1 — не проверять.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 14393}
+states:
+  disabled: {title: Не проверять, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: DisableScanningMappedNetworkDrivesForFullScan, view: registry64, value: 1}]}
+  enabled: {title: Проверять, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: DisableScanningMappedNetworkDrivesForFullScan, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [14393, 19045], state: disabled}, {os: windows11, builds: [22000, 26200], state: disabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: DisableScanningMappedNetworkDrivesForFullScan, view: registry64, states: {0: enabled, 1: disabled}, missing_state: disabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,19 @@
+id: apps.defender-randomize-scheduled-tasks
+title: Разброс времени плановых задач Defender
+category: apps
+subcategory: defender
+kind: setting
+summary: Сдвигает плановые задачи Defender в пределах случайного интервала.
+explanation: {purpose: 'Не допускает одновременного запуска Defender на множестве компьютеров.', mechanism: 'RandomizeScheduleTaskTimes добавляет случайное смещение к расписанию.', effect: 'Проверки и обновления запускаются не строго в одну минуту.', tradeoffs: 'Фактическое время запуска становится менее предсказуемым.', recommendation: 'Полезно в сети с несколькими ПК; на одном компьютере эффект невелик.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows Defender\Scan\RandomizeScheduleTaskTimes.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 14393}
+states:
+  disabled: {title: Выключено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: RandomizeScheduleTaskTimes, view: registry64, value: 0}]}
+  enabled: {title: Включено, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: RandomizeScheduleTaskTimes, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [14393, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows Defender\Scan', value_name: RandomizeScheduleTaskTimes, view: registry64, states: {0: disabled, 1: enabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

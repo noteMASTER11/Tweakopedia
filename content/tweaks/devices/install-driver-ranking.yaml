@@ -1,0 +1,19 @@
+id: devices.install-driver-ranking
+title: Равный приоритет подписанных драйверов
+category: devices
+subcategory: installation
+kind: setting
+summary: Выбирает, учитывать ли тип цифровой подписи при ранжировании подходящих драйверов.
+explanation: {purpose: 'Настраивает выбор между несколькими подходящими подписанными драйверами.', mechanism: 'AllSigningEqual уравнивает подписи Microsoft и Authenticode при расчёте ранга.', effect: 'При равном режиме тип подписи не даёт одному пакету дополнительного преимущества.', tradeoffs: 'Windows может выбрать иной драйвер, чем в режиме приоритета подписи Microsoft.', recommendation: 'Сохраняйте стандартный равный режим без специальных требований к парку драйверов.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\DeviceInstall\Settings\AllSigningEqual: 0 — учитывать ранг подписи, 1 — считать подписи равными.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  ranked: {title: Учитывать ранг подписи, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Settings', value_name: AllSigningEqual, view: registry64, value: 0}]}
+  equal: {title: Считать подписи равными, operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Settings', value_name: AllSigningEqual, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: equal}, {os: windows11, builds: [22000, 26200], state: equal}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\DeviceInstall\Settings', value_name: AllSigningEqual, view: registry64, states: {0: ranked, 1: equal}, missing_state: equal}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false
