@@ -1,0 +1,59 @@
+id: apps.edge-sidebar
+title: 'Боковая панель Microsoft Edge'
+category: apps
+subcategory: edge-ui
+kind: setting
+summary: 'Показывает или скрывает боковую панель Microsoft Edge.'
+explanation:
+  purpose: 'Управляет встроенной панелью с сервисами и дополнительными инструментами браузера.'
+  mechanism: 'Политика HubsSidebarEnabled задаёт доступность боковой панели Edge.'
+  effect: 'При отключении боковая панель и размещённые в ней инструменты скрываются.'
+  tradeoffs: 'Быстрый доступ к приложениям и функциям боковой панели исчезнет.'
+  recommendation: 'Отключайте, если боковая панель не используется.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Edge\HubsSidebarEnabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: HubsSidebarEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: HubsSidebarEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Edge'
+  value_name: HubsSidebarEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

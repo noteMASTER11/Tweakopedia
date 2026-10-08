@@ -1,0 +1,56 @@
+id: desktop.copilot-button
+title: 'Кнопка Copilot в оболочке'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Показывает или скрывает кнопку Copilot в системной оболочке.'
+explanation:
+  purpose: 'Управляет только точкой запуска Copilot в интерфейсе текущего пользователя.'
+  mechanism: 'Параметр ShowCopilotButton задаёт видимость кнопки Copilot.'
+  effect: 'При отключении кнопка исчезает, но сама возможность Copilot может оставаться доступной другими способами.'
+  tradeoffs: 'Быстрый запуск с панели задач или оболочки станет недоступен.'
+  recommendation: 'Скрывайте кнопку, если она не используется; для полного запрета применяйте отдельную политику Copilot.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\ShowCopilotButton: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowCopilotButton
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowCopilotButton
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22621, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: ShowCopilotButton
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

@@ -165,7 +165,7 @@ private slots:
 
         QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 234);
+        QCOMPARE(result.catalog->size(), 273);
 
         const QStringList expectedIds{
             u"apps.windows-ink-workspace"_s,
@@ -183,6 +183,36 @@ private slots:
             u"apps.defender-sample-submission"_s,
             u"apps.defender-script-scanning"_s,
             u"apps.store-auto-updates"_s,
+            u"apps.paint-cocreator"_s,
+            u"apps.paint-generative-fill"_s,
+            u"apps.paint-image-creator"_s,
+            u"apps.paint-generative-erase"_s,
+            u"apps.paint-background-removal"_s,
+            u"apps.click-to-do-user"_s,
+            u"apps.click-to-do-device"_s,
+            u"apps.windows-copilot-user"_s,
+            u"apps.windows-copilot-device"_s,
+            u"apps.recall-user-data-analysis"_s,
+            u"apps.recall-device-data-analysis"_s,
+            u"apps.recall-enablement"_s,
+            u"apps.recall-snapshot-saving"_s,
+            u"apps.edge-copilot-page-context"_s,
+            u"apps.edge-copilot-page-data"_s,
+            u"apps.edge-sidebar"_s,
+            u"apps.edge-entra-copilot-context"_s,
+            u"apps.edge-history-ai-search"_s,
+            u"apps.edge-inline-compose"_s,
+            u"apps.edge-local-ai-model"_s,
+            u"apps.edge-new-tab-copilot"_s,
+            u"apps.brave-vpn"_s,
+            u"apps.brave-wallet"_s,
+            u"apps.brave-leo"_s,
+            u"apps.brave-rewards"_s,
+            u"apps.brave-talk"_s,
+            u"apps.brave-news"_s,
+            u"apps.chrome-ai-suggestions"_s,
+            u"apps.chrome-ai-history-search"_s,
+            u"apps.chrome-local-ai-model"_s,
             u"accounts.lsa-protection"_s,
             u"accounts.microsoft-accounts"_s,
             u"accounts.uac"_s,
@@ -214,6 +244,8 @@ private slots:
             u"behavior.spelling-highlighting"_s,
             u"behavior.text-predictions"_s,
             u"behavior.text-prediction-spacing"_s,
+            u"behavior.snap-bar"_s,
+            u"behavior.snap-layouts-maximize"_s,
             u"boot.hide-last-user-name"_s,
             u"boot.last-logon-info"_s,
             u"boot.lock-screen"_s,
@@ -223,7 +255,10 @@ private slots:
             u"boot.password-reveal-button"_s,
             u"boot.require-ctrl-alt-delete"_s,
             u"boot.verbose-logon-messages"_s,
+            u"boot.lock-screen-content-suggestions"_s,
+            u"boot.lock-screen-spotlight-overlay"_s,
             u"desktop.account-notifications"_s,
+            u"desktop.copilot-button"_s,
             u"desktop.drive-letter-position"_s,
             u"desktop.last-active-taskbar-window"_s,
             u"desktop.legacy-balloon-notifications"_s,
@@ -275,7 +310,11 @@ private slots:
             u"network.winrm-basic-auth"_s,
             u"network.winrm-remote-shell"_s,
             u"gaming.game-recording"_s,
+            u"gaming.game-dvr-user"_s,
+            u"gaming.app-capture-user"_s,
             u"power.hibernation"_s,
+            u"power.modern-standby-network-ac"_s,
+            u"power.modern-standby-network-battery"_s,
             u"privacy.activity-feed"_s,
             u"privacy.advertising-id-block"_s,
             u"privacy.feedback-prompts"_s,
@@ -384,6 +423,15 @@ private slots:
         QCOMPARE(altTab->detection->statesByValue.value(2), u"three"_s);
         QCOMPARE(altTab->detection->statesByValue.value(1), u"five"_s);
         QCOMPARE(altTab->detection->statesByValue.value(0), u"twenty"_s);
+
+        const auto chromeHistoryId = *TweakId::parse(u"apps.chrome-ai-history-search");
+        const auto* chromeHistory = result.catalog->find(chromeHistoryId);
+        QVERIFY(chromeHistory != nullptr);
+        QCOMPARE(chromeHistory->states.size(), 3);
+        QCOMPARE(chromeHistory->detection->statesByValue.value(0),
+                 u"enabled_model_improvement"_s);
+        QCOMPARE(chromeHistory->detection->statesByValue.value(1), u"enabled_private"_s);
+        QCOMPARE(chromeHistory->detection->statesByValue.value(2), u"disabled"_s);
     }
 };
 

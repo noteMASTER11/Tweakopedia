@@ -1,0 +1,56 @@
+id: apps.recall-enablement
+title: 'Возможность включения Windows Recall'
+category: apps
+subcategory: ai
+kind: setting
+summary: 'Определяет, разрешено ли пользователям включать Windows Recall.'
+explanation:
+  purpose: 'Позволяет заблокировать включение Recall независимо от состояния переключателя в пользовательском интерфейсе.'
+  mechanism: 'Политика AllowRecallEnablement задаёт, может ли Recall быть активирован на компьютере.'
+  effect: 'При отключении включить Recall стандартными средствами нельзя.'
+  tradeoffs: 'Функции Recall останутся недоступны до изменения политики.'
+  recommendation: 'Отключайте, если Recall не должен включаться пользователями.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI\AllowRecallEnablement: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsAI'
+        value_name: AllowRecallEnablement
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsAI'
+        value_name: AllowRecallEnablement
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22621, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsAI'
+  value_name: AllowRecallEnablement
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

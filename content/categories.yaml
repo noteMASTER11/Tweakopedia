@@ -19,6 +19,8 @@ categories:
         title: Сообщения и диагностика входа
       - id: sign-in
         title: Экран блокировки и входа
+      - id: lock-screen
+        title: Содержимое экрана блокировки
   - id: accounts
     title: Учётные записи и системные полномочия
     subcategories:
@@ -101,6 +103,14 @@ categories:
         title: Microsoft Store
       - id: ai
         title: ИИ-компоненты Windows
+      - id: edge-ai
+        title: ИИ-функции Microsoft Edge
+      - id: edge-ui
+        title: Интерфейс Microsoft Edge
+      - id: chrome-ai
+        title: ИИ-функции Google Chrome
+      - id: brave
+        title: Компоненты браузера Brave
   - id: app-removal
     title: Удаление приложений
     subcategories:
@@ -130,6 +140,8 @@ categories:
     subcategories:
       - id: sleep
         title: Сон и гибернация
+      - id: standby
+        title: Modern Standby
   - id: updates
     title: Обновления Windows
     subcategories:

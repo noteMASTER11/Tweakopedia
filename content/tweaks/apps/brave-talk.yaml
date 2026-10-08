@@ -1,0 +1,60 @@
+id: apps.brave-talk
+title: 'Видеозвонки Brave Talk'
+category: apps
+subcategory: brave
+kind: setting
+summary: 'Управляет встроенной службой видеозвонков Brave Talk.'
+explanation:
+  purpose: 'Позволяет отдельно включить или отключить Brave Talk политикой браузера.'
+  mechanism: 'DWORD BraveTalkDisabled в разделе политик Brave принудительно задаёт состояние функции.'
+  effect: 'При отключении точки запуска Brave Talk исчезают.'
+  tradeoffs: 'Создавать звонки через встроенную службу браузера нельзя.'
+  recommendation: 'Отключайте, если используете другую службу связи.'
+  technical_details: 'DWORD HKLM\Software\Policies\BraveSoftware\Brave\BraveTalkDisabled: 1 — выключено, 0 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [brave]
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\BraveSoftware\Brave'
+        value_name: BraveTalkDisabled
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\BraveSoftware\Brave'
+        value_name: BraveTalkDisabled
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\BraveSoftware\Brave'
+  value_name: BraveTalkDisabled
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

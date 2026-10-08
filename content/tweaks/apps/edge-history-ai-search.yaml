@@ -1,0 +1,59 @@
+id: apps.edge-history-ai-search
+title: 'ИИ-поиск по истории Edge'
+category: apps
+subcategory: edge-ai
+kind: setting
+summary: 'Управляет интеллектуальным поиском по истории браузера Microsoft Edge.'
+explanation:
+  purpose: 'Позволяет отдельно отключить обработку запросов к истории с помощью ИИ.'
+  mechanism: 'Политика EdgeHistoryAISearchEnabled задаёт доступность ИИ-поиска по истории.'
+  effect: 'При отключении история остаётся доступна, но ИИ-поиск по ней не используется.'
+  tradeoffs: 'Поиск по смыслу и связанные подсказки могут исчезнуть.'
+  recommendation: 'Отключайте, если достаточно обычного поиска по истории.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Edge\EdgeHistoryAISearchEnabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: EdgeHistoryAISearchEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: EdgeHistoryAISearchEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Edge'
+  value_name: EdgeHistoryAISearchEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,56 @@
+id: apps.click-to-do-device
+title: 'Click to Do для всего компьютера'
+category: apps
+subcategory: ai
+kind: setting
+summary: 'Управляет функцией Click to Do для всех пользователей компьютера.'
+explanation:
+  purpose: 'Позволяет централизованно запретить или разрешить Click to Do на устройстве.'
+  mechanism: 'Компьютерная политика DisableClickToDo имеет область действия для всего компьютера.'
+  effect: 'При отключении Click to Do блокируется во всех пользовательских профилях.'
+  tradeoffs: 'Ни один пользователь не сможет использовать контекстные действия Click to Do.'
+  recommendation: 'Используйте эту настройку, если требуется единое поведение для всех профилей.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI\DisableClickToDo: 1 — выключено, 0 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsAI'
+        value_name: DisableClickToDo
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsAI'
+        value_name: DisableClickToDo
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows11
+    builds: [22621, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsAI'
+  value_name: DisableClickToDo
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

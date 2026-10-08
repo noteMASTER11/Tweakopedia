@@ -1,0 +1,60 @@
+id: apps.chrome-ai-suggestions
+title: 'Предложения ИИ-функций в Chrome'
+category: apps
+subcategory: chrome-ai
+kind: setting
+summary: 'Управляет предложениями ИИ-возможностей в подходящих местах интерфейса Chrome.'
+explanation:
+  purpose: 'Позволяет убрать подсказки Chrome о доступных ИИ-функциях.'
+  mechanism: 'Политика ChromeSuggestionsSettings разрешает или запрещает предложения ИИ-возможностей.'
+  effect: 'При отключении Chrome не предлагает ИИ-функции в контекстных местах интерфейса.'
+  tradeoffs: 'Пользователь не увидит подсказки о новых ИИ-возможностях браузера.'
+  recommendation: 'Отключайте, если такие предложения мешают или не используются.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Google\Chrome\ChromeSuggestionsSettings: 0 — разрешить, 1 — запретить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [chrome]
+states:
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: ChromeSuggestionsSettings
+        view: registry64
+        value: 0
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: ChromeSuggestionsSettings
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Google\Chrome'
+  value_name: ChromeSuggestionsSettings
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

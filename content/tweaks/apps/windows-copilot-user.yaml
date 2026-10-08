@@ -1,0 +1,56 @@
+id: apps.windows-copilot-user
+title: 'Windows Copilot для текущего пользователя'
+category: apps
+subcategory: ai
+kind: setting
+summary: 'Разрешает или запрещает Windows Copilot в текущем профиле.'
+explanation:
+  purpose: 'Позволяет ограничить Windows Copilot для одного пользователя без изменения остальных профилей.'
+  mechanism: 'Пользовательская политика TurnOffWindowsCopilot определяет доступность системного Copilot.'
+  effect: 'При отключении системные точки запуска Windows Copilot перестают работать в текущем профиле.'
+  tradeoffs: 'Функции Copilot в Windows станут недоступны этому пользователю.'
+  recommendation: 'Используйте для индивидуальной настройки профиля.'
+  technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows\WindowsCopilot\TurnOffWindowsCopilot: 1 — выключено, 0 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\WindowsCopilot'
+        value_name: TurnOffWindowsCopilot
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\WindowsCopilot'
+        value_name: TurnOffWindowsCopilot
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows11
+    builds: [22621, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\WindowsCopilot'
+  value_name: TurnOffWindowsCopilot
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

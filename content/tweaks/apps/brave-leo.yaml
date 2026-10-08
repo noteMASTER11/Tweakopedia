@@ -1,0 +1,60 @@
+id: apps.brave-leo
+title: 'ИИ-помощник Leo в Brave'
+category: apps
+subcategory: brave
+kind: setting
+summary: 'Управляет встроенным ИИ-помощником Leo в браузере Brave.'
+explanation:
+  purpose: 'Позволяет отдельно включить или отключить ИИ-помощник Leo в Brave политикой браузера.'
+  mechanism: 'DWORD BraveAIChatEnabled в разделе политик Brave принудительно задаёт состояние функции.'
+  effect: 'При отключении чат Leo и связанные команды становятся недоступны.'
+  tradeoffs: 'Встроенный ИИ-помощник Brave работать не будет.'
+  recommendation: 'Отключайте, если Leo не используется.'
+  technical_details: 'DWORD HKLM\Software\Policies\BraveSoftware\Brave\BraveAIChatEnabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [brave]
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\BraveSoftware\Brave'
+        value_name: BraveAIChatEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\BraveSoftware\Brave'
+        value_name: BraveAIChatEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\BraveSoftware\Brave'
+  value_name: BraveAIChatEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

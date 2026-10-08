@@ -1,0 +1,60 @@
+id: apps.brave-rewards
+title: 'Вознаграждения Brave Rewards'
+category: apps
+subcategory: brave
+kind: setting
+summary: 'Управляет программой вознаграждений Brave Rewards.'
+explanation:
+  purpose: 'Позволяет отдельно включить или отключить Brave Rewards политикой браузера.'
+  mechanism: 'DWORD BraveRewardsDisabled в разделе политик Brave принудительно задаёт состояние функции.'
+  effect: 'При отключении элементы Rewards и связанные предложения скрываются.'
+  tradeoffs: 'Начисление и использование вознаграждений в Brave станет недоступно.'
+  recommendation: 'Отключайте, если не участвуете в Brave Rewards.'
+  technical_details: 'DWORD HKLM\Software\Policies\BraveSoftware\Brave\BraveRewardsDisabled: 1 — выключено, 0 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [brave]
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\BraveSoftware\Brave'
+        value_name: BraveRewardsDisabled
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\BraveSoftware\Brave'
+        value_name: BraveRewardsDisabled
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\BraveSoftware\Brave'
+  value_name: BraveRewardsDisabled
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

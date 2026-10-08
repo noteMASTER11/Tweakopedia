@@ -1,0 +1,59 @@
+id: apps.edge-new-tab-copilot
+title: 'Copilot на новой вкладке Edge'
+category: apps
+subcategory: edge-ai
+kind: setting
+summary: 'Управляет интеграцией Copilot со страницей новой вкладки Microsoft Edge.'
+explanation:
+  purpose: 'Позволяет убрать точку входа Copilot с новой вкладки, не отключая остальные элементы браузера.'
+  mechanism: 'Политика NewTabPageBingChatEnabled задаёт доступность Copilot на новой вкладке.'
+  effect: 'При отключении новая вкладка не показывает интеграцию Copilot.'
+  tradeoffs: 'Быстрый доступ к Copilot с новой вкладки исчезнет.'
+  recommendation: 'Отключайте, если эта точка входа не используется.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Edge\NewTabPageBingChatEnabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: NewTabPageBingChatEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: NewTabPageBingChatEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Edge'
+  value_name: NewTabPageBingChatEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

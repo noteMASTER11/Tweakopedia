@@ -1,0 +1,56 @@
+id: apps.windows-copilot-device
+title: 'Windows Copilot для всего компьютера'
+category: apps
+subcategory: ai
+kind: setting
+summary: 'Разрешает или запрещает Windows Copilot для всех пользователей.'
+explanation:
+  purpose: 'Задаёт единое состояние Windows Copilot на компьютере.'
+  mechanism: 'Компьютерная политика TurnOffWindowsCopilot применяется ко всем профилям.'
+  effect: 'При отключении Windows Copilot блокируется для всех пользователей устройства.'
+  tradeoffs: 'Системные функции Copilot не будут доступны ни в одном профиле.'
+  recommendation: 'Используйте, если Copilot должен иметь одинаковое состояние для всех пользователей.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot\TurnOffWindowsCopilot: 1 — выключено, 0 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot'
+        value_name: TurnOffWindowsCopilot
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot'
+        value_name: TurnOffWindowsCopilot
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows11
+    builds: [22621, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot'
+  value_name: TurnOffWindowsCopilot
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

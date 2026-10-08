@@ -1,0 +1,70 @@
+id: apps.chrome-ai-history-search
+title: 'ИИ-поиск по истории Chrome'
+category: apps
+subcategory: chrome-ai
+kind: setting
+summary: 'Выбирает режим поиска по истории Chrome с обработкой содержимого посещённых страниц.'
+explanation:
+  purpose: 'Позволяет включить ИИ-поиск по истории с выбранным режимом обработки данных либо полностью его отключить.'
+  mechanism: 'Политика HistorySearchSettings принимает три именованных режима: 0, 1 и 2.'
+  effect: 'Chrome может формировать ответы по содержимому истории, работать без использования пользовательского содержимого для улучшения моделей либо отключить функцию.'
+  tradeoffs: 'Полное отключение убирает поиск по смыслу; режим 0 допускает использование связанного содержимого для улучшения моделей Google.'
+  recommendation: 'Для сохранения функции без улучшения моделей выбирайте ограниченный режим.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Google\Chrome\HistorySearchSettings: 0 — разрешить с улучшением моделей, 1 — разрешить без улучшения моделей, 2 — запретить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [chrome]
+states:
+  enabled_model_improvement:
+    title: 'Разрешить и улучшать модели'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: HistorySearchSettings
+        view: registry64
+        value: 0
+  enabled_private:
+    title: 'Разрешить без улучшения моделей'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: HistorySearchSettings
+        view: registry64
+        value: 1
+  disabled:
+    title: 'Запретить'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: HistorySearchSettings
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled_model_improvement
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled_model_improvement
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Google\Chrome'
+  value_name: HistorySearchSettings
+  view: registry64
+  states:
+    0: enabled_model_improvement
+    1: enabled_private
+    2: disabled
+  missing_state: enabled_model_improvement
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

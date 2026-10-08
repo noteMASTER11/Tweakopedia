@@ -1,0 +1,59 @@
+id: gaming.game-dvr-user
+title: 'Game DVR в профиле пользователя'
+category: gaming
+subcategory: capture
+kind: setting
+summary: 'Управляет пользовательской частью платформы Game DVR.'
+explanation:
+  purpose: 'Позволяет включить или отключить Game DVR в текущем профиле независимо от компьютерной политики.'
+  mechanism: 'Параметр GameDVR_Enabled хранит пользовательское состояние Game DVR.'
+  effect: 'При отключении текущий пользователь не сможет использовать связанные возможности записи игр.'
+  tradeoffs: 'Запись клипов и фоновые функции Game DVR могут перестать работать.'
+  recommendation: 'Отключайте, если запись игрового процесса средствами Windows не используется.'
+  technical_details: 'DWORD HKCU\System\GameConfigStore\GameDVR_Enabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'System\GameConfigStore'
+        value_name: GameDVR_Enabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'System\GameConfigStore'
+        value_name: GameDVR_Enabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'System\GameConfigStore'
+  value_name: GameDVR_Enabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

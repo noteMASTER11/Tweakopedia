@@ -1,0 +1,56 @@
+id: apps.recall-user-data-analysis
+title: 'Анализ данных Recall для текущего пользователя'
+category: apps
+subcategory: ai
+kind: setting
+summary: 'Управляет анализом данных Windows Recall в текущем профиле.'
+explanation:
+  purpose: 'Позволяет запретить обработку данных Recall только для текущего пользователя.'
+  mechanism: 'Пользовательская политика DisableAIDataAnalysis задаёт возможность анализа сохранённого содержимого.'
+  effect: 'При отключении Recall не выполняет анализ данных в текущем профиле.'
+  tradeoffs: 'Поиск и контекстные возможности Recall, зависящие от анализа, работать не будут.'
+  recommendation: 'Используйте, если ограничение требуется только одному профилю.'
+  technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows\WindowsAI\DisableAIDataAnalysis: 1 — выключено, 0 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\WindowsAI'
+        value_name: DisableAIDataAnalysis
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\WindowsAI'
+        value_name: DisableAIDataAnalysis
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows11
+    builds: [22621, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\WindowsAI'
+  value_name: DisableAIDataAnalysis
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

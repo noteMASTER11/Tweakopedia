@@ -1,0 +1,56 @@
+id: power.modern-standby-network-ac
+title: 'Сеть в Modern Standby от электросети'
+category: power
+subcategory: standby
+kind: setting
+summary: 'Управляет сетевым подключением во время Modern Standby при питании от электросети.'
+explanation:
+  purpose: 'Позволяет отдельно настроить фоновую сетевую активность во сне, когда компьютер подключён к питанию.'
+  mechanism: 'Политика ACSettingIndex задаёт сетевое подключение Modern Standby для режима от сети.'
+  effect: 'При отключении Windows не поддерживает сетевое подключение в Modern Standby от электросети.'
+  tradeoffs: 'Фоновые сетевые задачи во сне не выполняются, но снижается активность устройства.'
+  recommendation: 'Оставляйте включённым, если во сне нужны сетевые уведомления и синхронизация.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Power\PowerSettings\f15576e8-98b7-4186-b944-eafa664402d9\ACSettingIndex: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Power\PowerSettings\f15576e8-98b7-4186-b944-eafa664402d9'
+        value_name: ACSettingIndex
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Power\PowerSettings\f15576e8-98b7-4186-b944-eafa664402d9'
+        value_name: ACSettingIndex
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Power\PowerSettings\f15576e8-98b7-4186-b944-eafa664402d9'
+  value_name: ACSettingIndex
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,60 @@
+id: apps.chrome-local-ai-model
+title: 'Локальная базовая ИИ-модель Chrome'
+category: apps
+subcategory: chrome-ai
+kind: setting
+summary: 'Управляет загрузкой и локальным использованием базовой генеративной модели Chrome.'
+explanation:
+  purpose: 'Позволяет разрешить или запретить локальную модель, используемую поддерживаемыми ИИ-функциями Chrome.'
+  mechanism: 'Политика GenAILocalFoundationalModelSettings определяет автоматическую загрузку модели и локальный вывод.'
+  effect: 'При запрете Chrome не загружает модель и удаляет уже загруженную копию.'
+  tradeoffs: 'Функции, зависящие от локальной модели, могут стать недоступны.'
+  recommendation: 'Запрещайте, если локальные ИИ-функции Chrome не используются.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Google\Chrome\GenAILocalFoundationalModelSettings: 0 — загружать и использовать, 1 — не загружать.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [chrome]
+states:
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: GenAILocalFoundationalModelSettings
+        view: registry64
+        value: 0
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: GenAILocalFoundationalModelSettings
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Google\Chrome'
+  value_name: GenAILocalFoundationalModelSettings
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

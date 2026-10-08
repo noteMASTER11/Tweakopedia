@@ -1,0 +1,56 @@
+id: apps.paint-generative-fill
+title: 'Генеративная заливка в Paint'
+category: apps
+subcategory: ai
+kind: setting
+summary: 'Управляет генеративным заполнением выделенных областей изображения в Paint.'
+explanation:
+  purpose: 'Позволяет отдельно управлять генеративной заливкой без отключения остальных функций Paint.'
+  mechanism: 'Политика DisableGenerativeFill блокирует или разрешает команду генеративной заливки.'
+  effect: 'При отключении Paint не предлагает создание содержимого внутри выделенной области.'
+  tradeoffs: 'Обычные инструменты заливки остаются доступны, но генеративная обработка исчезает.'
+  recommendation: 'Отключайте, если генеративное заполнение не используется.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Paint\DisableGenerativeFill: 1 — выключено, 0 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Paint'
+        value_name: DisableGenerativeFill
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Paint'
+        value_name: DisableGenerativeFill
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows11
+    builds: [22621, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Paint'
+  value_name: DisableGenerativeFill
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

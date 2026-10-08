@@ -1,0 +1,56 @@
+id: apps.paint-cocreator
+title: 'Cocreator в Paint'
+category: apps
+subcategory: ai
+kind: setting
+summary: 'Управляет генерацией изображений по текстовому описанию в Paint.'
+explanation:
+  purpose: 'Позволяет отдельно включить или отключить функцию Cocreator, не затрагивая остальные инструменты Paint.'
+  mechanism: 'Политика DisableCocreator сообщает Paint, разрешено ли показывать и запускать Cocreator.'
+  effect: 'При отключении команда Cocreator становится недоступна в Paint.'
+  tradeoffs: 'Генерация изображений через Cocreator работать не будет; обычное рисование и редактирование сохраняются.'
+  recommendation: 'Отключайте, если не используете генерацию изображений в Paint.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Paint\DisableCocreator: 1 — выключено, 0 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Paint'
+        value_name: DisableCocreator
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Paint'
+        value_name: DisableCocreator
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows11
+    builds: [22621, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Paint'
+  value_name: DisableCocreator
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false
