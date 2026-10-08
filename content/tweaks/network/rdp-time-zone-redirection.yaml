@@ -1,0 +1,19 @@
+id: network.rdp-time-zone-redirection
+title: 'Часовой пояс клиента в RDP'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Показывает в удалённом сеансе локальное время по часовому поясу клиента.'
+explanation: {purpose: 'Согласует отображаемое время удалённого сеанса с местоположением пользователя.', mechanism: 'Политика fEnableTimeZoneRedirection передаёт часовой пояс клиента удалённой системе.', effect: 'Приложения сеанса показывают время в часовом поясе клиента.', tradeoffs: 'Время интерфейса может отличаться от локального времени удалённого компьютера.', recommendation: 'Включайте для пользователей, подключающихся из разных часовых поясов.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\fEnableTimeZoneRedirection: 0 — выключено, 1 — включено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  disabled: {title: 'Часовой пояс узла', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fEnableTimeZoneRedirection, view: registry64, value: 0}]}
+  enabled: {title: 'Часовой пояс клиента', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fEnableTimeZoneRedirection, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: disabled}, {os: windows11, builds: [22000, 26200], state: disabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fEnableTimeZoneRedirection, view: registry64, states: {0: disabled, 1: enabled}, missing_state: disabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

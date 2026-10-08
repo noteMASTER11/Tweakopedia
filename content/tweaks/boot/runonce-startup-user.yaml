@@ -1,0 +1,19 @@
+id: boot.runonce-startup-user
+title: 'Однократные команды RunOnce пользователя'
+category: boot
+subcategory: sign-in
+kind: setting
+summary: 'Разрешает выполнять пользовательские команды RunOnce при следующем входе.'
+explanation: {purpose: 'Управляет одноразовыми действиями, запланированными приложениями для текущего пользователя.', mechanism: 'Инвертированная политика DisableCurrentUserRunOnce разрешает или игнорирует раздел RunOnce профиля.', effect: 'При отключении подготовленные одноразовые действия не выполняются.', tradeoffs: 'Установка, обновление или первичная настройка программ может не завершиться.', recommendation: 'Оставляйте включённым, если нет точной причины блокировать RunOnce.', technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\DisableCurrentUserRunOnce: 0 — выполнять, 1 — не выполнять.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  enabled: {title: 'Выполнять', operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: DisableCurrentUserRunOnce, view: registry64, value: 0}]}
+  disabled: {title: 'Не выполнять', operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: DisableCurrentUserRunOnce, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: DisableCurrentUserRunOnce, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: high
+reversibility: reversible
+requires_network: false

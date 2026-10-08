@@ -1,0 +1,19 @@
+id: behavior.control-panel-view
+title: 'Представление Панели управления'
+category: behavior
+subcategory: control-panel
+kind: setting
+summary: 'Выбирает начальное представление Панели управления: категории или полный список элементов.'
+explanation: {purpose: 'Задаёт вид, который открывается в классической Панели управления.', mechanism: 'Параметр ForceClassicControlPanel переключает категорийное и классическое представления.', effect: 'Меняется стартовая группировка элементов, но сами настройки остаются доступными.', tradeoffs: 'Категории проще для редких пользователей, полный список быстрее для опытных.', recommendation: 'Выбирайте представление, в котором удобнее находить нужные параметры.', technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\ForceClassicControlPanel: 0 — категории, 1 — все элементы.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  category: {title: 'Категории', operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: ForceClassicControlPanel, view: registry64, value: 0}]}
+  all_items: {title: 'Все элементы', operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: ForceClassicControlPanel, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: category}, {os: windows11, builds: [22000, 26200], state: category}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: ForceClassicControlPanel, view: registry64, states: {0: category, 1: all_items}, missing_state: category}
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,19 @@
+id: network.rdp-disconnect-on-lock-local
+title: 'Отключение RDP при блокировке локальным пользователем'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Определяет, будет ли активный RDP-сеанс отключён при локальной блокировке компьютера.'
+explanation: {purpose: 'Управляет судьбой удалённого сеанса при локальной блокировке.', mechanism: 'Политика fDisconnectOnLockLegacy выбирает между обычным экраном блокировки и разрывом RDP-подключения.', effect: 'При выборе отключения удалённый клиент теряет соединение.', tradeoffs: 'Несохранённая работа остаётся в сеансе, но подключение потребуется восстановить.', recommendation: 'Оставляйте экран блокировки, если разрыв соединения не нужен.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\fDisconnectOnLockLegacy: 0 — экран блокировки, 1 — отключить сеанс.'}
+compatibility: {architectures: [x64], os: [windows11], min_build: 22621}
+states:
+  lock_screen: {title: 'Показать экран блокировки', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fDisconnectOnLockLegacy, view: registry64, value: 0}]}
+  disconnect: {title: 'Отключить сеанс', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fDisconnectOnLockLegacy, view: registry64, value: 1}]}
+windows_defaults: [{os: windows11, builds: [22621, 26200], state: lock_screen}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fDisconnectOnLockLegacy, view: registry64, states: {0: lock_screen, 1: disconnect}, missing_state: lock_screen}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

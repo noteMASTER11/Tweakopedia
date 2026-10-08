@@ -1,0 +1,19 @@
+id: network.rdp-lpt-redirection
+title: 'LPT-порты в RDP'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Разрешает удалённому сеансу использовать параллельные порты клиента.'
+explanation: {purpose: 'Передаёт локальные LPT-порты в удалённую систему.', mechanism: 'Параметр fDisableLPT включает или блокирует перенаправление параллельных портов.', effect: 'При запрете оборудование на LPT-портах не видно в сеансе.', tradeoffs: 'Устаревшие принтеры и специализированные устройства могут перестать работать удалённо.', recommendation: 'Блокируйте, если LPT-оборудование не используется.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\fDisableLPT: 0 — разрешено, 1 — запрещено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  allowed: {title: 'Разрешено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fDisableLPT, view: registry64, value: 0}]}
+  blocked: {title: 'Запрещено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fDisableLPT, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: allowed}, {os: windows11, builds: [22000, 26200], state: allowed}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fDisableLPT, view: registry64, states: {0: allowed, 1: blocked}, missing_state: allowed}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

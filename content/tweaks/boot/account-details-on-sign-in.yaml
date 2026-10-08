@@ -1,0 +1,19 @@
+id: boot.account-details-on-sign-in
+title: 'Сведения об учётной записи на экране входа'
+category: boot
+subcategory: sign-in
+kind: setting
+summary: 'Разрешает пользователю раскрывать дополнительные сведения об учётной записи на экране входа.'
+explanation: {purpose: 'Управляет показом дополнительных данных выбранной учётной записи.', mechanism: 'Инвертированная политика BlockUserFromShowingAccountDetailsOnSignin разрешает или блокирует раскрытие сведений.', effect: 'При блокировке соответствующий элемент интерфейса входа недоступен.', tradeoffs: 'Пользователь получает меньше контекста о выбранной учётной записи.', recommendation: 'Разрешайте на личном ПК; блокируйте, если экран входа должен быть максимально лаконичным.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\System\BlockUserFromShowingAccountDetailsOnSignin: 0 — разрешить, 1 — блокировать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  allowed: {title: 'Разрешено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: BlockUserFromShowingAccountDetailsOnSignin, view: registry64, value: 0}]}
+  blocked: {title: 'Заблокировано', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: BlockUserFromShowingAccountDetailsOnSignin, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: allowed}, {os: windows11, builds: [22000, 26200], state: allowed}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: BlockUserFromShowingAccountDetailsOnSignin, view: registry64, states: {0: allowed, 1: blocked}, missing_state: allowed}
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

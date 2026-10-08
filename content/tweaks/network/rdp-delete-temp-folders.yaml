@@ -1,0 +1,19 @@
+id: network.rdp-delete-temp-folders
+title: 'Удаление временных папок RDP'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Удаляет временные папки сеанса после выхода пользователя из RDP.'
+explanation: {purpose: 'Убирает временные данные завершённых удалённых сеансов.', mechanism: 'Инвертированная политика DeleteTempDirsOnExit выбирает удаление либо сохранение папок.', effect: 'При удалении данные временной папки сеанса не остаются после выхода.', tradeoffs: 'Программы не смогут повторно использовать оставленные временные файлы.', recommendation: 'Оставляйте удаление включённым, если нет особой причины хранить временные данные.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\DeleteTempDirsOnExit: 1 — удалять, 0 — сохранять.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  delete: {title: 'Удалять', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: DeleteTempDirsOnExit, view: registry64, value: 1}]}
+  keep: {title: 'Сохранять', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: DeleteTempDirsOnExit, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: delete}, {os: windows11, builds: [22000, 26200], state: delete}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: DeleteTempDirsOnExit, view: registry64, states: {0: keep, 1: delete}, missing_state: delete}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

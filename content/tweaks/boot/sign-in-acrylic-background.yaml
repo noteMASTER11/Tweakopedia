@@ -1,0 +1,19 @@
+id: boot.sign-in-acrylic-background
+title: 'Размытие фона на экране входа'
+category: boot
+subcategory: sign-in
+kind: setting
+summary: 'Включает или отключает акриловое размытие фонового изображения на экране ввода пароля.'
+explanation: {purpose: 'Настраивает визуальное оформление экрана входа.', mechanism: 'Инвертированный параметр DisableAcrylicBackgroundOnLogon управляет эффектом акрилового размытия.', effect: 'При отключении размытия фоновое изображение остаётся чётким.', tradeoffs: 'Без размытия текст и элементы входа могут слабее отделяться от яркого изображения.', recommendation: 'Выбирайте по визуальному предпочтению; на работу входа параметр не влияет.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\System\DisableAcrylicBackgroundOnLogon: 0 — размытие включено, 1 — выключено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 18362}
+states:
+  enabled: {title: 'Размытие включено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: DisableAcrylicBackgroundOnLogon, view: registry64, value: 0}]}
+  disabled: {title: 'Размытие выключено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: DisableAcrylicBackgroundOnLogon, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [18362, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: DisableAcrylicBackgroundOnLogon, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

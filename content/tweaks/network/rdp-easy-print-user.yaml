@@ -1,0 +1,19 @@
+id: network.rdp-easy-print-user
+title: 'Драйвер Easy Print для текущего пользователя'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Задаёт пользовательский приоритет универсального драйвера Easy Print.'
+explanation: {purpose: 'Позволяет выбрать порядок драйверов принтера отдельно для текущего пользователя.', mechanism: 'Пользовательская политика UseUniversalPrinterDriverFirst управляет выбором Easy Print.', effect: 'В новых RDP-сеансах пользователя меняется драйвер перенаправленного принтера.', tradeoffs: 'Пользовательское правило может отличаться от общего правила компьютера.', recommendation: 'Используйте для индивидуальной настройки, когда общее правило менять нельзя.', technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows NT\Terminal Services\UseUniversalPrinterDriverFirst: 3 — Easy Print первым, 4 — как запасной.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  preferred: {title: 'Easy Print в приоритете', operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: UseUniversalPrinterDriverFirst, view: registry64, value: 3}]}
+  fallback: {title: 'Easy Print как запасной', operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: UseUniversalPrinterDriverFirst, view: registry64, value: 4}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: preferred}, {os: windows11, builds: [22000, 26200], state: preferred}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: UseUniversalPrinterDriverFirst, view: registry64, states: {3: preferred, 4: fallback}, missing_state: preferred}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

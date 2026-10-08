@@ -1,0 +1,19 @@
+id: network.rdp-per-session-temp-folders
+title: 'Отдельные временные папки для RDP-сеансов'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Создаёт отдельную временную папку для каждого удалённого сеанса.'
+explanation: {purpose: 'Разделяет временные данные параллельных RDP-сеансов.', mechanism: 'Политика PerSessionTempDir выбирает отдельные каталоги либо общий временный каталог пользователя.', effect: 'При разделении приложения разных сеансов не смешивают временные файлы.', tradeoffs: 'Создаётся больше временных каталогов.', recommendation: 'Используйте отдельные папки при возможных параллельных сеансах.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\PerSessionTempDir: 1 — отдельные папки, 0 — общая папка.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  per_session: {title: 'Отдельно для каждого сеанса', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: PerSessionTempDir, view: registry64, value: 1}]}
+  shared: {title: 'Общая папка', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: PerSessionTempDir, view: registry64, value: 0}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: per_session}, {os: windows11, builds: [22000, 26200], state: per_session}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: PerSessionTempDir, view: registry64, states: {0: shared, 1: per_session}, missing_state: per_session}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

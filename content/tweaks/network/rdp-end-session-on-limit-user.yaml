@@ -1,0 +1,19 @@
+id: network.rdp-end-session-on-limit-user
+title: 'Завершение RDP-сеанса по лимиту для пользователя'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Выбирает, завершать или только отключать сеанс текущего пользователя после достижения лимита времени.'
+explanation: {purpose: 'Определяет результат срабатывания ограничения времени RDP-сеанса.', mechanism: 'Пользовательская политика fResetBroken выбирает завершение сеанса либо отключение клиента.', effect: 'При завершении приложения закрываются; при отключении сеанс остаётся на компьютере.', tradeoffs: 'Завершение освобождает ресурсы, но несохранённые данные могут быть потеряны.', recommendation: 'Используйте отключение, если пользователь должен вернуться к работе.', technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows NT\Terminal Services\fResetBroken: 0 — отключить, 1 — завершить.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  disconnect: {title: 'Отключить сеанс', operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fResetBroken, view: registry64, value: 0}]}
+  end: {title: 'Завершить сеанс', operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fResetBroken, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: disconnect}, {os: windows11, builds: [22000, 26200], state: disconnect}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fResetBroken, view: registry64, states: {0: disconnect, 1: end}, missing_state: disconnect}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

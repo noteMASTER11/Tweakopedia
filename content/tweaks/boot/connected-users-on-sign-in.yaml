@@ -1,0 +1,19 @@
+id: boot.connected-users-on-sign-in
+title: 'Подключённые пользователи на экране входа'
+category: boot
+subcategory: sign-in
+kind: setting
+summary: 'Показывает или скрывает подключённых пользователей на компьютере с присоединением к домену.'
+explanation: {purpose: 'Управляет перечислением активных подключённых пользователей на экране входа.', mechanism: 'Инвертированная политика DontEnumerateConnectedUsers скрывает или показывает такие учётные записи.', effect: 'При скрытии пользователь вводит или выбирает учётную запись без этого списка.', tradeoffs: 'Становится сложнее понять, какие сеансы уже активны.', recommendation: 'Показывайте на личном компьютере; скрывайте там, где список пользователей не нужен.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\System\DontEnumerateConnectedUsers: 0 — показывать, 1 — скрывать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  shown: {title: 'Показывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: DontEnumerateConnectedUsers, view: registry64, value: 0}]}
+  hidden: {title: 'Скрывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: DontEnumerateConnectedUsers, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: shown}, {os: windows11, builds: [22000, 26200], state: shown}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: DontEnumerateConnectedUsers, view: registry64, states: {0: shown, 1: hidden}, missing_state: shown}
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

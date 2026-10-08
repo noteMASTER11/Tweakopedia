@@ -1,0 +1,19 @@
+id: network.rdp-auto-reconnect
+title: 'Автоматическое переподключение RDP'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Разрешает клиенту автоматически восстановить кратковременно потерянное RDP-соединение.'
+explanation: {purpose: 'Восстанавливает удалённый сеанс после краткого обрыва связи.', mechanism: 'Инвертированный параметр fDisableAutoReconnect разрешает или запрещает автоматическое переподключение.', effect: 'При включении клиент пытается вернуться в прежний сеанс без ручного запуска подключения.', tradeoffs: 'Клиент некоторое время повторяет попытки при нестабильной сети.', recommendation: 'Оставляйте включённым для обычной удалённой работы.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\fDisableAutoReconnect: 0 — включено, 1 — выключено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  enabled: {title: 'Включено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fDisableAutoReconnect, view: registry64, value: 0}]}
+  disabled: {title: 'Выключено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fDisableAutoReconnect, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fDisableAutoReconnect, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

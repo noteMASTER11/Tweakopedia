@@ -1,0 +1,19 @@
+id: network.rdp-rpc-encryption
+title: 'Шифрование RPC-трафика RDP'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Требует шифровать обмен RPC между узлом удалённых сеансов и клиентами.'
+explanation: {purpose: 'Задаёт обязательность шифрования служебного RPC-обмена RDP.', mechanism: 'Параметр fEncryptRPCTraffic запрещает незащищённый RPC-трафик к узлу сеансов.', effect: 'При обязательном режиме клиенты без требуемой поддержки могут не подключиться.', tradeoffs: 'Совместимость с очень старыми клиентами снижается.', recommendation: 'Требуйте шифрование, если устаревшие клиенты не используются.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\fEncryptRPCTraffic: 0 — допускается обычный режим, 1 — шифрование обязательно.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  optional: {title: 'Обычный режим', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fEncryptRPCTraffic, view: registry64, value: 0}]}
+  required: {title: 'Шифрование обязательно', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fEncryptRPCTraffic, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: optional}, {os: windows11, builds: [22000, 26200], state: optional}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fEncryptRPCTraffic, view: registry64, states: {0: optional, 1: required}, missing_state: optional}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

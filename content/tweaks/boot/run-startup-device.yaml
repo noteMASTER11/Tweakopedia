@@ -1,0 +1,19 @@
+id: boot.run-startup-device
+title: 'Общесистемные команды Run'
+category: boot
+subcategory: sign-in
+kind: setting
+summary: 'Разрешает запускать программы из общесистемного раздела Run при входе пользователей.'
+explanation: {purpose: 'Управляет программами автозапуска, заданными для всего компьютера.', mechanism: 'Инвертированная политика DisableLocalMachineRun разрешает или игнорирует машинные записи Run.', effect: 'При отключении общие программы из этого источника не запускаются после входа.', tradeoffs: 'Могут не запуститься агенты, помощники оборудования и служебные компоненты.', recommendation: 'Отключайте только при понимании всех записей общесистемного Run.', technical_details: 'DWORD HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\DisableLocalMachineRun: 0 — выполнять, 1 — не выполнять.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  enabled: {title: 'Выполнять', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: DisableLocalMachineRun, view: registry64, value: 0}]}
+  disabled: {title: 'Не выполнять', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: DisableLocalMachineRun, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: DisableLocalMachineRun, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: high
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,19 @@
+id: network.rdp-default-printer
+title: 'Принтер по умолчанию в RDP'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Выбирает, станет ли принтер клиента принтером по умолчанию в удалённом сеансе.'
+explanation: {purpose: 'Определяет принтер по умолчанию после подключения по RDP.', mechanism: 'Параметр fForceClientLptDef выбирает принтер клиента либо принтер, заданный на удалённом компьютере.', effect: 'Изменяется первоначальный выбор принтера в приложениях удалённого сеанса.', tradeoffs: 'Неудачный выбор может отправлять задания не на то устройство.', recommendation: 'Используйте принтер клиента при работе из разных мест; серверный — для постоянного рабочего места.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\fForceClientLptDef: 0 — принтер клиента, 1 — принтер удалённого компьютера.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  client_default: {title: 'Принтер клиента', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fForceClientLptDef, view: registry64, value: 0}]}
+  server_default: {title: 'Принтер удалённого компьютера', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fForceClientLptDef, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: client_default}, {os: windows11, builds: [22000, 26200], state: client_default}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fForceClientLptDef, view: registry64, states: {0: client_default, 1: server_default}, missing_state: client_default}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

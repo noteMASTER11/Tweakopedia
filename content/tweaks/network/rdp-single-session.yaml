@@ -1,0 +1,19 @@
+id: network.rdp-single-session
+title: 'Один сеанс RDP на пользователя'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Подключает пользователя к уже существующему сеансу вместо создания дополнительного.'
+explanation: {purpose: 'Ограничивает пользователя одним одновременным RDP-сеансом.', mechanism: 'Параметр fSingleSessionPerUser объединяет повторные подключения с уже открытым сеансом.', effect: 'Повторный вход возвращает пользователя к прежнему рабочему столу.', tradeoffs: 'Нельзя параллельно держать несколько независимых сеансов одной учётной записи.', recommendation: 'Используйте один сеанс для обычного персонального компьютера.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\fSingleSessionPerUser: 0 — несколько сеансов, 1 — один сеанс.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  multiple: {title: 'Несколько сеансов', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fSingleSessionPerUser, view: registry64, value: 0}]}
+  single: {title: 'Один сеанс', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fSingleSessionPerUser, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: multiple}, {os: windows11, builds: [22000, 26200], state: multiple}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fSingleSessionPerUser, view: registry64, states: {0: multiple, 1: single}, missing_state: multiple}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

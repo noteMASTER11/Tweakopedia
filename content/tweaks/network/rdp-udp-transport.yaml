@@ -1,0 +1,19 @@
+id: network.rdp-udp-transport
+title: 'Транспорт UDP для клиента RDP'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Разрешает клиенту RDP использовать UDP вместе с TCP для более отзывчивого соединения.'
+explanation: {purpose: 'Выбирает транспорт, доступный клиенту удалённого рабочего стола.', mechanism: 'Инвертированный параметр fClientDisableUDP разрешает связку TCP и UDP либо оставляет только TCP.', effect: 'UDP может улучшить плавность изображения и звука на сетях с задержками.', tradeoffs: 'В некоторых сетях UDP фильтруется или работает нестабильно.', recommendation: 'Оставляйте TCP и UDP; переключайтесь на TCP при проблемах конкретной сети.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\Client\fClientDisableUDP: 0 — TCP и UDP, 1 — только TCP.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  tcp_udp: {title: 'TCP и UDP', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services\Client', value_name: fClientDisableUDP, view: registry64, value: 0}]}
+  tcp_only: {title: 'Только TCP', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services\Client', value_name: fClientDisableUDP, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: tcp_udp}, {os: windows11, builds: [22000, 26200], state: tcp_udp}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services\Client', value_name: fClientDisableUDP, view: registry64, states: {0: tcp_udp, 1: tcp_only}, missing_state: tcp_udp}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

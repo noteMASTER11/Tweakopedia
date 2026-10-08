@@ -1,0 +1,19 @@
+id: network.rdp-disconnect-on-lock-microsoft
+title: 'Отключение RDP при блокировке учётной записью Microsoft'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Определяет поведение RDP-сеанса при блокировке пользователем с учётной записью Microsoft.'
+explanation: {purpose: 'Настраивает реакцию удалённого сеанса на блокировку для учётных записей Microsoft.', mechanism: 'Параметр fDisconnectOnLockMicrosoftIdentity выбирает экран блокировки либо отключение клиента.', effect: 'При отключении потребуется заново подключиться к оставшемуся сеансу.', tradeoffs: 'Разрыв может мешать длительным интерактивным подключениям.', recommendation: 'Выбирайте экран блокировки, если постоянство соединения важнее.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\fDisconnectOnLockMicrosoftIdentity: 0 — экран блокировки, 1 — отключить сеанс.'}
+compatibility: {architectures: [x64], os: [windows11], min_build: 22621}
+states:
+  lock_screen: {title: 'Показать экран блокировки', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fDisconnectOnLockMicrosoftIdentity, view: registry64, value: 0}]}
+  disconnect: {title: 'Отключить сеанс', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fDisconnectOnLockMicrosoftIdentity, view: registry64, value: 1}]}
+windows_defaults: [{os: windows11, builds: [22621, 26200], state: disconnect}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fDisconnectOnLockMicrosoftIdentity, view: registry64, states: {0: lock_screen, 1: disconnect}, missing_state: disconnect}
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

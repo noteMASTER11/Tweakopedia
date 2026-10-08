@@ -1,0 +1,19 @@
+id: boot.first-sign-in-animation
+title: 'Анимация первого входа в Windows'
+category: boot
+subcategory: sign-in
+kind: setting
+summary: 'Показывает полноэкранную анимацию подготовки профиля при первом входе пользователя.'
+explanation: {purpose: 'Управляет приветственными экранами во время первоначальной подготовки профиля.', mechanism: 'Параметр EnableFirstLogonAnimation включает или отключает последовательность сообщений первого входа.', effect: 'При отключении Windows не показывает эту анимацию, пока создаёт профиль.', tradeoffs: 'Пользователь видит менее информативный экран ожидания.', recommendation: 'Отключайте для лаконичного первого запуска или автоматизированного развёртывания.', technical_details: 'DWORD HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\EnableFirstLogonAnimation: 0 — выключено, 1 — включено.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  disabled: {title: 'Выключено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System', value_name: EnableFirstLogonAnimation, view: registry64, value: 0}]}
+  enabled: {title: 'Включено', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System', value_name: EnableFirstLogonAnimation, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System', value_name: EnableFirstLogonAnimation, view: registry64, states: {0: disabled, 1: enabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

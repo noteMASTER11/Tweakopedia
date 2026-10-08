@@ -1,0 +1,19 @@
+id: boot.local-users-on-domain-sign-in
+title: 'Локальные пользователи на доменном экране входа'
+category: boot
+subcategory: sign-in
+kind: setting
+summary: 'Показывает локальные учётные записи на экране входа компьютера, присоединённого к домену.'
+explanation: {purpose: 'Упрощает выбор локальной учётной записи на доменном компьютере.', mechanism: 'Политика EnumerateLocalUsers разрешает перечислять локальных пользователей.', effect: 'При включении локальные учётные записи появляются рядом с доменными вариантами входа.', tradeoffs: 'Список на экране входа становится длиннее.', recommendation: 'Включайте на компьютерах, где регулярно используются локальные учётные записи.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows\System\EnumerateLocalUsers: 0 — скрывать, 1 — показывать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  hidden: {title: 'Скрывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnumerateLocalUsers, view: registry64, value: 0}]}
+  shown: {title: 'Показывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnumerateLocalUsers, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: hidden}, {os: windows11, builds: [22000, 26200], state: hidden}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows\System', value_name: EnumerateLocalUsers, view: registry64, states: {0: hidden, 1: shown}, missing_state: hidden}
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

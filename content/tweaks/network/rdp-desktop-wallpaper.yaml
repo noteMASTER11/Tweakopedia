@@ -1,0 +1,19 @@
+id: network.rdp-desktop-wallpaper
+title: 'Фоновое изображение в сеансе RDP'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Показывает или скрывает фоновое изображение рабочего стола в удалённом сеансе.'
+explanation: {purpose: 'Позволяет уменьшить объём графических обновлений в RDP-сеансе.', mechanism: 'Параметр fNoRemoteDesktopWallpaper запрещает передачу фонового изображения рабочего стола.', effect: 'При скрытии фон заменяется однотонным оформлением.', tradeoffs: 'Интерфейс выглядит проще, зато на медленном канале передаётся меньше данных.', recommendation: 'Скрывайте фон при медленном или нестабильном подключении.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\fNoRemoteDesktopWallpaper: 0 — показывать, 1 — скрывать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  shown: {title: 'Показывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fNoRemoteDesktopWallpaper, view: registry64, value: 0}]}
+  hidden: {title: 'Скрывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fNoRemoteDesktopWallpaper, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: shown}, {os: windows11, builds: [22000, 26200], state: shown}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: fNoRemoteDesktopWallpaper, view: registry64, states: {0: shown, 1: hidden}, missing_state: shown}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

@@ -192,7 +192,7 @@ private slots:
 
         QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 435);
+        QCOMPARE(result.catalog->size(), 485);
 
         const QStringList expectedIds{
             u"apps.windows-ink-workspace"_s,
@@ -565,6 +565,56 @@ private slots:
             u"desktop.explorer-approved-shell-extensions"_s,
             u"desktop.explorer-hardware-tab"_s,
             u"power.power-throttling"_s,
+            u"network.rdp-password-saving-user"_s,
+            u"network.rdp-password-saving-device"_s,
+            u"network.rdp-always-prompt-password"_s,
+            u"network.rdp-network-level-authentication"_s,
+            u"network.rdp-disconnect-on-lock-local"_s,
+            u"network.rdp-disconnect-on-lock-microsoft"_s,
+            u"network.rdp-auto-reconnect"_s,
+            u"network.rdp-desktop-wallpaper"_s,
+            u"network.rdp-wait-app-registration"_s,
+            u"network.rdp-single-session"_s,
+            u"network.rdp-audio-playback"_s,
+            u"network.rdp-audio-capture"_s,
+            u"network.rdp-clipboard-redirection"_s,
+            u"network.rdp-com-redirection"_s,
+            u"network.rdp-default-printer"_s,
+            u"network.rdp-easy-print-device"_s,
+            u"network.rdp-easy-print-user"_s,
+            u"network.rdp-drive-redirection"_s,
+            u"network.rdp-lpt-redirection"_s,
+            u"network.rdp-pnp-redirection"_s,
+            u"network.rdp-camera-redirection"_s,
+            u"network.rdp-printer-redirection"_s,
+            u"network.rdp-smart-card-redirection"_s,
+            u"network.rdp-time-zone-redirection"_s,
+            u"network.rdp-webauthn-redirection"_s,
+            u"network.rdp-rpc-encryption"_s,
+            u"network.rdp-end-session-on-limit-user"_s,
+            u"network.rdp-end-session-on-limit-device"_s,
+            u"network.rdp-delete-temp-folders"_s,
+            u"network.rdp-per-session-temp-folders"_s,
+            u"network.rdp-unsigned-files-user"_s,
+            u"network.rdp-unsigned-files-device"_s,
+            u"network.rdp-signed-files-user"_s,
+            u"network.rdp-signed-files-device"_s,
+            u"network.rdp-prompt-credentials-client"_s,
+            u"network.rdp-udp-transport"_s,
+            u"boot.run-startup-user"_s,
+            u"boot.run-startup-device"_s,
+            u"boot.runonce-startup-user"_s,
+            u"boot.runonce-startup-device"_s,
+            u"boot.synchronous-group-policy"_s,
+            u"boot.fast-user-switching"_s,
+            u"boot.first-sign-in-animation"_s,
+            u"boot.connected-users-on-sign-in"_s,
+            u"boot.local-users-on-domain-sign-in"_s,
+            u"boot.account-details-on-sign-in"_s,
+            u"boot.lock-screen-app-notifications"_s,
+            u"boot.sign-in-acrylic-background"_s,
+            u"behavior.control-panel-view"_s,
+            u"behavior.control-panel-access"_s,
         };
         for (const auto& expectedId : expectedIds) {
             const auto id = TweakId::parse(expectedId);
@@ -717,6 +767,45 @@ private slots:
         QVERIFY(throttlingPolicy != nullptr);
         QCOMPARE(throttlingPolicy->detection->statesByValue.value(0), u"enabled"_s);
         QCOMPARE(throttlingPolicy->detection->statesByValue.value(1), u"disabled"_s);
+
+        const auto rdpReconnectId = *TweakId::parse(u"network.rdp-auto-reconnect"_s);
+        const auto* rdpReconnect = result.catalog->find(rdpReconnectId);
+        QVERIFY(rdpReconnect != nullptr);
+        QCOMPARE(rdpReconnect->detection->statesByValue.value(0), u"enabled"_s);
+        QCOMPARE(rdpReconnect->detection->statesByValue.value(1), u"disabled"_s);
+
+        const auto rdpClipboardId = *TweakId::parse(u"network.rdp-clipboard-redirection"_s);
+        const auto* rdpClipboard = result.catalog->find(rdpClipboardId);
+        QVERIFY(rdpClipboard != nullptr);
+        QCOMPARE(rdpClipboard->detection->statesByValue.value(0), u"allowed"_s);
+        QCOMPARE(rdpClipboard->detection->statesByValue.value(1), u"blocked"_s);
+
+        const auto easyPrintId = *TweakId::parse(u"network.rdp-easy-print-device"_s);
+        const auto* easyPrint = result.catalog->find(easyPrintId);
+        QVERIFY(easyPrint != nullptr);
+        QCOMPARE(easyPrint->detection->statesByValue.value(3), u"preferred"_s);
+        QCOMPARE(easyPrint->detection->statesByValue.value(4), u"fallback"_s);
+
+        const auto passwordUserId = *TweakId::parse(u"network.rdp-password-saving-user"_s);
+        const auto* passwordUser = result.catalog->find(passwordUserId);
+        QVERIFY(passwordUser != nullptr);
+        QCOMPARE(passwordUser->detection->location.hive, RegistryHive::CurrentUser);
+
+        const auto passwordDeviceId = *TweakId::parse(u"network.rdp-password-saving-device"_s);
+        const auto* passwordDevice = result.catalog->find(passwordDeviceId);
+        QVERIFY(passwordDevice != nullptr);
+        QCOMPARE(passwordDevice->detection->location.hive, RegistryHive::LocalMachine);
+
+        const auto disconnectOnLockId = *TweakId::parse(u"network.rdp-disconnect-on-lock-local"_s);
+        const auto* disconnectOnLock = result.catalog->find(disconnectOnLockId);
+        QVERIFY(disconnectOnLock != nullptr);
+        QCOMPARE(disconnectOnLock->compatibility.minimumBuild, 22621U);
+
+        const auto runUserId = *TweakId::parse(u"boot.run-startup-user"_s);
+        const auto* runUser = result.catalog->find(runUserId);
+        QVERIFY(runUser != nullptr);
+        QCOMPARE(runUser->detection->location.hive, RegistryHive::CurrentUser);
+        QCOMPARE(runUser->detection->location.valueName, u"DisableCurrentUserRun"_s);
     }
 };
 

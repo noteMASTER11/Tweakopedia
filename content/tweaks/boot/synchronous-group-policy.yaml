@@ -1,0 +1,19 @@
+id: boot.synchronous-group-policy
+title: 'Синхронная обработка групповых политик'
+category: boot
+subcategory: sign-in
+kind: setting
+summary: 'Заставляет Windows дождаться применения сетевых политик до показа рабочего стола.'
+explanation: {purpose: 'Гарантирует завершение обработки политик компьютера и пользователя до продолжения входа.', mechanism: 'Параметр SyncForegroundPolicy переключает фоновую асинхронную обработку на синхронную.', effect: 'Политики применяются предсказуемее, но вход может занять больше времени.', tradeoffs: 'При медленной сети пользователь дольше ждёт рабочий стол.', recommendation: 'Используйте в доменной среде, когда политики должны действовать уже при первом входе.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\CurrentVersion\Winlogon\SyncForegroundPolicy: 0 — асинхронно, 1 — синхронно.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  asynchronous: {title: 'Асинхронно', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\CurrentVersion\Winlogon', value_name: SyncForegroundPolicy, view: registry64, value: 0}]}
+  synchronous: {title: 'Синхронно', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\CurrentVersion\Winlogon', value_name: SyncForegroundPolicy, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: asynchronous}, {os: windows11, builds: [22000, 26200], state: asynchronous}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\CurrentVersion\Winlogon', value_name: SyncForegroundPolicy, view: registry64, states: {0: asynchronous, 1: synchronous}, missing_state: asynchronous}
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

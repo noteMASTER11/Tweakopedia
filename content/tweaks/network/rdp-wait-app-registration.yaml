@@ -1,0 +1,19 @@
+id: network.rdp-wait-app-registration
+title: 'Ожидание регистрации приложений при входе RDP'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Заставляет вход через RDP ждать завершения регистрации пакетов приложений.'
+explanation: {purpose: 'Не допускает открытия рабочего стола до завершения регистрации приложений пользователя.', mechanism: 'Политика LogonWaitForPackageRegistration синхронизирует вход RDP с обработкой пакетов приложений.', effect: 'Приложения готовы сразу после входа, но сам вход может занять больше времени.', tradeoffs: 'На профилях с большим числом пакетов появляется дополнительная задержка.', recommendation: 'Включайте, если после входа RDP приложения появляются с задержкой или работают неполно.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\LogonWaitForPackageRegistration: 0 — не ждать, 1 — ждать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  disabled: {title: 'Не ждать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: LogonWaitForPackageRegistration, view: registry64, value: 0}]}
+  enabled: {title: 'Дождаться регистрации', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: LogonWaitForPackageRegistration, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: disabled}, {os: windows11, builds: [22000, 26200], state: disabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: LogonWaitForPackageRegistration, view: registry64, states: {0: disabled, 1: enabled}, missing_state: disabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

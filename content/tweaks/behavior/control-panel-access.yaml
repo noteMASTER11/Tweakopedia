@@ -1,0 +1,19 @@
+id: behavior.control-panel-access
+title: 'Доступ к Панели управления и Параметрам'
+category: behavior
+subcategory: control-panel
+kind: setting
+summary: 'Разрешает или запрещает текущему пользователю открывать системные интерфейсы настройки Windows.'
+explanation: {purpose: 'Ограничивает изменение параметров через Панель управления и приложение Параметры.', mechanism: 'Политика NoControlPanel блокирует запуск обоих интерфейсов для текущего пользователя.', effect: 'При запрете их страницы и команды открытия становятся недоступны.', tradeoffs: 'Пользователь не сможет самостоятельно менять большинство системных параметров.', recommendation: 'Оставляйте доступ разрешённым на личном компьютере.', technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoControlPanel: 0 — разрешить, 1 — запретить.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  allowed: {title: 'Доступ разрешён', operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoControlPanel, view: registry64, value: 0}]}
+  blocked: {title: 'Доступ запрещён', operations: [{type: registry.set_dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoControlPanel, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: allowed}, {os: windows11, builds: [22000, 26200], state: allowed}]
+detect: {type: registry.dword, hive: HKCU, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', value_name: NoControlPanel, view: registry64, states: {0: allowed, 1: blocked}, missing_state: allowed}
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: high
+reversibility: reversible
+requires_network: false

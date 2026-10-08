@@ -1,0 +1,19 @@
+id: network.rdp-network-level-authentication
+title: 'Проверка подлинности на уровне сети для RDP'
+category: network
+subcategory: remote
+kind: setting
+summary: 'Требует подтвердить учётные данные до создания полноценного удалённого сеанса.'
+explanation: {purpose: 'Ограничивает создание сеанса RDP до подтверждения учётных данных.', mechanism: 'Параметр UserAuthentication включает Network Level Authentication на принимающем компьютере.', effect: 'Подключаться смогут клиенты, поддерживающие NLA.', tradeoffs: 'Очень старые RDP-клиенты могут перестать подключаться.', recommendation: 'Оставляйте включённым, если нет зависимости от устаревших клиентов.', technical_details: 'DWORD HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services\UserAuthentication: 0 — не требовать, 1 — требовать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  disabled: {title: 'Не требуется', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: UserAuthentication, view: registry64, value: 0}]}
+  enabled: {title: 'Требуется', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: UserAuthentication, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Policies\Microsoft\Windows NT\Terminal Services', value_name: UserAuthentication, view: registry64, states: {0: disabled, 1: enabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: high
+reversibility: reversible
+requires_network: false

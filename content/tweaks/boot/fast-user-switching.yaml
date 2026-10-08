@@ -1,0 +1,19 @@
+id: boot.fast-user-switching
+title: 'Быстрое переключение пользователей'
+category: boot
+subcategory: sign-in
+kind: setting
+summary: 'Показывает команды переключения пользователя без завершения текущего сеанса.'
+explanation: {purpose: 'Позволяет быстро перейти к другой учётной записи, сохранив открытый сеанс.', mechanism: 'Инвертированный параметр HideFastUserSwitching показывает или скрывает точки входа переключения.', effect: 'При скрытии пользователю придётся выйти из текущей учётной записи.', tradeoffs: 'Скрытие снижает число параллельно открытых сеансов, но мешает совместному использованию ПК.', recommendation: 'Оставляйте доступным на семейных и общих компьютерах.', technical_details: 'DWORD HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\HideFastUserSwitching: 0 — показывать, 1 — скрывать.'}
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+states:
+  enabled: {title: 'Показывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System', value_name: HideFastUserSwitching, view: registry64, value: 0}]}
+  disabled: {title: 'Скрывать', operations: [{type: registry.set_dword, hive: HKLM, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System', value_name: HideFastUserSwitching, view: registry64, value: 1}]}
+windows_defaults: [{os: windows10, builds: [10240, 19045], state: enabled}, {os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.dword, hive: HKLM, key: 'Software\Microsoft\Windows\CurrentVersion\Policies\System', value_name: HideFastUserSwitching, view: registry64, states: {0: enabled, 1: disabled}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

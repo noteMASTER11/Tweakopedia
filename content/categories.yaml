@@ -12,6 +12,8 @@ categories:
         title: Ввод текста и проверка орфографии
       - id: media
         title: Носители и автозапуск
+      - id: control-panel
+        title: Панель управления и Параметры
   - id: boot
     title: Загрузка и вход
     subcategories:
