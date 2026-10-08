@@ -471,6 +471,134 @@ private slots:
 
         QVERIFY(!model.data(model.index(0), app::HistoryListModel::CanRollbackRole).toBool());
     }
+
+    void historyDetailsDescribeRegistryChangeFromPersistedTransactionFiles()
+    {
+        QTemporaryDir root;
+        QVERIFY(root.isValid());
+        const auto directory = root.filePath(u"transaction"_s);
+        QVERIFY(QDir{}.mkpath(directory));
+
+        QFile plan(QDir(directory).filePath(u"plan.json"_s));
+        QVERIFY(plan.open(QIODevice::WriteOnly));
+        QVERIFY(plan.write(R"({
+            "body": {"operations": [{
+                "type": "registry.set_dword",
+                "tweak_id": "filesystem.win32-long-paths",
+                "target_state": "enabled",
+                "restart": "none",
+                "registry": {
+                    "hive": "HKLM",
+                    "key": "SYSTEM\\CurrentControlSet\\Control\\FileSystem",
+                    "value_name": "LongPathsEnabled",
+                    "view": "registry64",
+                    "value": 1
+                }
+            }]}
+        })") > 0);
+        plan.close();
+
+        QFile before(QDir(directory).filePath(u"before.json"_s));
+        QVERIFY(before.open(QIODevice::WriteOnly));
+        QVERIFY(before.write(R"({"operations":[{
+            "hive":1,
+            "key":"SYSTEM\\CurrentControlSet\\Control\\FileSystem",
+            "valueName":"LongPathsEnabled",
+            "view":2,
+            "presence":1,
+            "type":1,
+            "nativeType":4,
+            "rawBase64":"AAAAAA=="
+        }]})") > 0);
+        before.close();
+
+        auto backend = services();
+        auto record = persistence::TransactionRecord::pending(
+            QUuid::createUuid(), u"Изменения Windows"_s, directory);
+        record.status = persistence::TransactionStatus::Succeeded;
+        app::HistoryListModel model;
+        model.reset({record}, backend.catalog);
+
+        const auto index = model.index(0);
+        QCOMPARE(model.data(index, app::HistoryListModel::OperationCountRole).toInt(), 1);
+        QVERIFY(model.data(index, app::HistoryListModel::DetailsAvailableRole).toBool());
+        const auto operations = model.data(index, app::HistoryListModel::OperationsRole).toList();
+        QCOMPARE(operations.size(), 1);
+        const auto operation = operations.first().toMap();
+        QCOMPARE(operation.value(u"title"_s).toString(), u"Поддержка длинных путей Win32"_s);
+        QCOMPARE(operation.value(u"kind"_s).toString(), u"Реестр"_s);
+        QCOMPARE(operation.value(u"object"_s).toString(),
+                 u"HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem\\LongPathsEnabled"_s);
+        QCOMPARE(operation.value(u"before"_s).toString(), u"Выключено · DWORD 0"_s);
+        QCOMPARE(operation.value(u"after"_s).toString(), u"Включено · DWORD 1"_s);
+        QCOMPARE(operation.value(u"restart"_s).toString(), u"Не требуется"_s);
+    }
+
+    void historyDetailsReportUnavailableLegacyTransaction()
+    {
+        QTemporaryDir root;
+        QVERIFY(root.isValid());
+        auto record = persistence::TransactionRecord::pending(
+            QUuid::createUuid(), u"Старая запись"_s, root.path());
+        app::HistoryListModel model;
+
+        model.reset({record}, content::TweakCatalog{});
+
+        const auto index = model.index(0);
+        QCOMPARE(model.data(index, app::HistoryListModel::OperationCountRole).toInt(), 0);
+        QVERIFY(!model.data(index, app::HistoryListModel::DetailsAvailableRole).toBool());
+        QVERIFY(model.data(index, app::HistoryListModel::OperationsRole).toList().isEmpty());
+    }
+
+    void historyDetailsDescribeAppRemovalAndFeatureStoreChange()
+    {
+        QTemporaryDir root;
+        QVERIFY(root.isValid());
+        const auto directory = root.filePath(u"transaction"_s);
+        QVERIFY(QDir{}.mkpath(directory));
+
+        QFile plan(QDir(directory).filePath(u"plan.json"_s));
+        QVERIFY(plan.open(QIODevice::WriteOnly));
+        QVERIFY(plan.write(R"({"body":{"operations":[
+            {"type":"appx.remove","tweak_id":"app-removal.clipchamp",
+             "target_state":"removed","restart":"none",
+             "package_name":"Clipchamp.Clipchamp"},
+            {"type":"feature.set_state","tweak_id":"experimental.sudo",
+             "target_state":"enabled","restart":"explorer",
+             "feature_id":12345,"state":2}
+        ]}})") > 0);
+        plan.close();
+
+        QFile before(QDir(directory).filePath(u"before.json"_s));
+        QVERIFY(before.open(QIODevice::WriteOnly));
+        QVERIFY(before.write(R"({"operations":[
+            {"type":"appx.packages","package_name":"Clipchamp.Clipchamp",
+             "packages":[{"name":"Clipchamp.Clipchamp","full_name":"Clipchamp_1.0_x64"}]},
+            {"type":"feature.configuration","configuration":{"feature_id":12345,"state":0}}
+        ]})") > 0);
+        before.close();
+
+        auto record = persistence::TransactionRecord::pending(
+            QUuid::createUuid(), u"Смешанный пакет"_s, directory);
+        app::HistoryListModel model;
+        model.reset({record}, content::TweakCatalog{});
+
+        const auto operations = model.data(
+            model.index(0), app::HistoryListModel::OperationsRole).toList();
+        QCOMPARE(operations.size(), 2);
+        const auto removal = operations.at(0).toMap();
+        QCOMPARE(removal.value(u"kind"_s).toString(), u"Приложение"_s);
+        QCOMPARE(removal.value(u"object"_s).toString(), u"Clipchamp.Clipchamp"_s);
+        QCOMPARE(removal.value(u"before"_s).toString(), u"Установлено · пакетов: 1"_s);
+        QCOMPARE(removal.value(u"after"_s).toString(), u"removed"_s);
+
+        const auto feature = operations.at(1).toMap();
+        QCOMPARE(feature.value(u"kind"_s).toString(), u"Feature Store"_s);
+        QCOMPARE(feature.value(u"object"_s).toString(), u"Feature ID 12345"_s);
+        QCOMPARE(feature.value(u"before"_s).toString(), u"По умолчанию"_s);
+        QCOMPARE(feature.value(u"after"_s).toString(), u"enabled · состояние 2"_s);
+        QCOMPARE(feature.value(u"restart"_s).toString(), u"Перезапуск Проводника"_s);
+    }
 };
 
 QTEST_GUILESS_MAIN(AppControllerTest)

@@ -167,7 +167,7 @@ bool AppController::startup()
     refreshModels();
     refreshCategories();
     encyclopediaController_.reset(catalog_, categoryCatalog_);
-    historyModel_.reset(services_->history());
+    historyModel_.reset(services_->history(), catalog_);
     refreshSystemOverview();
     setError({});
     return true;
@@ -363,7 +363,7 @@ bool AppController::applyQueue(const QString& packageName)
     refreshDetectedStates();
     refreshModels();
     encyclopediaController_.reset(catalog_, categoryCatalog_);
-    historyModel_.reset(services_->history());
+    historyModel_.reset(services_->history(), catalog_);
     emit previewChanged();
     setError({});
     return true;
@@ -398,7 +398,7 @@ bool AppController::rollback(const QString& transactionId)
     emit operationChanged();
     refreshDetectedStates();
     refreshModels();
-    historyModel_.reset(services_->history());
+    historyModel_.reset(services_->history(), catalog_);
     setError({});
     return true;
 }

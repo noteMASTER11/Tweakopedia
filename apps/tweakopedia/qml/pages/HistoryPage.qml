@@ -13,11 +13,31 @@ Page {
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 14
-        Text { text: "История"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 28; font.weight: Font.DemiBold }
+        spacing: 8
+
+        Text {
+            text: "История"
+            color: FluentTheme.textPrimary
+            font.family: FluentTheme.fontFamily
+            font.pixelSize: 28
+            font.weight: Font.DemiBold
+        }
+
+        Text {
+            objectName: "historyDescription"
+            Layout.fillWidth: true
+            text: "Здесь сохраняются применённые пакеты Windows. Чтобы увидеть конкретные значения, раскройте пакет; кнопка «Вернуть исходное» восстановит зафиксированное состояние."
+            color: FluentTheme.textSecondary
+            wrapMode: Text.WordWrap
+            font.family: FluentTheme.fontFamily
+            font.pixelSize: 13
+            lineHeight: 1.2
+        }
+
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.topMargin: 8
             Text {
                 objectName: "historyEmptyState"
                 anchors.centerIn: parent
@@ -38,8 +58,11 @@ Page {
                     transactionId: model.transactionId
                     packageName: model.packageName
                     status: model.status
+                    updatedAt: model.updatedAt
                     error: model.error
                     canRollback: model.canRollback
+                    operations: model.operations
+                    detailsAvailable: model.detailsAvailable
                     onRollbackRequested: id => root.controller.rollback(id)
                 }
             }

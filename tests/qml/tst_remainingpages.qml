@@ -213,5 +213,9 @@ TestCase {
         const page = createTemporaryObject(historyComponent, this)
         compare(findChild(page, "historyEmptyState").visible, true)
         compare(findChild(page, "historyBackground").color, FluentTheme.canvas)
+        const description = findChild(page, "historyDescription")
+        verify(description)
+        verify(description.text.indexOf("раскройте пакет") >= 0)
+        verify(description.text.indexOf("Вернуть исходное") >= 0)
     }
 }
