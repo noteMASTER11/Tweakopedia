@@ -8,8 +8,9 @@ namespace tweakopedia::persistence {
 
 AppPaths::AppPaths(QString applicationDirectory, QString dataRootOverride)
     : applicationDirectory_(QDir::cleanPath(std::move(applicationDirectory)))
+    , productRoot_(QDir(qEnvironmentVariable("LOCALAPPDATA")).filePath(u"Tweakopedia"_s))
     , dataRoot_(dataRootOverride.isEmpty()
-          ? QDir(qEnvironmentVariable("LOCALAPPDATA")).filePath(u"Tweakopedia"_s)
+          ? QDir(productRoot_).filePath(u"Data"_s)
           : QDir::cleanPath(std::move(dataRootOverride)))
 {
 }
@@ -24,9 +25,19 @@ QString AppPaths::contentRoot() const
     return QDir(applicationDirectory_).filePath(u"content"_s);
 }
 
+const QString& AppPaths::productRoot() const noexcept
+{
+    return productRoot_;
+}
+
 const QString& AppPaths::dataRoot() const noexcept
 {
     return dataRoot_;
+}
+
+QString AppPaths::runtimeRoot() const
+{
+    return QDir(productRoot_).filePath(u"Runtime"_s);
 }
 
 QString AppPaths::databasePath() const

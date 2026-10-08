@@ -2,6 +2,8 @@ add_library(TweakopediaPackage STATIC
     PackageFooter.cpp
     PackageFooter.h
     PackageTypes.h
+    LegacyDataMigrator.cpp
+    LegacyDataMigrator.h
     PayloadManifest.cpp
     PayloadManifest.h
     RuntimeCache.cpp

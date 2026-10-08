@@ -11,7 +11,9 @@ public:
 
     [[nodiscard]] const QString& applicationDirectory() const noexcept;
     [[nodiscard]] QString contentRoot() const;
+    [[nodiscard]] const QString& productRoot() const noexcept;
     [[nodiscard]] const QString& dataRoot() const noexcept;
+    [[nodiscard]] QString runtimeRoot() const;
     [[nodiscard]] QString databasePath() const;
     [[nodiscard]] QString logsRoot() const;
     [[nodiscard]] QString transactionsRoot() const;
@@ -19,6 +21,7 @@ public:
 
 private:
     QString applicationDirectory_;
+    QString productRoot_;
     QString dataRoot_;
 };
 

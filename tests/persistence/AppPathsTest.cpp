@@ -31,7 +31,9 @@ private slots:
         const auto localAppData = QDir::cleanPath(qEnvironmentVariable("LOCALAPPDATA"));
 
         QVERIFY(!localAppData.isEmpty());
-        QCOMPARE(paths.dataRoot(), QDir(localAppData).filePath(u"Tweakopedia"_s));
+        QCOMPARE(paths.productRoot(), QDir(localAppData).filePath(u"Tweakopedia"_s));
+        QCOMPARE(paths.dataRoot(), QDir(paths.productRoot()).filePath(u"Data"_s));
+        QCOMPARE(paths.runtimeRoot(), QDir(paths.productRoot()).filePath(u"Runtime"_s));
     }
 
     void acceptsIsolatedWritableRootForTests()
@@ -44,6 +46,7 @@ private slots:
         QVERIFY(QFileInfo::exists(paths.transactionsRoot()));
         QVERIFY(QFileInfo::exists(paths.logsRoot()));
         QCOMPARE(QFileInfo(paths.databasePath()).absolutePath(), QDir::cleanPath(dataDirectory.path()));
+        QCOMPARE(paths.dataRoot(), QDir::cleanPath(dataDirectory.path()));
     }
 
     void neverCreatesWritableDataBesideExecutable()

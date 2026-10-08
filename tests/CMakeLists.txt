@@ -35,6 +35,10 @@ target_link_libraries(RuntimeCacheTest PRIVATE Qt6::Test TweakopediaPackage)
 add_dependencies(RuntimeCacheTest RuntimeCacheProbe)
 add_test(NAME RuntimeCache COMMAND RuntimeCacheTest)
 
+add_executable(LegacyDataMigratorTest package/LegacyDataMigratorTest.cpp)
+target_link_libraries(LegacyDataMigratorTest PRIVATE Qt6::Test TweakopediaPackage)
+add_test(NAME LegacyDataMigrator COMMAND LegacyDataMigratorTest)
+
 add_executable(DomainTweakDefinitionTest
     domain/TweakDefinitionTest.cpp
 )
