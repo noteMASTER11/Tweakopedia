@@ -105,14 +105,36 @@ TestCase {
         compare(findChild(row, "supportDetailsLabel").visible, true)
     }
 
-    function test_contentAndExplanationButton() {
+    function test_cardHoverAndClickOpenExplanation() {
         const row = createTemporaryObject(rowComponent, this)
         compare(findChild(row, "titleLabel").text, "Поддержка длинных путей Win32")
-        const help = findChild(row, "explanationButton")
-        verify(help)
+        compare(findChild(row, "explanationButton"), null)
+
+        const border = findChild(row, "accentBorder")
+        verify(border)
+        compare(border.visible, false)
+
+        mouseMove(row, 12, 12)
+        tryCompare(border, "visible", true)
+
         const spy = signalSpy.createObject(row, {target: row, signalName: "explanationRequested"})
-        help.clicked()
+        mouseClick(row, 12, 12)
         compare(spy.count, 1)
+        compare(row.activeFocus, true)
+
+        mouseMove(this, width - 1, height - 1)
+        tryCompare(border, "visible", false)
+    }
+
+    function test_keyboardOpensExplanationFromFocusedCard() {
+        const row = createTemporaryObject(rowComponent, this)
+        const spy = signalSpy.createObject(row, {target: row, signalName: "explanationRequested"})
+
+        row.forceActiveFocus()
+        keyClick(Qt.Key_Return)
+        keyClick(Qt.Key_Space)
+
+        compare(spy.count, 2)
     }
 
     function test_twoRapidTogglesEmitEnabledThenDisabled() {
@@ -124,6 +146,10 @@ TestCase {
             row.pending = row.targetState !== ""
         })
         const toggle = findChild(row, "binaryToggle")
+        const explanationSpy = signalSpy.createObject(row, {
+            target: row,
+            signalName: "explanationRequested"
+        })
 
         mouseClick(toggle)
         mouseClick(toggle)
@@ -132,6 +158,7 @@ TestCase {
         compare(spy.signalArguments[0][0], "enabled")
         compare(spy.signalArguments[1][0], "disabled")
         compare(row.currentState, "disabled")
+        compare(explanationSpy.count, 0)
     }
 
     Component { id: signalSpy; SignalSpy {} }

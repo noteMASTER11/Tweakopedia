@@ -19,13 +19,33 @@ Item {
     property string supportDetails: ""
     property string impact: "low"
     property string restart: "none"
-    property alias explanationButton: helpButton
 
     signal explanationRequested()
     signal targetSelected(string state)
 
     implicitHeight: Math.max(116, content.implicitHeight + 32)
     height: implicitHeight
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: "Открыть справку: " + title
+
+    function openExplanation() {
+        forceActiveFocus()
+        explanationRequested()
+    }
+
+    Keys.onReturnPressed: event => {
+        openExplanation()
+        event.accepted = true
+    }
+    Keys.onEnterPressed: event => {
+        openExplanation()
+        event.accepted = true
+    }
+    Keys.onSpacePressed: event => {
+        openExplanation()
+        event.accepted = true
+    }
 
     Rectangle {
         id: background
@@ -53,13 +73,24 @@ Item {
     }
 
     Rectangle {
-        objectName: "pendingBorder"
-        visible: root.pending
+        objectName: "accentBorder"
+        visible: root.pending || cardHover.hovered
         anchors.fill: parent
         radius: 8
         color: "transparent"
         border.width: 1
         border.color: FluentTheme.accent
+    }
+
+    MouseArea {
+        objectName: "cardClickArea"
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+        onClicked: root.openExplanation()
+    }
+
+    HoverHandler {
+        id: cardHover
     }
 
     RowLayout {
@@ -135,10 +166,5 @@ Item {
             onToggledByUser: checked => root.targetSelected(checked ? "enabled" : "disabled")
         }
 
-        InfoButton {
-            id: helpButton
-            objectName: "explanationButton"
-            onClicked: root.explanationRequested()
-        }
     }
 }

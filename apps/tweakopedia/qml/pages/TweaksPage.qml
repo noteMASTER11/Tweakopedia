@@ -82,6 +82,7 @@ Page {
         model: root.controller.filteredTweaks
 
         delegate: TweakRow {
+            id: tweakRowDelegate
             objectName: "tweakRow_" + model.id
             width: ListView.view.width
             title: model.title
@@ -98,7 +99,7 @@ Page {
             impact: model.impact
             restart: model.restart
             onTargetSelected: state => root.controller.selectTarget(model.id, state)
-            onExplanationRequested: root.showExplanation(model.id, explanationButton)
+            onExplanationRequested: root.showExplanation(model.id, tweakRowDelegate)
         }
     }
 

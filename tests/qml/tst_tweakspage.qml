@@ -98,14 +98,13 @@ TestCase {
         const page = createTemporaryObject(pageComponent, this)
         const pane = findChild(page, "infoPane")
         const row = findChild(page, "tweakRow_filesystem.win32-long-paths")
-        const trigger = findChild(row, "explanationButton")
 
-        page.showExplanation("first", trigger)
+        mouseClick(row, 16, 16)
         compare(pane.opened, true)
         compare(pane.docked, true)
         compare(findChild(pane, "infoTitle").text, "Первое пояснение")
 
-        page.showExplanation("second", trigger)
+        page.showExplanation("second", row)
         compare(pane.opened, true)
         compare(findChild(pane, "infoTitle").text, "Второе пояснение")
 
@@ -114,7 +113,7 @@ TestCase {
         pane.forceActiveFocus()
         keyClick(Qt.Key_Escape)
         compare(pane.opened, false)
-        tryCompare(trigger, "activeFocus", true)
+        tryCompare(row, "activeFocus", true)
     }
 
     function test_emptyQueueHidesCommandBar() {
