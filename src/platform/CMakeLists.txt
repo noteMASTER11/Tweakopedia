@@ -20,6 +20,7 @@ target_link_libraries(TweakopediaPlatform
         TweakopediaDomain
     PRIVATE
         advapi32
+        dxgi
         ole32
         oleaut32
         secur32

@@ -151,6 +151,7 @@ target_link_libraries(WindowsSystemOverviewProviderTest
     PRIVATE
         Qt6::Test
         TweakopediaPlatform
+        dxgi
 )
 add_test(NAME WindowsSystemOverviewProvider COMMAND WindowsSystemOverviewProviderTest)
 

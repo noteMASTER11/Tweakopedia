@@ -44,8 +44,8 @@ TestCase {
             processor: { title: "AMD Ryzen 9 7950X", details: "16 ядер · 32 потока · 4,50 ГГц" },
             memory: { title: "64 ГБ", details: "48 ГБ доступно · 6000 MT/s · 2 модуля", usedPercent: 25 },
             graphics: [
-                { name: "NVIDIA GeForce RTX 4090", details: "24 ГБ · драйвер 591.12" },
-                { name: "AMD Radeon Graphics", details: "встроенная" }
+                { name: "NVIDIA GeForce RTX 4090", details: "24 ГБ выделено · 16 ГБ разделяемой · драйвер 591.12", technical: "PCI 10DE:2D04" },
+                { name: "AMD Radeon Graphics", details: "512 МБ выделено · 16 ГБ разделяемой", technical: "PCI 1002:164E" }
             ],
             disks: [
                 { name: "Samsung SSD 990 PRO", details: "2 ТБ · SSD · NVMe", healthText: "Исправен", healthTone: "good" }

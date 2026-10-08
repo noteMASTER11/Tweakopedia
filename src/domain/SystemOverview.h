@@ -37,7 +37,10 @@ struct MemoryOverview {
 struct GraphicsAdapterOverview {
     QString name;
     quint64 adapterRamBytes{};
+    quint64 sharedSystemMemoryBytes{};
     QString driverVersion;
+    quint32 vendorId{};
+    quint32 deviceId{};
 };
 
 struct DiskOverview {

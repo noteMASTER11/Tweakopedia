@@ -2,6 +2,7 @@
 
 #include <QDate>
 #include <QHash>
+#include <QSet>
 #include <QVariant>
 
 #include <algorithm>
@@ -14,6 +15,7 @@
 #include <lmcons.h>
 #include <secext.h>
 #include <wbemidl.h>
+#include <dxgi1_2.h>
 #endif
 
 using namespace Qt::StringLiterals;
@@ -279,6 +281,71 @@ struct StorageDisk {
     domain::DiskHealth health{domain::DiskHealth::Unknown};
 };
 
+struct DxgiAdapter {
+    QString name;
+    quint64 dedicatedVideoMemory{};
+    quint64 sharedSystemMemory{};
+    quint32 vendorId{};
+    quint32 deviceId{};
+};
+
+QVector<DxgiAdapter> dxgiAdapters()
+{
+    IDXGIFactory1* rawFactory{};
+    if (FAILED(CreateDXGIFactory1(
+            __uuidof(IDXGIFactory1), reinterpret_cast<void**>(&rawFactory)))) {
+        return {};
+    }
+    ComPtr<IDXGIFactory1> factory(rawFactory);
+    QVector<DxgiAdapter> result;
+    for (UINT index = 0; ; ++index) {
+        IDXGIAdapter1* rawAdapter{};
+        if (factory->EnumAdapters1(index, &rawAdapter) == DXGI_ERROR_NOT_FOUND) break;
+        if (!rawAdapter) continue;
+        ComPtr<IDXGIAdapter1> adapter(rawAdapter);
+        DXGI_ADAPTER_DESC1 description{};
+        if (FAILED(adapter->GetDesc1(&description))
+            || (description.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)) {
+            continue;
+        }
+        result.append({
+            .name = QString::fromWCharArray(description.Description).simplified(),
+            .dedicatedVideoMemory =
+                static_cast<quint64>(description.DedicatedVideoMemory),
+            .sharedSystemMemory =
+                static_cast<quint64>(description.SharedSystemMemory),
+            .vendorId = description.VendorId,
+            .deviceId = description.DeviceId,
+        });
+    }
+    return result;
+}
+
+const DxgiAdapter* findDxgiAdapter(
+    const QString& name, const QVector<DxgiAdapter>& adapters)
+{
+    const auto normalized = name.simplified().toLower();
+    for (const auto& adapter : adapters) {
+        const auto candidate = adapter.name.simplified().toLower();
+        if (candidate == normalized
+            || candidate.contains(normalized)
+            || normalized.contains(candidate)) {
+            return &adapter;
+        }
+    }
+    return nullptr;
+}
+
+quint64 saneWmiVideoMemory(const QVariant& value)
+{
+    bool valid{};
+    const auto signedValue = value.toLongLong(&valid);
+    constexpr qint64 maximumPlausibleBytes = 1024LL * 1024 * 1024 * 1024;
+    return valid && signedValue > 0 && signedValue <= maximumPlausibleBytes
+        ? static_cast<quint64>(signedValue)
+        : 0;
+}
+
 QVector<StorageDisk> storageDisks()
 {
     WmiConnection storage(L"ROOT\\Microsoft\\Windows\\Storage");
@@ -406,16 +473,36 @@ domain::SystemOverviewSnapshot WindowsSystemOverviewProvider::collect() const
     result.memory.moduleCount = modules.size();
     if (moduleCapacity > 0) result.memory.totalBytes = moduleCapacity;
 
+    const auto dxgi = dxgiAdapters();
+    QSet<QString> matchedDxgi;
     const auto adapters = cim.query(
         u"SELECT Name, AdapterRAM, DriverVersion FROM Win32_VideoController"_s,
         {u"Name"_s, u"AdapterRAM"_s, u"DriverVersion"_s});
     for (const auto& adapter : adapters) {
         const auto name = adapter.value(u"Name"_s).toString().simplified();
         if (name.isEmpty()) continue;
+        const auto* nativeAdapter = findDxgiAdapter(name, dxgi);
+        if (nativeAdapter) matchedDxgi.insert(nativeAdapter->name.toLower());
         result.graphics.append({
             .name = name,
-            .adapterRamBytes = adapter.value(u"AdapterRAM"_s).toULongLong(),
+            .adapterRamBytes = nativeAdapter
+                ? nativeAdapter->dedicatedVideoMemory
+                : saneWmiVideoMemory(adapter.value(u"AdapterRAM"_s)),
+            .sharedSystemMemoryBytes = nativeAdapter
+                ? nativeAdapter->sharedSystemMemory : 0,
             .driverVersion = adapter.value(u"DriverVersion"_s).toString().trimmed(),
+            .vendorId = nativeAdapter ? nativeAdapter->vendorId : 0,
+            .deviceId = nativeAdapter ? nativeAdapter->deviceId : 0,
+        });
+    }
+    for (const auto& adapter : dxgi) {
+        if (matchedDxgi.contains(adapter.name.toLower())) continue;
+        result.graphics.append({
+            .name = adapter.name,
+            .adapterRamBytes = adapter.dedicatedVideoMemory,
+            .sharedSystemMemoryBytes = adapter.sharedSystemMemory,
+            .vendorId = adapter.vendorId,
+            .deviceId = adapter.deviceId,
         });
     }
 

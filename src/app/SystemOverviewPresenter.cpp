@@ -31,10 +31,14 @@ QString decimalSize(quint64 bytes)
     return cleanNumber(static_cast<double>(bytes) / (1000.0 * 1000.0)) + u" МБ"_s;
 }
 
-QString binaryGigabytes(quint64 bytes)
+QString binarySize(quint64 bytes)
 {
     constexpr double gibibyte = 1024.0 * 1024.0 * 1024.0;
-    return cleanNumber(static_cast<double>(bytes) / gibibyte) + u" ГБ"_s;
+    if (bytes >= static_cast<quint64>(gibibyte)) {
+        return cleanNumber(static_cast<double>(bytes) / gibibyte) + u" ГБ"_s;
+    }
+    return cleanNumber(
+        static_cast<double>(bytes) / (1024.0 * 1024.0), 0) + u" МБ"_s;
 }
 
 QString uptimeText(quint64 seconds)
@@ -86,7 +90,7 @@ QVariantMap SystemOverviewPresenter::present(
         ? 0
         : qRound((static_cast<double>(total - available) / static_cast<double>(total)) * 100.0);
     QStringList memoryDetails;
-    memoryDetails.append(binaryGigabytes(available) + u" доступно"_s);
+    memoryDetails.append(binarySize(available) + u" доступно"_s);
     if (snapshot.memory.speedMTs > 0) {
         memoryDetails.append(QString::number(snapshot.memory.speedMTs) + u" MT/s"_s);
     }
@@ -97,14 +101,27 @@ QVariantMap SystemOverviewPresenter::present(
     QVariantList graphics;
     for (const auto& adapter : snapshot.graphics) {
         QStringList details;
-        if (adapter.adapterRamBytes > 0) details.append(binaryGigabytes(adapter.adapterRamBytes));
+        if (adapter.adapterRamBytes > 0) {
+            details.append(binarySize(adapter.adapterRamBytes) + u" выделено"_s);
+        }
+        if (adapter.sharedSystemMemoryBytes > 0) {
+            details.append(binarySize(adapter.sharedSystemMemoryBytes) + u" разделяемой"_s);
+        }
         if (!adapter.driverVersion.isEmpty()) {
             details.append(u"драйвер "_s + adapter.driverVersion);
+        }
+        QString technical;
+        if (adapter.vendorId > 0 || adapter.deviceId > 0) {
+            technical = u"PCI %1:%2"_s
+                .arg(adapter.vendorId, 4, 16, QLatin1Char('0'))
+                .arg(adapter.deviceId, 4, 16, QLatin1Char('0'))
+                .toUpper();
         }
         graphics.append(QVariantMap{
             {u"name"_s, adapter.name},
             {u"details"_s, details.isEmpty() ? u"Дополнительные сведения отсутствуют"_s
                                              : details.join(u" · "_s)},
+            {u"technical"_s, technical},
         });
     }
 
@@ -150,7 +167,7 @@ QVariantMap SystemOverviewPresenter::present(
             {u"details"_s, processorDetails},
         }},
         {u"memory"_s, QVariantMap{
-            {u"title"_s, binaryGigabytes(snapshot.memory.totalBytes)},
+            {u"title"_s, binarySize(snapshot.memory.totalBytes)},
             {u"details"_s, memoryDetails.join(u" · "_s)},
             {u"usedPercent"_s, usedPercent},
         }},

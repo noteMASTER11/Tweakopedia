@@ -294,7 +294,7 @@ Page {
 
                     Rectangle {
                         Layout.fillWidth: true
-                        implicitHeight: 76 + graphicsRepeater.count * 49
+                        implicitHeight: 76 + graphicsRepeater.count * 62
                         radius: 10
                         color: FluentTheme.surface
                         border.color: FluentTheme.stroke
@@ -317,6 +317,7 @@ Page {
                                     spacing: 1
                                     Text { Layout.fillWidth: true; text: modelData.name; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 15; font.weight: Font.DemiBold; elide: Text.ElideRight }
                                     Text { Layout.fillWidth: true; text: modelData.details; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12; elide: Text.ElideRight }
+                                    Text { Layout.fillWidth: true; visible: modelData.technical !== ""; text: modelData.technical; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 11; elide: Text.ElideRight }
                                 }
                             }
                         }

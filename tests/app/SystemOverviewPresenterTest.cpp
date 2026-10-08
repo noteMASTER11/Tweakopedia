@@ -53,7 +53,10 @@ private slots:
         snapshot.graphics = {{
             .name = u"NVIDIA GeForce RTX 4090"_s,
             .adapterRamBytes = 24ULL * 1024 * 1024 * 1024,
+            .sharedSystemMemoryBytes = 16ULL * 1024 * 1024 * 1024,
             .driverVersion = u"591.12"_s,
+            .vendorId = 0x10DE,
+            .deviceId = 0x2D04,
         }};
         snapshot.disks = {{
             .name = u"Samsung SSD 990 PRO"_s,
@@ -81,7 +84,9 @@ private slots:
 
         const auto graphics = result.value(u"graphics"_s).toList();
         QCOMPARE(graphics.size(), 1);
-        QCOMPARE(graphics.first().toMap().value(u"details"_s), u"24 ГБ · драйвер 591.12"_s);
+        QCOMPARE(graphics.first().toMap().value(u"details"_s),
+                 u"24 ГБ выделено · 16 ГБ разделяемой · драйвер 591.12"_s);
+        QCOMPARE(graphics.first().toMap().value(u"technical"_s), u"PCI 10DE:2D04"_s);
 
         const auto disks = result.value(u"disks"_s).toList();
         QCOMPARE(disks.size(), 2);
