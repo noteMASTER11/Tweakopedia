@@ -63,19 +63,24 @@ TestCase {
         compare(toggle.enabled, data.enabled)
 
         const current = findChild(row, "currentStateLabel")
-        compare(current.prefix, "Сейчас:")
-        compare(current.stateTitle, data.currentTitle)
+        compare(current.prefix, data.pending ? "После применения:" : "Сейчас:")
+        compare(current.stateTitle, data.pending ? data.targetTitle : data.currentTitle)
         compare(findChild(current, "stateValueLabel").font.weight, Font.DemiBold)
 
-        const after = findChild(row, "targetStateLabel")
-        compare(after.visible, data.pending)
-        compare(after.prefix, "После применения:")
-        compare(after.stateTitle, data.targetTitle)
-
         const background = findChild(row, "rowBackground")
-        compare(background.color, data.pending ? FluentTheme.selected : FluentTheme.surface)
-        compare(findChild(row, "pendingStripe").visible, data.pending)
-        compare(findChild(row, "changedBadge").visible, data.pending)
+        compare(background.color, FluentTheme.surface)
+
+        const gradient = findChild(row, "pendingGradient")
+        verify(gradient)
+        compare(gradient.visible, data.pending)
+        if (data.pending) {
+            fuzzyCompare(gradient.width, row.width, 0.01)
+            compare(gradient.fadeEnd, 0.5)
+        }
+
+        compare(findChild(row, "targetStateLabel"), null)
+        compare(findChild(row, "pendingStripe"), null)
+        compare(findChild(row, "changedBadge"), null)
     }
 
     function test_binaryStateWordsAreLowercase() {
@@ -85,8 +90,9 @@ TestCase {
             targetStateTitle: "Включено",
             pending: true
         })
-        compare(findChild(row, "currentStateLabel").stateTitle, "выключено")
-        compare(findChild(row, "targetStateLabel").stateTitle, "включено")
+        const state = findChild(row, "currentStateLabel")
+        compare(state.prefix, "После применения:")
+        compare(state.stateTitle, "включено")
     }
 
     function test_unsupportedRowKeepsReasonAndDisablesToggle() {

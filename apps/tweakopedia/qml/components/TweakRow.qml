@@ -32,20 +32,34 @@ Item {
         objectName: "rowBackground"
         anchors.fill: parent
         radius: 8
-        color: root.pending ? FluentTheme.selected : FluentTheme.surface
+        color: FluentTheme.surface
         border.width: 1
-        border.color: root.pending ? FluentTheme.accent : FluentTheme.stroke
+        border.color: FluentTheme.stroke
     }
 
     Rectangle {
-        objectName: "pendingStripe"
+        id: pendingGradient
+        objectName: "pendingGradient"
+        property real fadeEnd: 0.5
         visible: root.pending
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        width: 3
-        radius: 2
-        color: FluentTheme.accent
+        anchors.fill: parent
+        radius: 8
+        gradient: Gradient {
+            orientation: Gradient.Horizontal
+            GradientStop { position: 0.0; color: Qt.rgba(0.0, 0.404, 0.753, 0.18) }
+            GradientStop { position: pendingGradient.fadeEnd; color: "transparent" }
+            GradientStop { position: 1.0; color: "transparent" }
+        }
+    }
+
+    Rectangle {
+        objectName: "pendingBorder"
+        visible: root.pending
+        anchors.fill: parent
+        radius: 8
+        color: "transparent"
+        border.width: 1
+        border.color: FluentTheme.accent
     }
 
     RowLayout {
@@ -58,26 +72,15 @@ Item {
             Layout.fillWidth: true
             spacing: 5
 
-            RowLayout {
+            Text {
+                objectName: "titleLabel"
                 Layout.fillWidth: true
-                spacing: 8
-
-                Text {
-                    objectName: "titleLabel"
-                    Layout.fillWidth: true
-                    text: root.title
-                    color: FluentTheme.textPrimary
-                    elide: Text.ElideRight
-                    font.family: FluentTheme.fontFamily
-                    font.pixelSize: 16
-                    font.weight: Font.DemiBold
-                }
-
-                FluentBadge {
-                    objectName: "changedBadge"
-                    visible: root.pending
-                    text: "Изменено"
-                }
+                text: root.title
+                color: FluentTheme.textPrimary
+                elide: Text.ElideRight
+                font.family: FluentTheme.fontFamily
+                font.pixelSize: 16
+                font.weight: Font.DemiBold
             }
 
             Text {
@@ -91,21 +94,11 @@ Item {
 
             StateLabel {
                 objectName: "currentStateLabel"
-                prefix: "Сейчас:"
-                stateId: root.currentState
+                prefix: root.pending ? "После применения:" : "Сейчас:"
+                stateId: root.pending ? root.targetState : root.currentState
                 stateTitle: root.binary
-                    ? root.currentStateTitle.toLocaleLowerCase()
-                    : root.currentStateTitle
-            }
-
-            StateLabel {
-                objectName: "targetStateLabel"
-                visible: root.pending
-                prefix: "После применения:"
-                stateId: root.targetState
-                stateTitle: root.binary
-                    ? root.targetStateTitle.toLocaleLowerCase()
-                    : root.targetStateTitle
+                    ? (root.pending ? root.targetStateTitle : root.currentStateTitle).toLocaleLowerCase()
+                    : (root.pending ? root.targetStateTitle : root.currentStateTitle)
             }
 
             Text {
