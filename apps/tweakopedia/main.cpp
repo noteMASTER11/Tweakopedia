@@ -12,6 +12,7 @@
 #include "platform/WindowsSystemProfileProvider.h"
 
 #include <QDir>
+#include <QCommandLineParser>
 #include <QEventLoop>
 #include <QFileInfo>
 #include <QGuiApplication>
@@ -20,6 +21,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QTimer>
+#include <QTemporaryDir>
 #include <QUuid>
 
 #include <functional>
@@ -33,8 +35,8 @@ namespace {
 class DesktopServices final : public app::IAppServices
 {
 public:
-    DesktopServices()
-        : paths_(QCoreApplication::applicationDirPath())
+    explicit DesktopServices(QString dataRoot = {})
+        : paths_(QCoreApplication::applicationDirPath(), std::move(dataRoot))
     {
         if (paths_.ensureDataDirectories() && database_.open(paths_.databasePath())) {
             repository_ = std::make_unique<persistence::TransactionRepository>(database_);
@@ -127,6 +129,8 @@ public:
         }
         return records;
     }
+
+    bool databaseReady() const { return repository_ != nullptr && database_.isOpen(); }
 
 private:
     static app::AppOperationResult failure(QString code, QString message)
@@ -239,13 +243,39 @@ int main(int argc, char* argv[])
     QCoreApplication::setApplicationName(u"Tweakopedia"_s);
     QCoreApplication::setOrganizationName(u"Tweakopedia"_s);
 
-    DesktopServices services;
+    QCommandLineParser parser;
+    parser.addHelpOption();
+    parser.addOption({u"self-check"_s, u"Проверить portable-комплект и завершиться."_s});
+    parser.addOption({u"no-elevation"_s, u"Не запускать операции с повышением прав."_s});
+    parser.process(app);
+
+    const auto selfCheck = parser.isSet(u"self-check"_s);
+    std::unique_ptr<QTemporaryDir> selfCheckData;
+    if (selfCheck) {
+        selfCheckData = std::make_unique<QTemporaryDir>(
+            QDir(qEnvironmentVariable("TEMP")).filePath(u"Tweakopedia-SelfCheck-XXXXXX"_s));
+        if (!selfCheckData->isValid() || !parser.isSet(u"no-elevation"_s)) return 2;
+    }
+
+    DesktopServices services(selfCheckData ? selfCheckData->path() : QString{});
     app::AppController controller(services);
-    (void)controller.startup();
+    const auto started = controller.startup();
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty(u"appController"_s, &controller);
     engine.load(QUrl(u"qrc:/qml/Main.qml"_s));
     if (engine.rootObjects().isEmpty()) return 1;
+    if (selfCheck) {
+        const auto profile = services.currentProfile();
+        const auto loaded = services.loadCatalog();
+        const auto expectedId = domain::TweakId::parse(u"filesystem.win32-long-paths"_s).value();
+        const auto supportedProfile = profile.architecture == domain::CpuArchitecture::X64
+            && (profile.family == domain::WindowsFamily::Windows10
+                || profile.family == domain::WindowsFamily::Windows11)
+            && profile.build >= 10240;
+        return started && services.databaseReady() && loaded.catalog
+                && loaded.catalog->find(expectedId) && supportedProfile
+            ? 0 : 3;
+    }
     return app.exec();
 }

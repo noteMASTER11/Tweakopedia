@@ -26,6 +26,9 @@ add_subdirectory(src/app)
 add_subdirectory(apps/executor)
 add_subdirectory(apps/tweakopedia)
 
+install(TARGETS Tweakopedia TweakopediaExecutor RUNTIME DESTINATION .)
+install(DIRECTORY content/ DESTINATION content)
+
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()

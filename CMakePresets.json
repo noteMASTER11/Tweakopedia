@@ -29,7 +29,8 @@
       "name": "mingw-release",
       "inherits": "mingw-base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_TESTING": "OFF"
       }
     }
   ],
