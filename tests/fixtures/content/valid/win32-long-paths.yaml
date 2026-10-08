@@ -1,0 +1,59 @@
+id: filesystem.win32-long-paths
+title: Поддержка длинных путей Win32
+category: filesystem
+subcategory: paths
+kind: setting
+summary: Разрешает совместимым приложениям работать с путями длиннее исторического ограничения Win32.
+explanation:
+  purpose: Снимает историческое ограничение длины пути для совместимых приложений.
+  mechanism: Windows учитывает системный параметр вместе с manifest приложения.
+  effect: Совместимые программы смогут открывать более длинные пути.
+  tradeoffs: Старые программы сохранят прежнее поведение.
+  recommendation: Полезно при работе с глубокими деревьями каталогов.
+  technical_details: Изменяется DWORD LongPathsEnabled.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14393
+states:
+  disabled:
+    title: Выключено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\FileSystem'
+        value_name: LongPathsEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: Включено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\FileSystem'
+        value_name: LongPathsEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [14393, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\FileSystem'
+  value_name: LongPathsEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

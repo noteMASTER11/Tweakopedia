@@ -1,0 +1,22 @@
+id: filesystem.missing-title
+category: filesystem
+subcategory: paths
+kind: setting
+summary: Проверка отсутствующего заголовка.
+explanation:
+  purpose: Назначение.
+  mechanism: Механизм.
+  effect: Эффект.
+  tradeoffs: Ограничения.
+  recommendation: Рекомендация.
+  technical_details: Подробности.
+compatibility: { architectures: [x64], os: [windows10], min_build: 14393 }
+states: { disabled: { title: Выключено, operations: [] } }
+windows_defaults: [{ os: windows10, builds: [14393, 19045], state: disabled }]
+detect: { type: registry.dword, hive: HKLM, key: 'SOFTWARE\Tweakopedia', value_name: Test, view: registry64, states: { 0: disabled }, missing_state: disabled }
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

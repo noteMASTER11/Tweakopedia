@@ -1,0 +1,6 @@
+categories:
+  - id: filesystem
+    title: Накопители, NTFS и файловая система
+    subcategories:
+      - id: paths
+        title: Пути и совместимость приложений

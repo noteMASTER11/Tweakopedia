@@ -1,0 +1,20 @@
+id: filesystem.bad-dword
+title: Некорректный DWORD
+category: filesystem
+subcategory: paths
+kind: setting
+summary: Проверка диапазона DWORD.
+explanation: { purpose: Назначение., mechanism: Механизм., effect: Эффект., tradeoffs: Ограничения., recommendation: Рекомендация., technical_details: Подробности. }
+compatibility: { architectures: [x64], os: [windows10], min_build: 14393 }
+states:
+  enabled:
+    title: Включено
+    operations: [{ type: registry.set_dword, hive: HKLM, key: 'SOFTWARE\Tweakopedia', value_name: Test, view: registry64, value: 4294967296 }]
+windows_defaults: [{ os: windows10, builds: [14393, 19045], state: enabled }]
+detect: { type: registry.dword, hive: HKLM, key: 'SOFTWARE\Tweakopedia', value_name: Test, view: registry64, states: { 1: enabled }, missing_state: enabled }
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

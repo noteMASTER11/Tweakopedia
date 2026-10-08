@@ -1,0 +1,59 @@
+id: filesystem.win32-long-paths
+title: Поддержка длинных путей Win32
+category: filesystem
+subcategory: paths
+kind: setting
+summary: Разрешает совместимым приложениям работать с путями длиннее исторического ограничения Win32.
+explanation:
+  purpose: Параметр снимает историческое ограничение MAX_PATH для программ, которые явно поддерживают длинные пути.
+  mechanism: Windows учитывает системный DWORD вместе с флагом longPathAware в manifest конкретного приложения.
+  effect: Совместимые файловые менеджеры, архиваторы и инструменты разработки смогут работать с более глубокими деревьями каталогов.
+  tradeoffs: Параметр не исправляет старые приложения и не меняет их внутренние ограничения длины пути.
+  recommendation: Включение уместно при работе с глубокими деревьями исходного кода, архивами и длинными именами каталогов.
+  technical_details: Изменяется 64-битный DWORD HKLM\SYSTEM\CurrentControlSet\Control\FileSystem\LongPathsEnabled.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14393
+states:
+  disabled:
+    title: Выключено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\FileSystem'
+        value_name: LongPathsEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: Включено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\FileSystem'
+        value_name: LongPathsEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [14393, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\FileSystem'
+  value_name: LongPathsEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

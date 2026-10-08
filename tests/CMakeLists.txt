@@ -20,3 +20,22 @@ target_link_libraries(DomainTweakDefinitionTest
 )
 
 add_test(NAME DomainTweakDefinition COMMAND DomainTweakDefinitionTest)
+
+add_executable(TweakCatalogLoaderTest
+    content/TweakCatalogLoaderTest.cpp
+)
+
+target_compile_definitions(TweakCatalogLoaderTest
+    PRIVATE
+        TWEAKOPEDIA_TEST_FIXTURES="${PROJECT_SOURCE_DIR}/tests/fixtures/content"
+        TWEAKOPEDIA_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content"
+)
+
+target_link_libraries(TweakCatalogLoaderTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaContent
+)
+
+add_test(NAME TweakCatalogLoader COMMAND TweakCatalogLoaderTest)
+add_test(NAME ContentCatalog COMMAND TweakCatalogLoaderTest loadsRealCatalog)
