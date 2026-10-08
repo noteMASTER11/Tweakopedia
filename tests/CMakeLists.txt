@@ -6,6 +6,11 @@ target_link_libraries(BuildSmokeTest
     PRIVATE
         Qt6::Test
 )
+target_compile_definitions(BuildSmokeTest PRIVATE
+    TWEAKOPEDIA_TEST_GUI="$<TARGET_FILE:Tweakopedia>"
+    TWEAKOPEDIA_TEST_EXECUTOR="$<TARGET_FILE:TweakopediaExecutor>"
+)
+add_dependencies(BuildSmokeTest Tweakopedia TweakopediaExecutor)
 
 add_test(NAME BuildSmoke COMMAND BuildSmokeTest)
 

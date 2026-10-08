@@ -39,14 +39,16 @@ private slots:
         FakeShellExecuteBackend backend;
         ExecutorLauncher launcher(backend);
 
+        const auto executorPath = u"D:/Кэш Tweakopedia/версия 1/Tweakopedia.Executor.exe"_s;
         const auto started = launcher.start(
-            u"D:/Portable/Tweakopedia.Executor.exe"_s,
+            executorPath,
             u"local-server"_s,
             u"one-time-nonce"_s);
 
         QVERIFY(started.started);
         QCOMPARE(started.processId, qint64{42});
         QCOMPARE(backend.request.verb, u"runas"_s);
+        QCOMPARE(backend.request.executable, executorPath);
         QVERIFY(backend.request.parameters.contains(u"local-server"_s));
         QVERIFY(backend.request.parameters.contains(u"one-time-nonce"_s));
         QVERIFY(!backend.request.parameters.contains(u"operations"_s));

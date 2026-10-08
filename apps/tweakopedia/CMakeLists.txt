@@ -5,6 +5,7 @@ qt_add_executable(Tweakopedia WIN32
     fonts.qrc
     resources.qrc
 )
+set_target_properties(Tweakopedia PROPERTIES OUTPUT_NAME "Tweakopedia.App")
 
 if(BUILD_TESTING)
     target_compile_definitions(Tweakopedia PRIVATE

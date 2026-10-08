@@ -65,8 +65,8 @@ void applyLightTitleBar(QWindow*)
 class DesktopServices final : public app::IAppServices
 {
 public:
-    explicit DesktopServices(QString dataRoot = {})
-        : paths_(QCoreApplication::applicationDirPath(), std::move(dataRoot))
+    explicit DesktopServices(QString runtimeRoot, QString dataRoot = {})
+        : paths_(std::move(runtimeRoot), std::move(dataRoot))
     {
         if (paths_.ensureDataDirectories() && database_.open(paths_.databasePath())) {
             repository_ = std::make_unique<persistence::TransactionRepository>(database_);
@@ -234,7 +234,7 @@ private:
 
         execution::WindowsShellExecuteBackend shell;
         execution::ExecutorLauncher launcher(shell);
-        const auto executable = QDir(QCoreApplication::applicationDirPath())
+        const auto executable = QDir(paths_.applicationDirectory())
             .filePath(u"Tweakopedia.Executor.exe"_s);
         const auto session = launcher.start(executable, serverName, nonce);
         if (!session.started) {
@@ -298,7 +298,26 @@ int main(int argc, char* argv[])
     parser.addHelpOption();
     parser.addOption({u"self-check"_s, u"Проверить portable-комплект и завершиться."_s});
     parser.addOption({u"no-elevation"_s, u"Не запускать операции с повышением прав."_s});
+    parser.addOption({u"runtime-root"_s, u"Каталог извлечённого runtime."_s, u"path"_s});
+    parser.addOption({u"container-path"_s, u"Путь к исходному EXE-контейнеру."_s, u"path"_s});
     parser.process(app);
+
+    const auto applicationRoot = QDir::cleanPath(QCoreApplication::applicationDirPath());
+    auto normalizedExistingPath = [](const QString& path) {
+        const QFileInfo info(path);
+        const auto canonical = info.canonicalFilePath();
+        return QDir::cleanPath(canonical.isEmpty() ? info.absoluteFilePath() : canonical);
+    };
+    const auto runtimeRoot = parser.isSet(u"runtime-root"_s)
+        ? normalizedExistingPath(parser.value(u"runtime-root"_s))
+        : applicationRoot;
+    if (QString::compare(runtimeRoot, normalizedExistingPath(applicationRoot), Qt::CaseInsensitive) != 0) {
+        return 5;
+    }
+    if (parser.isSet(u"container-path"_s)) {
+        const QFileInfo container(parser.value(u"container-path"_s));
+        if (!container.isAbsolute() || !container.isFile()) return 6;
+    }
 
     const auto selfCheck = parser.isSet(u"self-check"_s);
     std::unique_ptr<QTemporaryDir> selfCheckData;
@@ -308,7 +327,7 @@ int main(int argc, char* argv[])
         if (!selfCheckData->isValid() || !parser.isSet(u"no-elevation"_s)) return 2;
     }
 
-    DesktopServices services(selfCheckData ? selfCheckData->path() : QString{});
+    DesktopServices services(runtimeRoot, selfCheckData ? selfCheckData->path() : QString{});
     app::AppController controller(services);
     const auto started = controller.startup();
 
