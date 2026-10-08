@@ -67,6 +67,8 @@ TestCase {
             sections: [
                 {id: "purpose", title: "Назначение", text: "Назначение параметра.", technical: false},
                 {id: "mechanism", title: "Как это работает", text: "Механизм Windows.", technical: false},
+                {id: "effect", title: "Что изменится", text: "Изменяется поведение компонентов Windows.", technical: false},
+                {id: "recommendation", title: "Рекомендация", text: "Проверьте совместимость перед применением параметра.", technical: false},
                 {id: "technical", title: "Технические сведения", text: "Описание объекта.", technical: true}
             ],
             technicalObjects: ["HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection\\AllowTelemetry"],
@@ -175,5 +177,106 @@ TestCase {
                           title: "Диагностические данные Windows", summary: "",
                           path: "Конфиденциальность", depth: 0, expanded: false,
                           selected: false, matchScore: 1})
+    }
+
+    function test_adaptiveTreeAndContents() {
+        showArticle("privacy.diagnostic-data")
+        const page = createTemporaryObject(pageComponent, this, {
+            width: 1440,
+            availableWindowWidth: 1440
+        })
+        const tree = findChild(page, "tweakopediaTreePanel")
+        const treeButton = findChild(page, "tweakopediaTreeButton")
+        const contents = findChild(page, "articleContentsPanel")
+        const contentsButton = findChild(page, "articleContentsButton")
+        const sectionsGrid = findChild(page, "articleSectionsGrid")
+        const treeRow = findChild(page, "encyclopediaNode_privacy.diagnostic-data")
+        verify(tree)
+        verify(treeButton)
+        verify(contents)
+        verify(contentsButton)
+        verify(sectionsGrid)
+        verify(treeRow)
+        compare(tree.visible, true)
+        compare(treeButton.visible, false)
+        compare(contents.visible, true)
+        compare(contentsButton.visible, false)
+        compare(sectionsGrid.columns, 2)
+        verify(treeRow.width >= tree.width - 12)
+
+        const purposeCard = findChild(page, "articleSection_purpose")
+        const mechanismCard = findChild(page, "articleSection_mechanism")
+        const effectCard = findChild(page, "articleSection_effect")
+        const recommendationCard = findChild(page, "articleSection_recommendation")
+        const purposeIcon = findChild(page, "articleSectionIcon_purpose")
+        const mechanismIcon = findChild(page, "articleSectionIcon_mechanism")
+        verify(purposeCard)
+        verify(mechanismCard)
+        verify(effectCard)
+        verify(recommendationCard)
+        verify(purposeIcon)
+        verify(mechanismIcon)
+        compare(purposeCard.height, mechanismCard.height)
+        compare(effectCard.height, recommendationCard.height)
+        compare(purposeIcon.width, mechanismIcon.width)
+        compare(purposeIcon.height, mechanismIcon.height)
+        verify(findChild(page, "articleSectionGlyph_purpose").text
+               !== findChild(page, "articleSectionGlyph_mechanism").text)
+
+        page.width = 1180
+        page.availableWindowWidth = 1180
+        tryCompare(tree, "visible", true)
+        tryCompare(contents, "visible", false)
+        tryCompare(contentsButton, "visible", true)
+        compare(sectionsGrid.columns, 1)
+
+        page.width = 900
+        page.availableWindowWidth = 900
+        tryCompare(tree, "visible", false)
+        tryCompare(treeButton, "visible", true)
+        treeButton.clicked()
+        tryCompare(findChild(page, "tweakopediaTreeDrawer"), "opened", true)
+    }
+
+    function test_narrowLongContentAndRelatedCardsStayInsidePage() {
+        const data = articleData("privacy.diagnostic-data")
+        data.title = "Очень длинный заголовок статьи о параметрах Windows, который обязан переноситься и не выходить за правую границу окна"
+        data.technicalObjects = [
+            "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\DataCollection\\ExtremelyLongTechnicalObjectNameThatMustWrapInsideTheArticleCanvas"
+        ]
+        data.relatedArticles = []
+        for (let index = 0; index < 6; ++index) {
+            data.relatedArticles.push({
+                id: "related." + index,
+                title: "Связанная статья " + (index + 1),
+                summary: "Описание связанного материала.",
+                path: "Конфиденциальность › Диагностика"
+            })
+        }
+        articleModel.article = data
+        articleModel.hasArticle = true
+
+        const page = createTemporaryObject(pageComponent, this, {
+            width: 900,
+            availableWindowWidth: 900
+        })
+        const title = findChild(page, "articleTitle")
+        const section = findChild(page, "articleSection_technical")
+        verify(title)
+        verify(section)
+        section.expanded = true
+        wait(0)
+
+        const technical = findChild(page, "technicalObject_0")
+        const related = findChild(page, "relatedArticle_related.0")
+        verify(technical)
+        verify(related)
+        compare(title.wrapMode, Text.WordWrap)
+        compare(technical.wrapMode, Text.WrapAnywhere)
+        const titlePoint = title.mapToItem(page, 0, 0)
+        const technicalPoint = technical.mapToItem(page, 0, 0)
+        verify(titlePoint.x + title.width <= page.width + 1)
+        verify(technicalPoint.x + technical.width <= page.width + 1)
+        verify(related.width > page.width * 0.7)
     }
 }

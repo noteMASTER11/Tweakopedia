@@ -9,6 +9,17 @@ Rectangle {
     required property var section
     property var technicalObjects: []
     property bool expanded: !section.technical
+    readonly property string sectionIcon: {
+        switch (section.id) {
+        case "purpose": return "◎"
+        case "mechanism": return "↻"
+        case "effect": return "↗"
+        case "tradeoffs": return "!"
+        case "recommendation": return "✓"
+        case "technical": return "</>"
+        default: return "•"
+        }
+    }
 
     objectName: "articleSection_" + section.id
     implicitHeight: content.implicitHeight + 32
@@ -39,14 +50,17 @@ Rectangle {
                 spacing: 10
 
                 Rectangle {
-                    width: 30
-                    height: 30
+                    objectName: "articleSectionIcon_" + root.section.id
+                    Layout.preferredWidth: 30
+                    Layout.preferredHeight: 30
+                    Layout.alignment: Qt.AlignTop
                     radius: 15
                     color: "#EAF3FF"
 
                     Text {
+                        objectName: "articleSectionGlyph_" + root.section.id
                         anchors.centerIn: parent
-                        text: root.section.technical ? "</>" : "•"
+                        text: root.sectionIcon
                         color: FluentTheme.accent
                         font.family: FluentTheme.fontFamily
                         font.pixelSize: root.section.technical ? 11 : 20
@@ -56,6 +70,7 @@ Rectangle {
 
                 Text {
                     Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignTop
                     text: root.section.title
                     color: FluentTheme.textPrimary
                     font.family: FluentTheme.fontFamily
@@ -93,6 +108,7 @@ Rectangle {
             model: root.expanded && root.section.technical ? root.technicalObjects : []
 
             delegate: Rectangle {
+                required property int index
                 required property var modelData
                 Layout.fillWidth: true
                 implicitHeight: technicalText.implicitHeight + 16
@@ -101,6 +117,7 @@ Rectangle {
 
                 Text {
                     id: technicalText
+                    objectName: "technicalObject_" + index
                     anchors.fill: parent
                     anchors.margins: 8
                     text: modelData

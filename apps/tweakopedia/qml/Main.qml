@@ -46,7 +46,10 @@ ApplicationWindow {
                 wideLayout: window.width >= 1180
                 onReviewRequested: window.openQueue()
             }
-            TweakopediaPage { controller: appController }
+            TweakopediaPage {
+                controller: appController
+                availableWindowWidth: window.width
+            }
             QueuePage {
                 controller: appController
                 wideLayout: window.width >= 1180

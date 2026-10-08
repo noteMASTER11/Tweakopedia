@@ -30,6 +30,7 @@ FocusScope {
             id: treeDelegate
 
             objectName: "encyclopediaNode_" + (model.id || row)
+            implicitWidth: tree.width
             implicitHeight: model.nodeType === "article" ? 52 : 42
             leftMargin: 6
             rightMargin: 6

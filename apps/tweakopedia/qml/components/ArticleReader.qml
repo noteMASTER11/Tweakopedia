@@ -9,6 +9,8 @@ Item {
     required property var articleModel
     required property var controller
     property bool showContents: width >= 1000
+    property bool singleColumnSections: !showContents
+    property bool stackRelated: false
     readonly property var articleData: articleModel && articleModel.article
         ? articleModel.article : ({})
     readonly property var compatibilityData: articleData.compatibility || ({})
@@ -132,8 +134,10 @@ Item {
                 }
 
                 GridLayout {
+                    id: sectionsGrid
+                    objectName: "articleSectionsGrid"
                     Layout.fillWidth: true
-                    columns: width >= 760 ? 2 : 1
+                    columns: root.singleColumnSections ? 1 : 2
                     columnSpacing: 12
                     rowSpacing: 12
 
@@ -146,6 +150,7 @@ Item {
                             section: modelData
                             technicalObjects: root.articleData.technicalObjects || []
                             Layout.fillWidth: true
+                            Layout.fillHeight: true
                             Layout.columnSpan: modelData.technical ? parent.columns : 1
                         }
                     }
@@ -162,7 +167,10 @@ Item {
                 }
 
                 Flow {
+                    id: relatedFlow
+                    objectName: "relatedArticlesFlow"
                     Layout.fillWidth: true
+                    Layout.preferredHeight: childrenRect.height
                     spacing: 10
 
                     Repeater {
@@ -172,7 +180,9 @@ Item {
                         delegate: RelatedArticleCard {
                             required property var modelData
                             article: modelData
-                            width: Math.max(190, Math.min(260, (parent.width - 20) / 3))
+                            width: root.stackRelated
+                                ? parent.width
+                                : Math.max(190, Math.min(260, (parent.width - 20) / 3))
                             onArticleRequested: id => root.controller.openArticle(id)
                         }
                     }
@@ -183,11 +193,47 @@ Item {
         }
 
         ArticleContents {
+            objectName: "articleContentsPanel"
             Layout.preferredWidth: 210
             Layout.alignment: Qt.AlignTop
             visible: root.showContents
             sections: root.articleData.sections || []
             onSectionRequested: sectionId => root.scrollToSection(sectionId)
+        }
+    }
+
+    Button {
+        id: contentsButton
+        objectName: "articleContentsButton"
+        anchors.top: parent.top
+        anchors.right: parent.right
+        z: 2
+        visible: !root.showContents && (root.articleData.sections || []).length > 0
+        text: "Содержание"
+        Accessible.name: "Открыть содержание статьи"
+        onClicked: contentsPopup.open()
+    }
+
+    Popup {
+        id: contentsPopup
+        objectName: "articleContentsPopup"
+        parent: root
+        x: Math.max(0, root.width - width - 8)
+        y: contentsButton.height + 8
+        width: Math.min(260, root.width - 16)
+        height: Math.min(contentItem.implicitHeight, root.height - y - 8)
+        padding: 0
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        contentItem: ArticleContents {
+            objectName: "articleContentsPopupPanel"
+            width: contentsPopup.width
+            sections: root.articleData.sections || []
+            onSectionRequested: function(sectionId) {
+                root.scrollToSection(sectionId)
+                contentsPopup.close()
+            }
         }
     }
 }

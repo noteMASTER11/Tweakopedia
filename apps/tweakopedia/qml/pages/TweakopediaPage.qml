@@ -8,9 +8,12 @@ Page {
     id: root
 
     required property var controller
+    property real availableWindowWidth: width
     readonly property var encyclopedia: controller ? controller.encyclopedia : null
     property string lastRequestedSection: ""
-    readonly property bool treeVisible: width >= 980
+    readonly property bool compactLayout: availableWindowWidth < FluentTheme.compactBreakpoint
+    readonly property bool treeVisible: !compactLayout
+    readonly property bool showArticleContents: availableWindowWidth >= 1360
 
     background: Rectangle { color: FluentTheme.canvas }
 
@@ -59,6 +62,17 @@ Page {
                 onClicked: root.encyclopedia.goForward()
             }
 
+            Button {
+                id: treeButton
+                objectName: "tweakopediaTreeButton"
+                visible: root.compactLayout
+                text: "☰"
+                implicitWidth: 38
+                implicitHeight: 38
+                Accessible.name: "Открыть дерево статей"
+                onClicked: treeDrawer.open()
+            }
+
             FluentSearchField {
                 id: searchField
                 objectName: "tweakopediaSearchField"
@@ -77,7 +91,8 @@ Page {
 
             EncyclopediaTree {
                 id: encyclopediaTree
-                Layout.preferredWidth: 300
+                objectName: "tweakopediaTreePanel"
+                Layout.preferredWidth: root.showArticleContents ? 300 : 270
                 Layout.fillHeight: true
                 visible: root.treeVisible
                 model: root.encyclopedia ? root.encyclopedia.tree : null
@@ -176,8 +191,47 @@ Page {
                     visible: root.encyclopedia && root.encyclopedia.article.hasArticle
                     articleModel: root.encyclopedia.article
                     controller: root.encyclopedia
+                    showContents: root.showArticleContents
+                    singleColumnSections: !root.showArticleContents
+                    stackRelated: root.compactLayout
                     onSectionRequested: sectionId => root.lastRequestedSection = sectionId
                 }
+            }
+        }
+    }
+
+    Popup {
+        id: treeDrawer
+        objectName: "tweakopediaTreeDrawer"
+        parent: root
+        x: 24
+        y: 112
+        width: Math.min(340, root.width - 48)
+        height: Math.max(220, root.height - y - 18)
+        padding: 0
+        modal: false
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        enter: Transition {
+            NumberAnimation { property: "x"; from: -360; duration: 160; easing.type: Easing.OutCubic }
+        }
+        exit: Transition {
+            NumberAnimation { property: "x"; to: -360; duration: 120; easing.type: Easing.InCubic }
+        }
+
+        background: Rectangle {
+            color: FluentTheme.surface
+            radius: 10
+            border.width: 1
+            border.color: FluentTheme.stroke
+        }
+
+        contentItem: EncyclopediaTree {
+            model: root.encyclopedia ? root.encyclopedia.tree : null
+            onArticleRequested: function(articleId) {
+                root.encyclopedia.openArticle(articleId)
+                treeDrawer.close()
             }
         }
     }
