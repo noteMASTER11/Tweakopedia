@@ -40,6 +40,7 @@ AppController::AppController(IAppServices& services, QObject* parent)
     , categoriesModel_(this)
     , queueModel_(this)
     , historyModel_(this)
+    , encyclopediaController_(this)
 {
     filteredTweaksModel_.setSourceModel(&tweaksModel_);
     connect(&filteredTweaksModel_,
@@ -81,6 +82,7 @@ AppController::AppController(IAppServices& services, QObject* parent)
                 refreshDetectedStates();
                 refreshModels();
                 refreshCategories();
+                encyclopediaController_.reset(catalog_, categoryCatalog_);
                 appRemovalScanStatus_ = u"succeeded"_s;
                 appRemovalScanError_.clear();
                 emit appRemovalScanChanged();
@@ -102,6 +104,7 @@ TweakFilterProxyModel* AppController::filteredTweaks() noexcept { return &filter
 CategoryListModel* AppController::categories() noexcept { return &categoriesModel_; }
 QueueListModel* AppController::queue() noexcept { return &queueModel_; }
 HistoryListModel* AppController::history() noexcept { return &historyModel_; }
+EncyclopediaController* AppController::encyclopedia() noexcept { return &encyclopediaController_; }
 QString AppController::previewSummary() const { return preview_ ? preview_->summary : QString{}; }
 bool AppController::previewReady() const noexcept { return preview_.has_value() && !preview_->operations.isEmpty(); }
 QVariantList AppController::previewOperations() const
@@ -163,6 +166,7 @@ bool AppController::startup()
     refreshDetectedStates();
     refreshModels();
     refreshCategories();
+    encyclopediaController_.reset(catalog_, categoryCatalog_);
     historyModel_.reset(services_->history());
     refreshSystemOverview();
     setError({});
@@ -333,6 +337,7 @@ bool AppController::applyQueue(const QString& packageName)
     }
     refreshDetectedStates();
     refreshModels();
+    encyclopediaController_.reset(catalog_, categoryCatalog_);
     historyModel_.reset(services_->history());
     emit previewChanged();
     setError({});

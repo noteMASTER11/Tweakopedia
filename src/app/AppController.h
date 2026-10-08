@@ -2,6 +2,7 @@
 
 #include "app/HistoryListModel.h"
 #include "app/CategoryListModel.h"
+#include "app/EncyclopediaController.h"
 #include "app/QueueListModel.h"
 #include "app/TweakListModel.h"
 #include "app/TweakFilterProxyModel.h"
@@ -63,6 +64,7 @@ class AppController final : public QObject
     Q_PROPERTY(CategoryListModel* categories READ categories CONSTANT)
     Q_PROPERTY(QueueListModel* queue READ queue CONSTANT)
     Q_PROPERTY(HistoryListModel* history READ history CONSTANT)
+    Q_PROPERTY(EncyclopediaController* encyclopedia READ encyclopedia CONSTANT)
     Q_PROPERTY(QString previewSummary READ previewSummary NOTIFY previewChanged)
     Q_PROPERTY(bool previewReady READ previewReady NOTIFY previewChanged)
     Q_PROPERTY(QVariantList previewOperations READ previewOperations NOTIFY previewChanged)
@@ -86,6 +88,7 @@ public:
     [[nodiscard]] CategoryListModel* categories() noexcept;
     [[nodiscard]] QueueListModel* queue() noexcept;
     [[nodiscard]] HistoryListModel* history() noexcept;
+    [[nodiscard]] EncyclopediaController* encyclopedia() noexcept;
     [[nodiscard]] QString previewSummary() const;
     [[nodiscard]] bool previewReady() const noexcept;
     [[nodiscard]] QVariantList previewOperations() const;
@@ -141,6 +144,7 @@ private:
     CategoryListModel categoriesModel_;
     QueueListModel queueModel_;
     HistoryListModel historyModel_;
+    EncyclopediaController encyclopediaController_;
     QString lastErrorCode_;
     QString lastErrorMessage_;
     int applyProgress_{};

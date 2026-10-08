@@ -148,6 +148,26 @@ private slots:
         QCOMPARE(controller.filteredTweaks()->rowCount(), 1);
     }
 
+    void startupExposesEncyclopediaIndependentlyFromUnsupportedFilter()
+    {
+        auto backend = services();
+        auto unsupported = backend.catalog.tweaks().first();
+        unsupported.id = *domain::TweakId::parse(u"filesystem.future-paths"_s);
+        unsupported.title = u"Будущие пути"_s;
+        unsupported.compatibility.minimumBuild = 99999;
+        backend.catalog = content::TweakCatalog({backend.catalog.tweaks().first(), unsupported});
+        app::AppController controller(backend);
+
+        QVERIFY(controller.startup());
+        QVERIFY(controller.encyclopedia() != nullptr);
+        QCOMPARE(controller.encyclopedia()->tree()->articleCount(), 2);
+
+        controller.setHideUnsupportedTweaks(true);
+
+        QCOMPARE(controller.filteredTweaks()->rowCount(), 1);
+        QCOMPARE(controller.encyclopedia()->tree()->articleCount(), 2);
+    }
+
     void hidingUnsupportedTweaksRemovesEmptyCategoriesAndResetsSelection()
     {
         auto backend = services();
@@ -210,6 +230,7 @@ private slots:
         QTRY_COMPARE(controller.appRemovalScanStatus(), u"succeeded"_s);
         QCOMPARE(backend.appRemovalScans, 1);
         QCOMPARE(controller.tweaks()->rowCount(), 2);
+        QCOMPARE(controller.encyclopedia()->tree()->articleCount(), 2);
     }
 
     void returningToggleToActualStateRemovesQueueItem()
