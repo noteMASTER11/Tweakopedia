@@ -19,6 +19,7 @@ Item {
     property string supportDetails: ""
     property string impact: "low"
     property string restart: "none"
+    property alias explanationButton: helpButton
 
     signal explanationRequested()
     signal targetSelected(string state)
@@ -138,6 +139,7 @@ Item {
         }
 
         InfoButton {
+            id: helpButton
             objectName: "explanationButton"
             onClicked: root.explanationRequested()
         }

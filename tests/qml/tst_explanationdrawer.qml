@@ -1,20 +1,20 @@
 import QtQuick
-import QtQuick.Controls
 import QtTest
 import "../../apps/tweakopedia/qml/components"
 
 TestCase {
-    name: "ExplanationDrawer"
+    name: "InfoPane"
     when: windowShown
+    visible: true
+    width: 900
+    height: 700
 
-    ApplicationWindow {
-        id: host
-        width: 900
-        height: 700
-        visible: true
-
-        ExplanationDrawer {
-            id: drawer
+    Component {
+        id: paneComponent
+        InfoPane {
+            width: 420
+            height: 680
+            docked: true
             explanation: ({
                 title: "Длинные пути",
                 purpose: "Назначение полностью",
@@ -26,20 +26,21 @@ TestCase {
                 registryObject: "HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem\\LongPathsEnabled",
                 rollback: "Возврат точного исходного значения"
             })
+            opened: true
         }
     }
 
-    function test_opensAndShowsAllSections() {
-        drawer.open()
-        tryVerify(() => drawer.opened)
-        compare(findChild(drawer, "purposeText").text, "Назначение полностью")
-        compare(findChild(drawer, "mechanismText").text, "Механизм полностью")
-        compare(findChild(drawer, "effectText").text, "Эффект полностью")
-        compare(findChild(drawer, "tradeoffsText").text, "Ограничения полностью")
-        compare(findChild(drawer, "recommendationText").text, "Рекомендация полностью")
-        compare(findChild(drawer, "technicalDetailsText").text, "Технические детали полностью")
-        verify(findChild(drawer, "registryObjectText").text.includes("LongPathsEnabled"))
-        verify(findChild(drawer, "rollbackText").text.includes("исходного значения"))
-        drawer.close()
+    function test_showsAllSectionsAndCollapsibleTechnicalDetails() {
+        const pane = createTemporaryObject(paneComponent, this)
+        compare(findChild(pane, "purposeText").text, "Назначение полностью")
+        compare(findChild(pane, "mechanismText").text, "Механизм полностью")
+        compare(findChild(pane, "effectText").text, "Эффект полностью")
+        compare(findChild(pane, "tradeoffsText").text, "Ограничения полностью")
+        compare(findChild(pane, "recommendationText").text, "Рекомендация полностью")
+        compare(findChild(pane, "technicalDetailsText").visible, false)
+        findChild(pane, "technicalToggle").clicked()
+        compare(findChild(pane, "technicalDetailsText").visible, true)
+        verify(findChild(pane, "registryObjectText").text.includes("LongPathsEnabled"))
+        verify(findChild(pane, "rollbackText").text.includes("исходного значения"))
     }
 }

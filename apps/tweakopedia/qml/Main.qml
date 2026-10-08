@@ -37,7 +37,11 @@ ApplicationWindow {
             currentIndex: navigation.currentIndex
 
             OverviewPage { controller: appController }
-            TweaksPage { controller: appController }
+            TweaksPage {
+                controller: appController
+                wideLayout: window.width >= 1180
+                onReviewRequested: window.openQueue()
+            }
             PlaceholderPage {
                 pageTitle: "Справочник"
                 description: "Обучающие материалы будут добавляться вместе с тематическими разделами каталога."
