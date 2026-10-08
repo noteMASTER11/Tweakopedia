@@ -1,6 +1,8 @@
 add_library(TweakopediaDetection STATIC
     CompatibilityEvaluator.cpp
     CompatibilityEvaluator.h
+    RegistryDwordStateDetector.cpp
+    RegistryDwordStateDetector.h
 )
 
 target_include_directories(TweakopediaDetection
@@ -12,4 +14,5 @@ target_link_libraries(TweakopediaDetection
     PUBLIC
         Qt6::Core
         TweakopediaDomain
+        TweakopediaPlatform
 )

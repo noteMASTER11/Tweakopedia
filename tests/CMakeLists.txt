@@ -64,3 +64,36 @@ target_link_libraries(WindowsSystemProfileProviderTest
 )
 
 add_test(NAME WindowsSystemProfile COMMAND WindowsSystemProfileProviderTest)
+
+add_executable(RegistryDwordStateDetectorTest
+    detection/RegistryDwordStateDetectorTest.cpp
+    fakes/FakeRegistryBackend.cpp
+    fakes/FakeRegistryBackend.h
+)
+
+target_include_directories(RegistryDwordStateDetectorTest
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/tests
+)
+
+target_link_libraries(RegistryDwordStateDetectorTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaDetection
+        TweakopediaPlatform
+)
+
+add_test(NAME RegistryDwordStateDetector COMMAND RegistryDwordStateDetectorTest)
+
+add_executable(WindowsRegistryBackendTest
+    platform/WindowsRegistryBackendTest.cpp
+)
+
+target_link_libraries(WindowsRegistryBackendTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaPlatform
+        advapi32
+)
+
+add_test(NAME WindowsRegistryBackend COMMAND WindowsRegistryBackendTest)

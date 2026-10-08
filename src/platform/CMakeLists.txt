@@ -1,5 +1,8 @@
 add_library(TweakopediaPlatform STATIC
+    IRegistryBackend.h
     ISystemProfileProvider.h
+    WindowsRegistryBackend.cpp
+    WindowsRegistryBackend.h
     WindowsSystemProfileProvider.cpp
     WindowsSystemProfileProvider.h
 )
