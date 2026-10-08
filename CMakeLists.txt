@@ -21,6 +21,7 @@ add_subdirectory(src/platform)
 add_subdirectory(src/detection)
 add_subdirectory(src/planning)
 add_subdirectory(src/persistence)
+add_subdirectory(src/execution)
 
 if(BUILD_TESTING)
     add_subdirectory(tests)

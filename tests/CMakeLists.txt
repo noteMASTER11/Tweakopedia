@@ -165,3 +165,27 @@ target_link_libraries(TransactionFilesTest
 )
 
 add_test(NAME TransactionFiles COMMAND TransactionFilesTest)
+
+add_executable(ExecutionProtocolTest
+    execution/ExecutionProtocolTest.cpp
+)
+
+target_link_libraries(ExecutionProtocolTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaExecution
+)
+
+add_test(NAME ExecutionProtocol COMMAND ExecutionProtocolTest)
+
+add_executable(PlanValidatorTest
+    execution/PlanValidatorTest.cpp
+)
+
+target_link_libraries(PlanValidatorTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaExecution
+)
+
+add_test(NAME PlanValidator COMMAND PlanValidatorTest)
