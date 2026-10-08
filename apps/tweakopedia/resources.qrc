@@ -23,5 +23,8 @@
     <file alias="qml/components/StatusBadge.qml">qml/components/StatusBadge.qml</file>
     <file alias="qml/components/ApplyProgress.qml">qml/components/ApplyProgress.qml</file>
     <file alias="qml/components/TransactionDetails.qml">qml/components/TransactionDetails.qml</file>
+    <file alias="images/windows-10.svg">images/windows-10.svg</file>
+    <file alias="images/windows-11.svg">images/windows-11.svg</file>
+    <file alias="images/windows.svg">images/windows.svg</file>
   </qresource>
 </RCC>

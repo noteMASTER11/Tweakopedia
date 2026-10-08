@@ -144,6 +144,16 @@ target_link_libraries(WindowsSystemProfileProviderTest
 
 add_test(NAME WindowsSystemProfile COMMAND WindowsSystemProfileProviderTest)
 
+add_executable(WindowsSystemOverviewProviderTest
+    platform/WindowsSystemOverviewProviderTest.cpp
+)
+target_link_libraries(WindowsSystemOverviewProviderTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaPlatform
+)
+add_test(NAME WindowsSystemOverviewProvider COMMAND WindowsSystemOverviewProviderTest)
+
 add_executable(RegistryDwordStateDetectorTest
     detection/RegistryDwordStateDetectorTest.cpp
     fakes/FakeRegistryBackend.cpp
@@ -305,6 +315,10 @@ target_compile_definitions(AppControllerTest PRIVATE
 target_link_libraries(AppControllerTest PRIVATE Qt6::Test TweakopediaApp TweakopediaContent)
 add_test(NAME AppController COMMAND AppControllerTest)
 
+add_executable(SystemOverviewPresenterTest app/SystemOverviewPresenterTest.cpp)
+target_link_libraries(SystemOverviewPresenterTest PRIVATE Qt6::Test TweakopediaApp)
+add_test(NAME SystemOverviewPresenter COMMAND SystemOverviewPresenterTest)
+
 add_executable(TweakListModelTest app/TweakListModelTest.cpp)
 target_compile_definitions(TweakListModelTest PRIVATE
     TWEAKOPEDIA_TEST_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content/tweaks"
@@ -342,6 +356,7 @@ add_executable(TweakopediaVisualCapture
     ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiFontLoader.cpp
     ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiFontLoader.h
     ${PROJECT_SOURCE_DIR}/apps/tweakopedia/fonts.qrc
+    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/resources.qrc
 )
 target_include_directories(TweakopediaVisualCapture PRIVATE ${PROJECT_SOURCE_DIR}/apps/tweakopedia)
 target_link_libraries(TweakopediaVisualCapture PRIVATE

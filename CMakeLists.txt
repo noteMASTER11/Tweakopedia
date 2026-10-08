@@ -10,7 +10,7 @@ include(CTest)
 include(cmake/Dependencies.cmake)
 include(cmake/BootstrapDependencies.cmake)
 
-find_package(Qt6 6.8.3 REQUIRED COMPONENTS Core Gui Network Qml Quick QuickControls2 QuickTest Sql Test)
+find_package(Qt6 6.8.3 REQUIRED COMPONENTS Concurrent Core Gui Network Qml Quick QuickControls2 QuickTest Sql Test)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)

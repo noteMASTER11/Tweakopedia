@@ -55,6 +55,21 @@ public:
     domain::DetectedState detect(
         const domain::TweakDefinition&,
         const domain::SystemProfile&) const override { return detected; }
+    domain::SystemOverviewSnapshot systemOverview() const override
+    {
+        domain::SystemOverviewSnapshot result;
+        result.displayName = u"Иван"_s;
+        result.computerName = u"DESKTOP-TEST"_s;
+        result.os.caption = u"Windows 11 Pro"_s;
+        result.os.version = u"10.0.26200"_s;
+        result.os.buildNumber = 26200;
+        result.os.architecture = u"x64"_s;
+        result.processor.name = u"AMD Ryzen"_s;
+        result.processor.coreCount = 8;
+        result.processor.logicalProcessorCount = 16;
+        result.memory.totalBytes = 16ULL * 1024 * 1024 * 1024;
+        return result;
+    }
 
     app::AppOperationResult apply(
         const planning::ExecutionPlan& plan,

@@ -27,6 +27,30 @@ TestCase {
         property int applyProgress: 0
         property string applyMessage: ""
         property bool rebootRequired: false
+        property bool systemOverviewLoading: false
+        property string systemOverviewError: ""
+        property var systemOverview: ({
+            greetingName: "Иван",
+            computerName: "DESKTOP-TEST",
+            manufacturer: "ASUSTeK COMPUTER INC.",
+            model: "System Product Name",
+            baseboard: "ROG STRIX B650E-F",
+            biosSummary: "3202",
+            biosMode: "UEFI",
+            uptime: "3 ч 42 мин",
+            logo: "windows11",
+            osCaption: "Windows 11 Pro",
+            osSummary: "10.0.26200 · сборка 26200 · x64",
+            processor: { title: "AMD Ryzen 9 7950X", details: "16 ядер · 32 потока · 4,50 ГГц" },
+            memory: { title: "64 ГБ", details: "48 ГБ доступно · 6000 MT/s · 2 модуля", usedPercent: 25 },
+            graphics: [
+                { name: "NVIDIA GeForce RTX 4090", details: "24 ГБ · драйвер 591.12" },
+                { name: "AMD Radeon Graphics", details: "встроенная" }
+            ],
+            disks: [
+                { name: "Samsung SSD 990 PRO", details: "2 ТБ · SSD · NVMe", healthText: "Исправен", healthTone: "good" }
+            ]
+        })
         property int applyCalls: 0
         property int restartCalls: 0
         property string lastPackageName: ""
@@ -70,11 +94,15 @@ TestCase {
         fakeController.queue = queuedChanges
     }
 
-    function test_overviewEmptyStateUsesFluentSurface() {
+    function test_overviewShowsComputerPassportAndWindowsLogo() {
         const page = createTemporaryObject(overviewComponent, this)
-        const empty = findChild(page, "overviewEmptyState")
-        compare(empty.visible, true)
         compare(findChild(page, "overviewBackground").color, FluentTheme.canvas)
+        compare(findChild(page, "overviewGreeting").text, "Здравствуйте, Иван!")
+        compare(findChild(page, "overviewComputerName").text, "DESKTOP-TEST")
+        compare(findChild(page, "overviewWindowsLogo").source, "qrc:/images/windows-11.svg")
+        compare(findChild(page, "overviewProcessorName").text, "AMD Ryzen 9 7950X")
+        compare(findChild(page, "overviewMemoryTitle").text, "64 ГБ")
+        compare(findChild(page, "overviewDiskRepeater").count, 1)
     }
 
     function test_queueEmptyStateHidesApplyCommand() {

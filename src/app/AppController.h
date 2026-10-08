@@ -9,7 +9,9 @@
 #include "content/CategoryCatalogLoader.h"
 #include "content/TweakCatalogLoader.h"
 #include "planning/ExecutionPlan.h"
+#include "domain/SystemOverview.h"
 
+#include <QFutureWatcher>
 #include <QObject>
 #include <QVariantList>
 #include <QVariantMap>
@@ -37,6 +39,7 @@ public:
     [[nodiscard]] virtual content::CatalogLoadResult loadCatalog() = 0;
     [[nodiscard]] virtual content::CategoryCatalogLoadResult loadCategories() = 0;
     [[nodiscard]] virtual domain::SystemProfile currentProfile() const = 0;
+    [[nodiscard]] virtual domain::SystemOverviewSnapshot systemOverview() const = 0;
     [[nodiscard]] virtual domain::DetectedState detect(
         const domain::TweakDefinition& tweak,
         const domain::SystemProfile& profile) const = 0;
@@ -67,9 +70,13 @@ class AppController final : public QObject
     Q_PROPERTY(QString applyStatus READ applyStatus NOTIFY operationChanged)
     Q_PROPERTY(QString applyMessage READ applyMessage NOTIFY operationChanged)
     Q_PROPERTY(bool rebootRequired READ rebootRequired NOTIFY operationChanged)
+    Q_PROPERTY(QVariantMap systemOverview READ systemOverview NOTIFY systemOverviewChanged)
+    Q_PROPERTY(bool systemOverviewLoading READ systemOverviewLoading NOTIFY systemOverviewChanged)
+    Q_PROPERTY(QString systemOverviewError READ systemOverviewError NOTIFY systemOverviewChanged)
 
 public:
     explicit AppController(IAppServices& services, QObject* parent = nullptr);
+    ~AppController() override;
 
     [[nodiscard]] TweakListModel* tweaks() noexcept;
     [[nodiscard]] TweakFilterProxyModel* filteredTweaks() noexcept;
@@ -84,6 +91,9 @@ public:
     [[nodiscard]] QString applyStatus() const;
     [[nodiscard]] QString applyMessage() const;
     [[nodiscard]] bool rebootRequired() const noexcept;
+    [[nodiscard]] QVariantMap systemOverview() const;
+    [[nodiscard]] bool systemOverviewLoading() const noexcept;
+    [[nodiscard]] QString systemOverviewError() const;
 
     Q_INVOKABLE bool startup();
     Q_INVOKABLE void setTweakSearch(const QString& query);
@@ -95,11 +105,13 @@ public:
     Q_INVOKABLE bool applyQueue(const QString& packageName);
     Q_INVOKABLE bool rollback(const QString& transactionId);
     Q_INVOKABLE bool restartComputer();
+    Q_INVOKABLE void refreshSystemOverview();
 
 signals:
     void previewChanged();
     void errorChanged();
     void operationChanged();
+    void systemOverviewChanged();
 
 private:
     void refreshDetectedStates();
@@ -126,6 +138,10 @@ private:
     QString applyStatus_{QStringLiteral("idle")};
     QString applyMessage_;
     bool rebootRequired_{};
+    QFutureWatcher<domain::SystemOverviewSnapshot> systemOverviewWatcher_;
+    QVariantMap systemOverview_;
+    QString systemOverviewError_;
+    bool systemOverviewLoading_{};
 };
 
 } // namespace tweakopedia::app

@@ -2,7 +2,9 @@
 
 #include "detection/CompatibilityEvaluator.h"
 #include "planning/PlanBuilder.h"
+#include "app/SystemOverviewPresenter.h"
 
+#include <QtConcurrentRun>
 using namespace Qt::StringLiterals;
 
 namespace tweakopedia::app {
@@ -38,6 +40,23 @@ AppController::AppController(IAppServices& services, QObject* parent)
     , historyModel_(this)
 {
     filteredTweaksModel_.setSourceModel(&tweaksModel_);
+    connect(&systemOverviewWatcher_,
+            &QFutureWatcher<domain::SystemOverviewSnapshot>::finished,
+            this,
+            [this] {
+                const auto snapshot = systemOverviewWatcher_.result();
+                systemOverview_ = SystemOverviewPresenter::present(snapshot);
+                systemOverviewError_ = snapshot.error;
+                systemOverviewLoading_ = false;
+                emit systemOverviewChanged();
+            });
+}
+
+AppController::~AppController()
+{
+    if (systemOverviewWatcher_.isRunning()) {
+        systemOverviewWatcher_.waitForFinished();
+    }
 }
 
 TweakListModel* AppController::tweaks() noexcept { return &tweaksModel_; }
@@ -69,6 +88,9 @@ int AppController::applyProgress() const noexcept { return applyProgress_; }
 QString AppController::applyStatus() const { return applyStatus_; }
 QString AppController::applyMessage() const { return applyMessage_; }
 bool AppController::rebootRequired() const noexcept { return rebootRequired_; }
+QVariantMap AppController::systemOverview() const { return systemOverview_; }
+bool AppController::systemOverviewLoading() const noexcept { return systemOverviewLoading_; }
+QString AppController::systemOverviewError() const { return systemOverviewError_; }
 
 bool AppController::startup()
 {
@@ -91,6 +113,7 @@ bool AppController::startup()
     refreshDetectedStates();
     refreshModels();
     historyModel_.reset(services_->history());
+    refreshSystemOverview();
     setError({});
     return true;
 }
@@ -280,6 +303,17 @@ bool AppController::restartComputer()
     }
     setError({});
     return true;
+}
+
+void AppController::refreshSystemOverview()
+{
+    if (systemOverviewWatcher_.isRunning()) return;
+    systemOverviewLoading_ = true;
+    systemOverviewError_.clear();
+    emit systemOverviewChanged();
+    auto* services = services_;
+    systemOverviewWatcher_.setFuture(
+        QtConcurrent::run([services] { return services->systemOverview(); }));
 }
 
 void AppController::refreshDetectedStates()

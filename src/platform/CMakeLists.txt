@@ -5,6 +5,8 @@ add_library(TweakopediaPlatform STATIC
     WindowsRegistryBackend.h
     WindowsSystemProfileProvider.cpp
     WindowsSystemProfileProvider.h
+    WindowsSystemOverviewProvider.cpp
+    WindowsSystemOverviewProvider.h
 )
 
 target_include_directories(TweakopediaPlatform
@@ -18,4 +20,8 @@ target_link_libraries(TweakopediaPlatform
         TweakopediaDomain
     PRIVATE
         advapi32
+        ole32
+        oleaut32
+        secur32
+        wbemuuid
 )

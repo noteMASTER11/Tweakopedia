@@ -3,6 +3,7 @@ add_library(TweakopediaDomain STATIC
     TweakDefinition.h
     TweakId.h
     RegistryTypes.h
+    SystemOverview.h
     SystemProfile.h
     DetectedState.h
 )

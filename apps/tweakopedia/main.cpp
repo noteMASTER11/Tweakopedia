@@ -11,6 +11,7 @@
 #include "persistence/TransactionRepository.h"
 #include "platform/WindowsRegistryBackend.h"
 #include "platform/WindowsSystemProfileProvider.h"
+#include "platform/WindowsSystemOverviewProvider.h"
 #include "UiFontLoader.h"
 
 #include <QDir>
@@ -102,6 +103,10 @@ public:
     }
 
     domain::SystemProfile currentProfile() const override { return profile_.current(); }
+    domain::SystemOverviewSnapshot systemOverview() const override
+    {
+        return platform::WindowsSystemOverviewProvider{}.collect();
+    }
 
     domain::DetectedState detect(
         const domain::TweakDefinition& tweak,
