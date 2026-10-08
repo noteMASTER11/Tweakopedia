@@ -20,6 +20,7 @@
 #include <QJsonDocument>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickStyle>
 #include <QTimer>
 #include <QTemporaryDir>
 #include <QUuid>
@@ -243,6 +244,7 @@ private:
 
 int main(int argc, char* argv[])
 {
+    QQuickStyle::setStyle(u"Basic"_s);
     QGuiApplication app(argc, argv);
     QCoreApplication::setApplicationName(u"Tweakopedia"_s);
     QCoreApplication::setOrganizationName(u"Tweakopedia"_s);

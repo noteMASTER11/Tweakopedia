@@ -1,6 +1,8 @@
 <RCC>
   <qresource prefix="/">
     <file alias="qml/Main.qml">qml/Main.qml</file>
+    <file alias="qml/style/FluentTheme.qml">qml/style/FluentTheme.qml</file>
+    <file alias="qml/style/qmldir">qml/style/qmldir</file>
     <file alias="qml/pages/OverviewPage.qml">qml/pages/OverviewPage.qml</file>
     <file alias="qml/pages/TweaksPage.qml">qml/pages/TweaksPage.qml</file>
     <file alias="qml/pages/QueuePage.qml">qml/pages/QueuePage.qml</file>

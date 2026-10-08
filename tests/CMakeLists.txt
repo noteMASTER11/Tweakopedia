@@ -237,7 +237,7 @@ add_executable(QmlComponentTests qml/QmlTestMain.cpp)
 target_link_libraries(QmlComponentTests PRIVATE Qt6::QuickTest Qt6::QuickControls2)
 add_test(NAME QmlPlanPreviewHistory COMMAND QmlComponentTests -input ${PROJECT_SOURCE_DIR}/tests/qml)
 set_tests_properties(QmlPlanPreviewHistory PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QML_DISABLE_DISK_CACHE=1"
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QML_DISABLE_DISK_CACHE=1;QT_QUICK_CONTROLS_STYLE=Basic"
 )
 
 add_executable(VerticalSliceWorkflowTest
