@@ -1,7 +1,7 @@
 # Результаты проверки первого вертикального среза
 
 Дата: 2026-10-08  
-Проверенный commit до добавления отчёта: `e0c09c72f630c719f9dfd0aca0c6f823d9ff0358`  
+Проверенный commit до обновления отчёта: `b06e3201c4b80476862a8aef8977d71e11cd72b2`  
 Portable-каталог: `D:\ChatGPT\Projects\Tweakopedia\dist\Tweakopedia`
 
 ## Среда
@@ -19,12 +19,12 @@ Portable-каталог: `D:\ChatGPT\Projects\Tweakopedia\dist\Tweakopedia`
 | Проверка | Результат | Доказательство |
 |---|---:|---|
 | Чистая debug-сборка | PASS | `tools/build.ps1 -Preset mingw-debug -Clean`; 189 build-шагов, ошибок и предупреждений компилятора проекта нет |
-| Полный набор тестов | PASS | 23/23, skipped 0, 2.26 s |
+| Полный набор тестов | PASS | 23/23, skipped 0, 2.27 s |
 | Release-упаковка | PASS | `tools/package.ps1 -Preset mingw-release` |
 | Структура portable | PASS | оба EXE, Qt DLL, QML, `qwindows`, `qsqlite`, YAML; исходники и абсолютные build-пути отсутствуют |
 | Self-check без Qt в PATH | PASS | `Tweakopedia.exe --self-check --no-elevation`, exit code 0 |
 | Сквозной fake-сценарий | PASS | YAML → missing/disabled → queue enabled → preview → snapshot → DWORD 1 → verify → history → rollback → missing |
-| Отказы | PASS | UAC cancel, изменившийся DWORD, незавершённая running-транзакция и failed result не получают статус success |
+| Отказы | PASS | UAC cancel, изменившийся DWORD, пустой план, тайм-аут Executor, незавершённая running-транзакция и failed result не получают статус success |
 
 Сообщение CMake `WrapVulkanHeaders` относится к необязательному компоненту Qt. Tweakopedia не использует Vulkan; предупреждений исходного кода при чистой сборке нет.
 
@@ -32,8 +32,8 @@ Portable-каталог: `D:\ChatGPT\Projects\Tweakopedia\dist\Tweakopedia`
 
 | Файл | SHA-256 |
 |---|---|
-| `Tweakopedia.exe` | `1682A26AF6AEC004D9272EF82E5D6E748AA6ECF35E7B9C66A29012C69DB70212` |
-| `Tweakopedia.Executor.exe` | `04B7E4B74B4920EB6B360EE701E9D21B0EBC9B199EC02283BE950DEC4826A0B4` |
+| `Tweakopedia.exe` | `D8B03DF1A4B98BF8A2B2A289C83B16DE7E84533E6E56BFF92E1B070953768FD0` |
+| `Tweakopedia.Executor.exe` | `DC356F1A6CD711240133CBB0780188D1746B81BEFA02E65CFA3B62D9BA73AAAB` |
 | `content/tweaks/filesystem/win32-long-paths.yaml` | `FFAB958A3BB32D068A18EC8B820C76A394F38023BDACF3957FB64CA6330F099E` |
 
 ## Критерии раздела 23
