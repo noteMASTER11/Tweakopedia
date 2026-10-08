@@ -1,0 +1,59 @@
+id: power.advanced-interrupt-steering-mode
+title: 'Отображение: Режим управления прерываниями'
+category: power
+subcategory: advanced-devices
+kind: setting
+summary: 'Показывает или скрывает параметр «Режим управления прерываниями» в дополнительных настройках схемы электропитания.'
+explanation:
+  purpose: 'Показывает или скрывает параметр «Режим управления прерываниями» в дополнительных настройках схемы электропитания.'
+  mechanism: 'Windows читает DWORD Attributes у определения параметра питания; флаг POWER_ATTRIBUTE_HIDE управляет его отображением.'
+  effect: 'Меняется только доступность элемента интерфейса; текущие значения схем питания не изменяются.'
+  tradeoffs: 'Параметр может не влиять на компьютер без соответствующего оборудования или функции.'
+  recommendation: 'Показывайте параметр, когда требуется его ручная настройка в классической панели электропитания.'
+  technical_details: 'DWORD HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerSettings\48672F38-7A9A-4bb2-8BF8-3D85BE19DE4E\2BFC24F9-5EA2-4801-8213-3DBAE01AA39D\Attributes: 1 — скрыт, 2 — показан. Группа 48672f38-7a9a-4bb2-8bf8-3d85be19de4e, параметр 2bfc24f9-5ea2-4801-8213-3dbae01aa39d.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  hidden:
+    title: 'Скрыт'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\48672F38-7A9A-4bb2-8BF8-3D85BE19DE4E\2BFC24F9-5EA2-4801-8213-3DBAE01AA39D'
+        value_name: Attributes
+        view: registry64
+        value: 1
+  visible:
+    title: 'Показан'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\48672F38-7A9A-4bb2-8BF8-3D85BE19DE4E\2BFC24F9-5EA2-4801-8213-3DBAE01AA39D'
+        value_name: Attributes
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: hidden
+  - os: windows11
+    builds: [22000, 26200]
+    state: hidden
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\48672F38-7A9A-4bb2-8BF8-3D85BE19DE4E\2BFC24F9-5EA2-4801-8213-3DBAE01AA39D'
+  value_name: Attributes
+  view: registry64
+  states:
+    1: hidden
+    2: visible
+  missing_state: hidden
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

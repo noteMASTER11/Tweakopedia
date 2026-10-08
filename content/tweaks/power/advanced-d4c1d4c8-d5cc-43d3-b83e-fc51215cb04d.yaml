@@ -1,0 +1,59 @@
+id: power.advanced-allow-sleep-with-rremote-opens
+title: 'Отображение: Разрешить переход в спящий режим при удаленном открытии'
+category: power
+subcategory: advanced-sleep
+kind: setting
+summary: 'Показывает или скрывает параметр «Разрешить переход в спящий режим при удаленном открытии» в дополнительных настройках схемы электропитания.'
+explanation:
+  purpose: 'Показывает или скрывает параметр «Разрешить переход в спящий режим при удаленном открытии» в дополнительных настройках схемы электропитания.'
+  mechanism: 'Windows читает DWORD Attributes у определения параметра питания; флаг POWER_ATTRIBUTE_HIDE управляет его отображением.'
+  effect: 'Меняется только доступность элемента интерфейса; текущие значения схем питания не изменяются.'
+  tradeoffs: 'Параметр может не влиять на компьютер без соответствующего оборудования или функции.'
+  recommendation: 'Показывайте параметр, когда требуется его ручная настройка в классической панели электропитания.'
+  technical_details: 'DWORD HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerSettings\238C9FA8-0AAD-41ED-83F4-97BE242C8F20\d4c1d4c8-d5cc-43d3-b83e-fc51215cb04d\Attributes: 1 — скрыт, 2 — показан. Группа 238c9fa8-0aad-41ed-83f4-97be242c8f20, параметр d4c1d4c8-d5cc-43d3-b83e-fc51215cb04d.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  hidden:
+    title: 'Скрыт'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\238C9FA8-0AAD-41ED-83F4-97BE242C8F20\d4c1d4c8-d5cc-43d3-b83e-fc51215cb04d'
+        value_name: Attributes
+        view: registry64
+        value: 1
+  visible:
+    title: 'Показан'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\238C9FA8-0AAD-41ED-83F4-97BE242C8F20\d4c1d4c8-d5cc-43d3-b83e-fc51215cb04d'
+        value_name: Attributes
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: hidden
+  - os: windows11
+    builds: [22000, 26200]
+    state: hidden
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\238C9FA8-0AAD-41ED-83F4-97BE242C8F20\d4c1d4c8-d5cc-43d3-b83e-fc51215cb04d'
+  value_name: Attributes
+  view: registry64
+  states:
+    1: hidden
+    2: visible
+  missing_state: hidden
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

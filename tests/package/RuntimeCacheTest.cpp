@@ -10,9 +10,13 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <windows.h>
+
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <thread>
 #include <vector>
 
 using namespace tweakopedia;
@@ -160,6 +164,73 @@ private slots:
         for (const auto& item : std::filesystem::directory_iterator(runtimeRoot))
             if (item.is_directory() && item.path().filename().wstring().size() == 64) ++digestDirectories;
         QCOMPARE(digestDirectories, 1);
+    }
+
+    void retriesQuarantineWhileRuntimeFileIsTemporarilyLocked()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const auto base = std::filesystem::path(directory.path().toStdWString());
+        const auto container = createContainer(base);
+        const auto info = package::inspectContainer(container);
+        QVERIFY(info.ok());
+        const auto runtimeRoot = base / "Runtime";
+        package::RuntimeCache cache(runtimeRoot);
+
+        auto prepared = cache.prepare(container, *info.value);
+        QVERIFY(prepared.ok());
+        const auto runtime = prepared.value->root;
+        const auto lockedFile = runtime / "Tweakopedia.App.exe";
+        prepared.value.reset();
+        writeFile(lockedFile, "corrupted");
+
+        const auto handle = CreateFileW(
+            lockedFile.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+            nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+        QVERIFY(handle != INVALID_HANDLE_VALUE);
+        std::thread unlocker([handle] {
+            std::this_thread::sleep_for(std::chrono::milliseconds(150));
+            CloseHandle(handle);
+        });
+
+        const auto repaired = cache.prepare(container, *info.value);
+        unlocker.join();
+        QVERIFY2(repaired.ok(), repaired.error.message.c_str());
+        QCOMPARE(readText(repaired.value->root / "Tweakopedia.App.exe"), std::string("app"));
+        QCOMPARE(stagingCount(runtimeRoot), 0);
+    }
+
+    void retriesValidationWhileValidRuntimeFileIsTemporarilyLocked()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const auto base = std::filesystem::path(directory.path().toStdWString());
+        const auto container = createContainer(base);
+        const auto info = package::inspectContainer(container);
+        QVERIFY(info.ok());
+        const auto runtimeRoot = base / "Runtime";
+        package::RuntimeCache cache(runtimeRoot);
+
+        auto prepared = cache.prepare(container, *info.value);
+        QVERIFY(prepared.ok());
+        const auto lockedFile = prepared.value->root / "Tweakopedia.App.exe";
+        prepared.value.reset();
+
+        const auto handle = CreateFileW(
+            lockedFile.c_str(), GENERIC_READ, 0,
+            nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+        QVERIFY(handle != INVALID_HANDLE_VALUE);
+        std::thread unlocker([handle] {
+            std::this_thread::sleep_for(std::chrono::milliseconds(150));
+            CloseHandle(handle);
+        });
+
+        const auto reused = cache.prepare(container, *info.value);
+        unlocker.join();
+        QVERIFY2(reused.ok(), reused.error.message.c_str());
+        QVERIFY(reused.value->reused);
+        QCOMPARE(readText(reused.value->root / "Tweakopedia.App.exe"), std::string("app"));
+        QCOMPARE(stagingCount(runtimeRoot), 0);
     }
 
     void cleansOnlyFreeOldDigestRuntimes()

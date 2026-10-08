@@ -1,6 +1,7 @@
 #include "content/TweakCatalogLoader.h"
 
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
 #include <QTemporaryDir>
 #include <QtTest/QTest>
@@ -192,7 +193,15 @@ private slots:
 
         QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 535);
+        QCOMPARE(result.catalog->size(), 685);
+
+        QDirIterator contentFiles(
+            tweaksDirectory, {u"*.yaml"_s}, QDir::Files, QDirIterator::Subdirectories);
+        while (contentFiles.hasNext()) {
+            const auto fileName = QFileInfo(contentFiles.next()).fileName();
+            QVERIFY2(fileName.size() <= 80,
+                     qPrintable(u"Слишком длинное имя файла для portable-runtime: "_s + fileName));
+        }
 
         const QStringList expectedIds{
             u"apps.windows-ink-workspace"_s,
@@ -665,6 +674,22 @@ private slots:
             u"behavior.group-policy-service-optimization"_s,
             u"behavior.local-group-policy-processing"_s,
             u"behavior.background-group-policy-refresh"_s,
+            u"power.advanced-ahci-link-power-management-hipm-dipm"_s,
+            u"power.advanced-processor-performance-boost-mode"_s,
+            u"power.advanced-usb-selective-suspend-setting"_s,
+            u"power.advanced-low-battery-level"_s,
+            u"power.advanced-overlay"_s,
+            u"power.advanced-adaptive-display-brightness"_s,
+            u"power.advanced-start-menu-power-button"_s,
+            u"power.advanced-allow-standby-states"_s,
+            u"power.advanced-power-scheme-personality"_s,
+            u"power.advanced-dimmed-display-brightness"_s,
+            u"power.advanced-display-brightness"_s,
+            u"power.low-battery-notification"_s,
+            u"power.password-on-resume-ac"_s,
+            u"power.password-on-resume-dc"_s,
+            u"power.hybrid-sleep-ac"_s,
+            u"power.hybrid-sleep-dc"_s,
         };
         for (const auto& expectedId : expectedIds) {
             const auto id = TweakId::parse(expectedId);
@@ -879,6 +904,30 @@ private slots:
         const auto* fontProvider = result.catalog->find(fontProviderId);
         QVERIFY(fontProvider != nullptr);
         QCOMPARE(fontProvider->restart, RestartRequirement::Reboot);
+
+        qsizetype advancedPowerVisibilityCount = 0;
+        for (const auto& tweak : result.catalog->tweaks()) {
+            if (tweak.category == u"power"_s
+                && tweak.subcategory.startsWith(u"advanced-"_s)) {
+                ++advancedPowerVisibilityCount;
+            }
+        }
+        QCOMPARE(advancedPowerVisibilityCount, 145);
+
+        const auto visibilityId = *TweakId::parse(
+            u"power.advanced-processor-performance-boost-mode"_s);
+        const auto* visibility = result.catalog->find(visibilityId);
+        QVERIFY(visibility != nullptr);
+        QCOMPARE(visibility->detection->location.valueName, u"Attributes"_s);
+        QCOMPARE(visibility->detection->statesByValue.value(1), u"hidden"_s);
+        QCOMPARE(visibility->detection->statesByValue.value(2), u"visible"_s);
+
+        const auto hybridSleepId = *TweakId::parse(u"power.hybrid-sleep-ac"_s);
+        const auto* hybridSleep = result.catalog->find(hybridSleepId);
+        QVERIFY(hybridSleep != nullptr);
+        QCOMPARE(hybridSleep->detection->location.valueName, u"ACSettingIndex"_s);
+        QCOMPARE(hybridSleep->detection->statesByValue.value(0), u"disabled"_s);
+        QCOMPARE(hybridSleep->detection->statesByValue.value(1), u"enabled"_s);
     }
 };
 

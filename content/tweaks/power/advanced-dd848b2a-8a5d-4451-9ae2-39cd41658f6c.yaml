@@ -1,0 +1,59 @@
+id: power.advanced-gpu-preference-policy
+title: 'Отображение: Политика предпочтений в отношении графического процессора'
+category: power
+subcategory: advanced-graphics
+kind: setting
+summary: 'Показывает или скрывает параметр «Политика предпочтений в отношении графического процессора» в дополнительных настройках схемы электропитания.'
+explanation:
+  purpose: 'Показывает или скрывает параметр «Политика предпочтений в отношении графического процессора» в дополнительных настройках схемы электропитания.'
+  mechanism: 'Windows читает DWORD Attributes у определения параметра питания; флаг POWER_ATTRIBUTE_HIDE управляет его отображением.'
+  effect: 'Меняется только доступность элемента интерфейса; текущие значения схем питания не изменяются.'
+  tradeoffs: 'Параметр может не влиять на компьютер без соответствующего оборудования или функции.'
+  recommendation: 'Показывайте параметр, когда требуется его ручная настройка в классической панели электропитания.'
+  technical_details: 'DWORD HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerSettings\5FB4938D-1EE8-4b0f-9A3C-5036B0AB995C\DD848B2A-8A5D-4451-9AE2-39CD41658F6C\Attributes: 1 — скрыт, 2 — показан. Группа 5fb4938d-1ee8-4b0f-9a3c-5036b0ab995c, параметр dd848b2a-8a5d-4451-9ae2-39cd41658f6c.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  hidden:
+    title: 'Скрыт'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\5FB4938D-1EE8-4b0f-9A3C-5036B0AB995C\DD848B2A-8A5D-4451-9AE2-39CD41658F6C'
+        value_name: Attributes
+        view: registry64
+        value: 1
+  visible:
+    title: 'Показан'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\5FB4938D-1EE8-4b0f-9A3C-5036B0AB995C\DD848B2A-8A5D-4451-9AE2-39CD41658F6C'
+        value_name: Attributes
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: hidden
+  - os: windows11
+    builds: [22000, 26200]
+    state: hidden
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\5FB4938D-1EE8-4b0f-9A3C-5036B0AB995C\DD848B2A-8A5D-4451-9AE2-39CD41658F6C'
+  value_name: Attributes
+  view: registry64
+  states:
+    1: hidden
+    2: visible
+  missing_state: hidden
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

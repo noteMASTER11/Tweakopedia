@@ -1,0 +1,59 @@
+id: power.advanced-standby-budget-per-cent
+title: 'Отображение: Процент ожидания бюджета'
+category: power
+subcategory: advanced-platform
+kind: setting
+summary: 'Показывает или скрывает параметр «Процент ожидания бюджета» в дополнительных настройках схемы электропитания.'
+explanation:
+  purpose: 'Показывает или скрывает параметр «Процент ожидания бюджета» в дополнительных настройках схемы электропитания.'
+  mechanism: 'Windows читает DWORD Attributes у определения параметра питания; флаг POWER_ATTRIBUTE_HIDE управляет его отображением.'
+  effect: 'Меняется только доступность элемента интерфейса; текущие значения схем питания не изменяются.'
+  tradeoffs: 'Параметр может не влиять на компьютер без соответствующего оборудования или функции.'
+  recommendation: 'Показывайте параметр, когда требуется его ручная настройка в классической панели электропитания.'
+  technical_details: 'DWORD HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerSettings\8619B916-E004-4dd8-9B66-DAE86F806698\9FE527BE-1B70-48DA-930D-7BCF17B44990\Attributes: 1 — скрыт, 2 — показан. Группа 8619b916-e004-4dd8-9b66-dae86f806698, параметр 9fe527be-1b70-48da-930d-7bcf17b44990.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  hidden:
+    title: 'Скрыт'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\8619B916-E004-4dd8-9B66-DAE86F806698\9FE527BE-1B70-48DA-930D-7BCF17B44990'
+        value_name: Attributes
+        view: registry64
+        value: 1
+  visible:
+    title: 'Показан'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\8619B916-E004-4dd8-9B66-DAE86F806698\9FE527BE-1B70-48DA-930D-7BCF17B44990'
+        value_name: Attributes
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: hidden
+  - os: windows11
+    builds: [22000, 26200]
+    state: hidden
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\8619B916-E004-4dd8-9B66-DAE86F806698\9FE527BE-1B70-48DA-930D-7BCF17B44990'
+  value_name: Attributes
+  view: registry64
+  states:
+    1: hidden
+    2: visible
+  missing_state: hidden
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

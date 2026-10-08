@@ -41,7 +41,10 @@ public:
     [[nodiscard]] const std::filesystem::path& root() const { return runtimeRoot_; }
 
 private:
-    bool validateRuntime(const std::filesystem::path& root, std::string_view digest) const;
+    enum class ValidationResult { Valid, Invalid, Inaccessible };
+    ValidationResult validateRuntime(
+        const std::filesystem::path& root,
+        std::string_view digest) const;
 
     std::filesystem::path runtimeRoot_;
     RuntimeCacheFault fault_{};

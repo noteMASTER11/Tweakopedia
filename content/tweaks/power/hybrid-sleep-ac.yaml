@@ -1,0 +1,59 @@
+id: power.hybrid-sleep-ac
+title: 'Гибридный спящий режим — от сети'
+category: power
+subcategory: sleep
+kind: setting
+summary: 'Управляет гибридным спящим режимом при питании от электросети.'
+explanation:
+  purpose: 'Сочетает быстрый выход из сна с сохранением содержимого памяти на диск.'
+  mechanism: 'Политика ACSettingIndex управляет гибридным сном для режима от электросети.'
+  effect: 'При включении Windows сохраняет сеанс в файл гибернации перед переходом в сон.'
+  tradeoffs: 'Требуется включённая гибернация и место под файл hiberfil.sys.'
+  recommendation: 'Оставляйте включённым на настольных компьютерах, если нужен возврат сеанса после потери питания.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Power\PowerSettings\94ac6d29-73ce-41a6-809f-6363ba21b47e\ACSettingIndex: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Power\PowerSettings\94ac6d29-73ce-41a6-809f-6363ba21b47e'
+        value_name: ACSettingIndex
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Power\PowerSettings\94ac6d29-73ce-41a6-809f-6363ba21b47e'
+        value_name: ACSettingIndex
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Power\PowerSettings\94ac6d29-73ce-41a6-809f-6363ba21b47e'
+  value_name: ACSettingIndex
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: [power.hibernation]
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,59 @@
+id: power.advanced-sleep-button-action
+title: 'Отображение: Действие кнопки спящего режима'
+category: power
+subcategory: advanced-sleep
+kind: setting
+summary: 'Показывает или скрывает параметр «Действие кнопки спящего режима» в дополнительных настройках схемы электропитания.'
+explanation:
+  purpose: 'Показывает или скрывает параметр «Действие кнопки спящего режима» в дополнительных настройках схемы электропитания.'
+  mechanism: 'Windows читает DWORD Attributes у определения параметра питания; флаг POWER_ATTRIBUTE_HIDE управляет его отображением.'
+  effect: 'Меняется только доступность элемента интерфейса; текущие значения схем питания не изменяются.'
+  tradeoffs: 'Параметр может не влиять на компьютер без соответствующего оборудования или функции.'
+  recommendation: 'Показывайте параметр, когда требуется его ручная настройка в классической панели электропитания.'
+  technical_details: 'DWORD HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerSettings\4f971e89-eebd-4455-a8de-9e59040e7347\96996bc0-ad50-47ec-923b-6f41874dd9eb\Attributes: 1 — скрыт, 2 — показан. Группа 4f971e89-eebd-4455-a8de-9e59040e7347, параметр 96996bc0-ad50-47ec-923b-6f41874dd9eb.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  hidden:
+    title: 'Скрыт'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\4f971e89-eebd-4455-a8de-9e59040e7347\96996bc0-ad50-47ec-923b-6f41874dd9eb'
+        value_name: Attributes
+        view: registry64
+        value: 1
+  visible:
+    title: 'Показан'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\4f971e89-eebd-4455-a8de-9e59040e7347\96996bc0-ad50-47ec-923b-6f41874dd9eb'
+        value_name: Attributes
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: hidden
+  - os: windows11
+    builds: [22000, 26200]
+    state: hidden
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\Power\PowerSettings\4f971e89-eebd-4455-a8de-9e59040e7347\96996bc0-ad50-47ec-923b-6f41874dd9eb'
+  value_name: Attributes
+  view: registry64
+  states:
+    1: hidden
+    2: visible
+  missing_state: hidden
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

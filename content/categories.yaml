@@ -156,6 +156,24 @@ categories:
         title: Сон и гибернация
       - id: standby
         title: Modern Standby
+      - id: battery
+        title: Батарея
+      - id: advanced-storage
+        title: Дополнительные параметры накопителей
+      - id: advanced-processor
+        title: Дополнительные параметры процессора
+      - id: advanced-sleep
+        title: Дополнительные параметры сна и кнопок питания
+      - id: advanced-battery
+        title: Дополнительные параметры батареи
+      - id: advanced-display
+        title: Дополнительные параметры экрана и мультимедиа
+      - id: advanced-devices
+        title: Дополнительные параметры устройств и шин
+      - id: advanced-platform
+        title: Дополнительные параметры энергосбережения
+      - id: advanced-graphics
+        title: Дополнительные параметры графики
   - id: updates
     title: Обновления Windows
     subcategories:

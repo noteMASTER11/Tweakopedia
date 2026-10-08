@@ -77,6 +77,28 @@ bool writeTextNew(const std::filesystem::path& path, std::string_view text)
     return result;
 }
 
+bool renameRuntimeForQuarantine(
+    const std::filesystem::path& source,
+    const std::filesystem::path& destination,
+    std::error_code& error)
+{
+    constexpr int maximumAttempts = 21;
+    constexpr DWORD retryDelayMilliseconds = 50;
+    for (int attempt = 0; attempt < maximumAttempts; ++attempt) {
+        error.clear();
+        std::filesystem::rename(source, destination, error);
+        if (!error) return true;
+        if (error != std::errc::permission_denied
+            && error.value() != ERROR_ACCESS_DENIED
+            && error.value() != ERROR_SHARING_VIOLATION
+            && error.value() != ERROR_LOCK_VIOLATION) {
+            return false;
+        }
+        if (attempt + 1 < maximumAttempts) Sleep(retryDelayMilliseconds);
+    }
+    return false;
+}
+
 std::optional<std::string> readText(const std::filesystem::path& path)
 {
     std::ifstream stream(path, std::ios::binary);
@@ -86,34 +108,54 @@ std::optional<std::string> readText(const std::filesystem::path& path)
 
 }
 
-bool RuntimeCache::validateRuntime(
+RuntimeCache::ValidationResult RuntimeCache::validateRuntime(
     const std::filesystem::path& root,
     std::string_view digest) const
 {
-    const auto markerText = readText(root / ".ready.json");
-    const auto manifestText = readText(root / "payload-manifest.json");
-    if (!markerText || !manifestText) return false;
+    std::error_code error;
+    const auto markerPath = root / ".ready.json";
+    const auto manifestPath = root / "payload-manifest.json";
+    const auto markerStatus = std::filesystem::symlink_status(markerPath, error);
+    if (error == std::errc::no_such_file_or_directory) return ValidationResult::Invalid;
+    if (error) return ValidationResult::Inaccessible;
+    if (markerStatus.type() != std::filesystem::file_type::regular) {
+        return ValidationResult::Invalid;
+    }
+    const auto manifestStatus = std::filesystem::symlink_status(manifestPath, error);
+    if (error == std::errc::no_such_file_or_directory) return ValidationResult::Invalid;
+    if (error) return ValidationResult::Inaccessible;
+    if (manifestStatus.type() != std::filesystem::file_type::regular) {
+        return ValidationResult::Invalid;
+    }
+
+    const auto markerText = readText(markerPath);
+    const auto manifestText = readText(manifestPath);
+    if (!markerText || !manifestText) return ValidationResult::Inaccessible;
     const auto marker = Json::parse(*markerText, nullptr, false);
     if (marker.is_discarded() || !marker.is_object() || marker.size() != 2
         || marker.value("schema_version", 0) != 1
         || marker.value("payload_sha256", std::string{}) != digest) {
-        return false;
+        return ValidationResult::Invalid;
     }
     const auto manifest = PayloadManifest::parse(*manifestText);
-    if (!manifest.ok()) return false;
+    if (!manifest.ok()) return ValidationResult::Invalid;
     for (const auto& entry : manifest.value->entries()) {
         const auto file = root / std::filesystem::path(std::u8string(
             reinterpret_cast<const char8_t*>(entry.path.data()), entry.path.size()));
-        std::error_code error;
-        if (std::filesystem::symlink_status(file, error).type()
-                != std::filesystem::file_type::regular
-            || error || std::filesystem::file_size(file, error) != entry.size || error) {
-            return false;
+        const auto status = std::filesystem::symlink_status(file, error);
+        if (error == std::errc::no_such_file_or_directory) return ValidationResult::Invalid;
+        if (error) return ValidationResult::Inaccessible;
+        if (status.type() != std::filesystem::file_type::regular) {
+            return ValidationResult::Invalid;
         }
+        const auto size = std::filesystem::file_size(file, error);
+        if (error) return ValidationResult::Inaccessible;
+        if (size != entry.size) return ValidationResult::Invalid;
         const auto actual = sha256File(file);
-        if (!actual.ok() || *actual.value != entry.sha256) return false;
+        if (!actual.ok()) return ValidationResult::Inaccessible;
+        if (*actual.value != entry.sha256) return ValidationResult::Invalid;
     }
-    return true;
+    return ValidationResult::Valid;
 }
 
 Result<PreparedRuntime> RuntimeCache::prepare(
@@ -140,7 +182,15 @@ Result<PreparedRuntime> RuntimeCache::prepare(
     }
 
     const auto finalRoot = runtimeRoot_ / std::filesystem::path(digest);
-    if (validateRuntime(finalRoot, digest)) {
+    auto validation = validateRuntime(finalRoot, digest);
+    constexpr int maximumValidationAttempts = 21;
+    for (int attempt = 1;
+         validation == ValidationResult::Inaccessible && attempt < maximumValidationAttempts;
+         ++attempt) {
+        Sleep(50);
+        validation = validateRuntime(finalRoot, digest);
+    }
+    if (validation == ValidationResult::Valid) {
         auto lease = RuntimeLease::acquireShared(finalRoot);
         if (!lease.ok()) return cacheFailure(lease.error.message);
         return Result<PreparedRuntime>::success(
@@ -149,8 +199,10 @@ Result<PreparedRuntime> RuntimeCache::prepare(
 
     if (std::filesystem::exists(finalRoot, error)) {
         const auto quarantine = uniquePath(runtimeRoot_, L".invalid-");
-        std::filesystem::rename(finalRoot, quarantine, error);
-        if (error) return cacheFailure("Cannot quarantine invalid runtime");
+        if (!renameRuntimeForQuarantine(finalRoot, quarantine, error)) {
+            return cacheFailure("Cannot quarantine invalid runtime ("
+                + std::to_string(error.value()) + ": " + error.message() + ")");
+        }
         std::filesystem::remove_all(quarantine, error);
         if (error) return cacheFailure("Cannot remove invalid runtime quarantine");
     }

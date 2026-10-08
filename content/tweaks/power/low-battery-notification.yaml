@@ -1,0 +1,59 @@
+id: power.low-battery-notification
+title: 'Уведомление о низком заряде батареи'
+category: power
+subcategory: battery
+kind: setting
+summary: 'Управляет системным уведомлением о достижении низкого уровня заряда при работе от батареи.'
+explanation:
+  purpose: 'Позволяет включить или отключить предупреждение Windows о низком заряде батареи.'
+  mechanism: 'Политика DCSettingIndex задаёт состояние уведомления для режима питания от батареи.'
+  effect: 'При отключении Windows не показывает обычное предупреждение о низком заряде.'
+  tradeoffs: 'Без предупреждения компьютер может перейти в критическое состояние заряда неожиданно для пользователя.'
+  recommendation: 'Оставляйте включённым на ноутбуках и планшетах.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Power\PowerSettings\bcded951-187b-4d05-bccc-f7e51960c258\DCSettingIndex: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Power\PowerSettings\bcded951-187b-4d05-bccc-f7e51960c258'
+        value_name: DCSettingIndex
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Power\PowerSettings\bcded951-187b-4d05-bccc-f7e51960c258'
+        value_name: DCSettingIndex
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Power\PowerSettings\bcded951-187b-4d05-bccc-f7e51960c258'
+  value_name: DCSettingIndex
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false
