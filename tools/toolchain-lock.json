@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "aqtinstall": "3.3.0",
+  "qt": {
+    "version": "6.8.3",
+    "architecture": "win64_mingw",
+    "outputDirectory": "D:\\ChatGPT\\Tools\\Tweakopedia\\Qt",
+    "archiveVerification": "aqt official repository metadata"
+  },
+  "tools": [
+    {
+      "name": "MinGW",
+      "version": "13.1.0",
+      "tool": "tools_mingw1310",
+      "variant": "qt.tools.win64_mingw1310",
+      "archive": "mingw1310.7z",
+      "sha1": "23c4bdecc1a2d2588f1b32b3e6cbf64d2a7ee852"
+    },
+    {
+      "name": "CMake",
+      "version": "3.30.5",
+      "tool": "tools_cmake",
+      "variant": "qt.tools.cmake",
+      "archive": "windows64_x64_cmake_tools.7z",
+      "sha1": "5ad8e1765b801c1c57cd3f03c0293534e8fced57"
+    },
+    {
+      "name": "Ninja",
+      "version": "1.12.1",
+      "tool": "tools_ninja",
+      "variant": "qt.tools.ninja",
+      "archive": "ninja_win64.7z",
+      "sha1": "540f19f3c38ce7e8b7b54b9283bac2165e30dee7"
+    }
+  ]
+}
