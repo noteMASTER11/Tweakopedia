@@ -206,3 +206,15 @@ add_executable(TransactionRunnerTest
 
 target_link_libraries(TransactionRunnerTest PRIVATE Qt6::Test TweakopediaExecution TweakopediaPersistence)
 add_test(NAME TransactionRunner COMMAND TransactionRunnerTest)
+
+add_executable(ExecutorIpcTest execution/ExecutorIpcTest.cpp)
+target_compile_definitions(ExecutorIpcTest PRIVATE
+    TWEAKOPEDIA_TEST_EXECUTOR="$<TARGET_FILE:TweakopediaExecutor>"
+)
+target_link_libraries(ExecutorIpcTest PRIVATE Qt6::Test Qt6::Network TweakopediaExecution)
+add_dependencies(ExecutorIpcTest TweakopediaExecutor)
+add_test(NAME ExecutorIpc COMMAND ExecutorIpcTest)
+
+add_executable(ExecutorLauncherTest execution/ExecutorLauncherTest.cpp)
+target_link_libraries(ExecutorLauncherTest PRIVATE Qt6::Test TweakopediaExecution)
+add_test(NAME ExecutorLauncher COMMAND ExecutorLauncherTest)
