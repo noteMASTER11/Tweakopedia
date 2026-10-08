@@ -29,6 +29,10 @@ ApplicationWindow {
             Layout.fillHeight: true
             availableWidth: window.width
             queueCount: appController.queue.count
+            hideUnsupportedTweaks: appController.filteredTweaks.hideUnsupported
+            onHideUnsupportedTweaksRequested: function(hide) {
+                appController.filteredTweaks.hideUnsupported = hide
+            }
         }
 
         StackLayout {

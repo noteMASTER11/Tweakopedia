@@ -20,6 +20,11 @@ QString TweakFilterProxyModel::categoryId() const
     return categoryId_;
 }
 
+bool TweakFilterProxyModel::hideUnsupported() const noexcept
+{
+    return hideUnsupported_;
+}
+
 void TweakFilterProxyModel::setQuery(QString query)
 {
     query = query.trimmed();
@@ -38,12 +43,24 @@ void TweakFilterProxyModel::setCategoryId(QString categoryId)
     emit categoryIdChanged();
 }
 
+void TweakFilterProxyModel::setHideUnsupported(bool hideUnsupported)
+{
+    if (hideUnsupported_ == hideUnsupported) return;
+    hideUnsupported_ = hideUnsupported;
+    invalidateRowsFilter();
+    emit hideUnsupportedChanged();
+}
+
 bool TweakFilterProxyModel::filterAcceptsRow(
     int sourceRow,
     const QModelIndex& sourceParent) const
 {
     if (!sourceModel()) return false;
     const auto index = sourceModel()->index(sourceRow, 0, sourceParent);
+    if (hideUnsupported_
+        && !sourceModel()->data(index, TweakListModel::SupportedRole).toBool()) {
+        return false;
+    }
     if (!categoryId_.isEmpty()
         && sourceModel()->data(index, TweakListModel::CategoryRole).toString() != categoryId_) {
         return false;

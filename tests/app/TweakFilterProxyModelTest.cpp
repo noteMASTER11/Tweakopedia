@@ -2,6 +2,7 @@
 #include "app/TweakListModel.h"
 #include "content/TweakCatalogLoader.h"
 
+#include <QSignalSpy>
 #include <QtTest/QTest>
 
 using namespace tweakopedia;
@@ -33,7 +34,7 @@ private:
         return content::TweakCatalog({first, second, third});
     }
 
-    static void populate(app::TweakListModel& model)
+    static void populate(app::TweakListModel& model, bool privacySupported = true)
     {
         const auto source = catalog();
         QHash<domain::TweakId, domain::DetectedState> states;
@@ -43,7 +44,9 @@ private:
                 .status = domain::DetectionStatus::Named,
                 .stateId = u"disabled"_s,
             });
-            supported.insert(tweak.id, true);
+            supported.insert(
+                tweak.id,
+                privacySupported || tweak.id.toString() != u"privacy.diagnostics"_s);
         }
         model.reset(source, states, supported);
     }
@@ -92,6 +95,30 @@ private slots:
 
         proxy.setQuery({});
         proxy.setCategoryId({});
+        QCOMPARE(proxy.rowCount(), 3);
+    }
+
+    void hidesUnsupportedTweaksOnRequest()
+    {
+        app::TweakListModel source;
+        populate(source, false);
+        app::TweakFilterProxyModel proxy;
+        proxy.setSourceModel(&source);
+
+        QCOMPARE(proxy.hideUnsupported(), false);
+        QCOMPARE(proxy.rowCount(), 3);
+
+        QSignalSpy changed(&proxy, &app::TweakFilterProxyModel::hideUnsupportedChanged);
+        proxy.setHideUnsupported(true);
+        QCOMPARE(changed.count(), 1);
+        QCOMPARE(proxy.hideUnsupported(), true);
+        QCOMPARE(proxy.rowCount(), 2);
+        for (int row = 0; row < proxy.rowCount(); ++row) {
+            QVERIFY(proxy.data(proxy.index(row, 0), app::TweakListModel::SupportedRole).toBool());
+        }
+
+        proxy.setHideUnsupported(false);
+        QCOMPARE(changed.count(), 2);
         QCOMPARE(proxy.rowCount(), 3);
     }
 };

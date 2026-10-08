@@ -121,5 +121,32 @@ TestCase {
         compare(spy.signalArguments[0][0], 3)
     }
 
+    function test_unsupportedFilterUsesCheckboxAndCompactButton() {
+        const navigation = createTemporaryObject(navigationComponent, this)
+        const expandedFilter = findChild(navigation, "unsupportedTweaksCheckbox")
+        const compactFilter = findChild(navigation, "unsupportedTweaksCompactButton")
+        verify(expandedFilter)
+        verify(compactFilter)
+        compare(expandedFilter.visible, true)
+        compare(compactFilter.visible, false)
+        compare(navigation.hideUnsupportedTweaks, false)
+
+        const spy = signalSpy.createObject(navigation, {
+            target: navigation,
+            signalName: "hideUnsupportedTweaksRequested"
+        })
+        mouseClick(expandedFilter)
+        compare(spy.count, 1)
+        compare(spy.signalArguments[0][0], true)
+
+        navigation.hideUnsupportedTweaks = true
+        compare(expandedFilter.checked, true)
+        navigation.availableWidth = 1099
+        tryCompare(expandedFilter, "visible", false)
+        tryCompare(compactFilter, "visible", true)
+        compare(compactFilter.checked, true)
+        compare(compactFilter.Accessible.name, "Показывать неподдерживаемые твики")
+    }
+
     Component { id: signalSpy; SignalSpy {} }
 }
