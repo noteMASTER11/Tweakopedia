@@ -115,14 +115,16 @@ Rectangle {
                 radius: 6
                 color: FluentTheme.surfaceInset
 
-                Text {
+                TextEdit {
                     id: technicalText
                     objectName: "technicalObject_" + index
                     anchors.fill: parent
                     anchors.margins: 8
                     text: modelData
+                    readOnly: true
+                    selectByMouse: true
                     color: FluentTheme.textPrimary
-                    wrapMode: Text.WrapAnywhere
+                    wrapMode: TextEdit.WrapAnywhere
                     font.family: "Consolas"
                     font.pixelSize: 12
                 }

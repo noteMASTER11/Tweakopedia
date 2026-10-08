@@ -28,6 +28,7 @@ FocusScope {
 
         delegate: TreeViewDelegate {
             id: treeDelegate
+            readonly property string fullTitleTooltip: ToolTip.text
 
             objectName: "encyclopediaNode_" + (model.id || row)
             implicitWidth: tree.width
@@ -39,7 +40,12 @@ FocusScope {
             Accessible.role: model.nodeType === "article"
                 ? Accessible.ListItem : Accessible.Button
             Accessible.name: model.title || ""
-            Accessible.description: model.path || ""
+            Accessible.description: model.nodeType === "article"
+                ? (model.path || "")
+                : (expanded ? "Развёрнуто" : "Свёрнуто")
+            ToolTip.text: model.title || ""
+            ToolTip.visible: hovered && titleText.truncated
+            ToolTip.delay: 500
 
             onClicked: {
                 if (model.nodeType === "article")
@@ -71,6 +77,8 @@ FocusScope {
                 spacing: 2
 
                 Text {
+                    id: titleText
+                    objectName: "encyclopediaNodeTitle_" + (treeDelegate.model.id || treeDelegate.row)
                     width: parent.width - parent.leftPadding
                     text: treeDelegate.model.title || ""
                     color: treeDelegate.model.selected

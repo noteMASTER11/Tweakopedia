@@ -11,6 +11,7 @@ Item {
     property bool showContents: width >= 1000
     property bool singleColumnSections: !showContents
     property bool stackRelated: false
+    property string activeSectionId: ""
     readonly property var articleData: articleModel && articleModel.article
         ? articleModel.article : ({})
     readonly property var compatibilityData: articleData.compatibility || ({})
@@ -21,16 +22,42 @@ Item {
 
     function scrollToSection(sectionId) {
         root.sectionRequested(sectionId)
+        root.activeSectionId = sectionId
         for (let index = 0; index < sectionRepeater.count; ++index) {
             const item = sectionRepeater.itemAt(index)
             if (item && item.section.id === sectionId) {
                 const flickable = articleScroll.contentItem
-                flickable.contentY = Math.max(0, Math.min(item.y,
+                const position = item.mapToItem(flickable.contentItem, 0, 0)
+                flickable.contentY = Math.max(0, Math.min(position.y,
                     flickable.contentHeight - flickable.height))
                 return
             }
         }
     }
+
+    function updateActiveSection() {
+        const flickable = articleScroll.contentItem
+        if (!flickable || sectionRepeater.count === 0)
+            return
+        const marker = flickable.contentY + 32
+        const firstItem = sectionRepeater.itemAt(0)
+        let active = firstItem ? firstItem.section.id : ""
+        for (let index = 0; index < sectionRepeater.count; ++index) {
+            const item = sectionRepeater.itemAt(index)
+            if (!item)
+                continue
+            const position = item.mapToItem(flickable.contentItem, 0, 0)
+            if (position.y <= marker)
+                active = item.section.id
+            else
+                break
+        }
+        if (active.length > 0)
+            root.activeSectionId = active
+    }
+
+    onArticleDataChanged: Qt.callLater(updateActiveSection)
+    Component.onCompleted: Qt.callLater(updateActiveSection)
 
     RowLayout {
         anchors.fill: parent
@@ -38,6 +65,7 @@ Item {
 
         ScrollView {
             id: articleScroll
+            objectName: "articleScroll"
             Layout.fillWidth: true
             Layout.fillHeight: true
             contentWidth: availableWidth
@@ -190,6 +218,11 @@ Item {
 
                 Item { Layout.fillWidth: true; implicitHeight: 18 }
             }
+
+            Connections {
+                target: articleScroll.contentItem
+                function onContentYChanged() { root.updateActiveSection() }
+            }
         }
 
         ArticleContents {
@@ -198,6 +231,7 @@ Item {
             Layout.alignment: Qt.AlignTop
             visible: root.showContents
             sections: root.articleData.sections || []
+            activeSectionId: root.activeSectionId
             onSectionRequested: sectionId => root.scrollToSection(sectionId)
         }
     }
@@ -230,6 +264,7 @@ Item {
             objectName: "articleContentsPopupPanel"
             width: contentsPopup.width
             sections: root.articleData.sections || []
+            activeSectionId: root.activeSectionId
             onSectionRequested: function(sectionId) {
                 root.scrollToSection(sectionId)
                 contentsPopup.close()

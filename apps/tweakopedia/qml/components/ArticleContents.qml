@@ -7,6 +7,7 @@ Rectangle {
     id: root
 
     property var sections: []
+    property string activeSectionId: ""
     signal sectionRequested(string sectionId)
 
     implicitWidth: 210
@@ -37,16 +38,18 @@ Rectangle {
             delegate: AbstractButton {
                 id: contentsButton
                 required property var modelData
+                readonly property bool current: root.activeSectionId === modelData.id
                 objectName: "articleContents_" + modelData.id
                 Layout.fillWidth: true
                 implicitHeight: 34
                 focusPolicy: Qt.StrongFocus
                 Accessible.name: "Перейти к разделу: " + modelData.title
+                Accessible.description: current ? "Текущий раздел" : ""
                 onClicked: root.sectionRequested(modelData.id)
 
                 contentItem: Text {
                     text: modelData.title
-                    color: contentsButton.hovered
+                    color: contentsButton.current || contentsButton.hovered
                         ? FluentTheme.accent : FluentTheme.textSecondary
                     elide: Text.ElideRight
                     verticalAlignment: Text.AlignVCenter
@@ -56,9 +59,11 @@ Rectangle {
 
                 background: Rectangle {
                     radius: 5
-                    color: contentsButton.hovered || contentsButton.activeFocus
-                        ? FluentTheme.hover : "transparent"
-                    border.width: contentsButton.activeFocus ? 1 : 0
+                    color: contentsButton.current
+                        ? FluentTheme.selected
+                        : (contentsButton.hovered || contentsButton.activeFocus
+                            ? FluentTheme.hover : "transparent")
+                    border.width: contentsButton.current || contentsButton.activeFocus ? 1 : 0
                     border.color: FluentTheme.accent
                 }
             }

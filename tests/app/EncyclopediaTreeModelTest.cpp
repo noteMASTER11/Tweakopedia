@@ -198,6 +198,24 @@ private slots:
         QCOMPARE(model.rowCount(), 2);
     }
 
+    void searchesLocalizedCategoryAndSubcategoryTitles()
+    {
+        app::EncyclopediaTreeModel model;
+        const auto catalog = tweaks();
+        const auto categoryCatalog = categories();
+        model.reset(catalog, categoryCatalog);
+
+        model.setQuery(u"конфиденциальность"_s);
+        QCOMPARE(model.articleCount(), 3);
+
+        model.setQuery(u"диагностика телеметрия"_s);
+        QCOMPARE(model.articleCount(), 2);
+        const auto privacy = model.index(0, 0);
+        const auto diagnostics = model.index(0, 0, privacy);
+        QCOMPARE(model.data(diagnostics, app::EncyclopediaTreeModel::TitleRole).toString(),
+                 u"Диагностика и телеметрия"_s);
+    }
+
     void marksOnlySelectedVisibleArticle()
     {
         app::EncyclopediaTreeModel model;

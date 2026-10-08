@@ -138,6 +138,23 @@ TestCase {
         compare(findChild(page, "queueApplyButton"), null)
     }
 
+    function test_treeShowsFullTruncatedTitleInTooltip() {
+        const originalTitle = treeModel.get(0).title
+        treeModel.setProperty(0, "title",
+            "Очень длинное полное название энциклопедической статьи о параметрах Windows")
+        const page = createTemporaryObject(pageComponent, this, {
+            width: 1440,
+            availableWindowWidth: 1440
+        })
+        const row = findChild(page, "encyclopediaNode_privacy.diagnostic-data")
+        const title = findChild(page, "encyclopediaNodeTitle_privacy.diagnostic-data")
+        verify(row)
+        verify(title)
+        verify(title.truncated)
+        compare(row.fullTitleTooltip, title.text)
+        treeModel.setProperty(0, "title", originalTitle)
+    }
+
     function test_contentsAndRelatedArticleNavigation() {
         showArticle("privacy.diagnostic-data")
         const page = createTemporaryObject(pageComponent, this)
@@ -151,6 +168,35 @@ TestCase {
         compare(related.Accessible.name, "Открыть статью: Подробности телеметрии")
         related.clicked()
         compare(encyclopediaController.lastOpenedId, "privacy.telemetry-details")
+    }
+
+    function test_contentsScrollsToSectionAndTechnicalObjectIsSelectable() {
+        showArticle("privacy.diagnostic-data")
+        const page = createTemporaryObject(pageComponent, this, {
+            width: 900,
+            height: 360,
+            availableWindowWidth: 900
+        })
+        const scroll = findChild(page, "articleScroll")
+        const technicalSection = findChild(page, "articleSection_technical")
+        verify(scroll)
+        verify(technicalSection)
+        technicalSection.expanded = true
+        wait(0)
+
+        const technical = findChild(page, "technicalObject_0")
+        verify(technical)
+        compare(technical.selectByMouse, true)
+
+        const initialY = scroll.contentItem.contentY
+        findChild(page, "articleContentsButton").clicked()
+        const popupContents = findChild(page, "articleContentsPopupPanel")
+        verify(popupContents)
+        findChild(popupContents, "articleContents_technical").clicked()
+        tryVerify(function() { return scroll.contentItem.contentY > initialY + 20 })
+
+        scroll.contentItem.contentY = 0
+        tryCompare(findChild(popupContents, "articleContents_purpose"), "current", true)
     }
 
     function test_navigationButtonsAndNoResultsState() {

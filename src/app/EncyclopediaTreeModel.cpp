@@ -113,6 +113,14 @@ void EncyclopediaTreeModel::reset(
 {
     beginResetModel();
     categories_ = categories.categories();
+    QHash<QString, QString> navigationTitles;
+    for (const auto& category : categories_) {
+        for (const auto& subcategory : category.subcategories) {
+            navigationTitles.insert(
+                category.id + u'\n' + subcategory.id,
+                normalize(category.title + u' ' + subcategory.title));
+        }
+    }
     articles_.clear();
     articles_.reserve(catalog.tweaks().size());
     int sourceOrder = 0;
@@ -133,6 +141,9 @@ void EncyclopediaTreeModel::reset(
             .summary = tweak.summary,
             .titleSearch = normalize(tweak.title),
             .summarySearch = normalize(tweak.summary),
+            .navigationSearch = navigationTitles.value(
+                tweak.category + u'\n' + tweak.subcategory,
+                normalize(u"Другие материалы Без раздела"_s)),
             .bodySearch = normalize(body),
             .technicalSearch = normalize(technicalTerms(tweak)),
             .sourceOrder = sourceOrder++,
@@ -232,6 +243,7 @@ int EncyclopediaTreeModel::score(
     if (containsAll(article.summarySearch)) return 400;
     const auto idSearch = normalize(article.id);
     if (containsAll(idSearch)) return 300;
+    if (containsAll(article.navigationSearch)) return 250;
     if (containsAll(article.bodySearch)) return 200;
     if (containsAll(article.technicalSearch)) return 100;
     return 0;

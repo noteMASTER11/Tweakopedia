@@ -118,6 +118,9 @@ private slots:
         QCOMPARE(sections.at(2).toMap().value(u"id"_s).toString(), u"effect"_s);
         QCOMPARE(sections.at(3).toMap().value(u"id"_s).toString(), u"recommendation"_s);
         QCOMPARE(sections.at(4).toMap().value(u"id"_s).toString(), u"technical"_s);
+        const auto technicalText = sections.at(4).toMap().value(u"text"_s).toString();
+        QVERIFY(technicalText.contains(u"Техническое описание параметра."_s));
+        QVERIFY(technicalText.contains(u"Возврат:"_s));
         const auto technical = article.value(u"technicalObjects"_s).toStringList();
         QCOMPARE(technical, QStringList({
             u"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection\\AllowTelemetry"_s,

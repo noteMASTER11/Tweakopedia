@@ -67,6 +67,19 @@ QString restartTitle(domain::RestartRequirement restart)
     return {};
 }
 
+QString returnDescription(domain::Reversibility reversibility)
+{
+    switch (reversibility) {
+    case domain::Reversibility::Reversible:
+        return u"Возврат: Tweakopedia восстанавливает точное исходное состояние из журнала транзакции."_s;
+    case domain::Reversibility::Conditional:
+        return u"Возврат: автоматическое восстановление возможно только при наличии полного исходного снимка."_s;
+    case domain::Reversibility::Irreversible:
+        return u"Возврат: автоматическое восстановление не предусмотрено."_s;
+    }
+    return {};
+}
+
 QStringList operatingSystems(const domain::WindowsCompatibility& compatibility)
 {
     QStringList result;
@@ -191,7 +204,8 @@ QVariantMap EncyclopediaArticleModel::buildArticle(const domain::TweakDefinition
     appendSection(u"tradeoffs"_s, u"Ограничения"_s, tweak.explanation.tradeoffs);
     appendSection(u"recommendation"_s, u"Рекомендация"_s, tweak.explanation.recommendation);
     appendSection(u"technical"_s, u"Технические сведения"_s,
-                  tweak.explanation.technicalDetails, true);
+                  tweak.explanation.technicalDetails + u"\n\n"_s
+                      + returnDescription(tweak.reversibility), true);
 
     const auto category = categoryTitle(tweak.category);
     const auto subcategory = subcategoryTitle(tweak.category, tweak.subcategory);

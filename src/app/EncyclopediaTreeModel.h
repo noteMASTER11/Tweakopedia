@@ -79,6 +79,7 @@ private:
         QString summary;
         QString titleSearch;
         QString summarySearch;
+        QString navigationSearch;
         QString bodySearch;
         QString technicalSearch;
         int sourceOrder{};
