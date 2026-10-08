@@ -218,3 +218,17 @@ add_test(NAME ExecutorIpc COMMAND ExecutorIpcTest)
 add_executable(ExecutorLauncherTest execution/ExecutorLauncherTest.cpp)
 target_link_libraries(ExecutorLauncherTest PRIVATE Qt6::Test TweakopediaExecution)
 add_test(NAME ExecutorLauncher COMMAND ExecutorLauncherTest)
+
+add_executable(AppControllerTest app/AppControllerTest.cpp)
+target_compile_definitions(AppControllerTest PRIVATE
+    TWEAKOPEDIA_TEST_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content/tweaks"
+)
+target_link_libraries(AppControllerTest PRIVATE Qt6::Test TweakopediaApp TweakopediaContent)
+add_test(NAME AppController COMMAND AppControllerTest)
+
+add_executable(TweakListModelTest app/TweakListModelTest.cpp)
+target_compile_definitions(TweakListModelTest PRIVATE
+    TWEAKOPEDIA_TEST_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content/tweaks"
+)
+target_link_libraries(TweakListModelTest PRIVATE Qt6::Test TweakopediaApp TweakopediaContent)
+add_test(NAME TweakListModel COMMAND TweakListModelTest)

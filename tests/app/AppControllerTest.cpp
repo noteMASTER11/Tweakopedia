@@ -1,0 +1,145 @@
+#include "app/AppController.h"
+#include "content/TweakCatalogLoader.h"
+
+#include <QtTest/QTest>
+
+using namespace tweakopedia;
+using namespace Qt::StringLiterals;
+
+namespace {
+
+class FakeAppServices final : public app::IAppServices
+{
+public:
+    content::TweakCatalog catalog;
+    domain::SystemProfile profile{
+        .family = domain::WindowsFamily::Windows11,
+        .build = 26200,
+        .ubr = 1000,
+        .edition = u"Professional"_s,
+        .architecture = domain::CpuArchitecture::X64,
+    };
+    domain::DetectedState detected{
+        .status = domain::DetectionStatus::Named,
+        .stateId = u"disabled"_s,
+        .fingerprint = QByteArray(64, 'a'),
+    };
+    app::AppOperationResult nextApply{.status = app::AppOperationStatus::Cancelled,
+                                      .code = u"launch.cancelled"_s};
+    QVector<persistence::TransactionRecord> records;
+    int applyCalls{};
+    int rollbackCalls{};
+
+    content::CatalogLoadResult loadCatalog() override { return {.catalog = catalog}; }
+    domain::SystemProfile currentProfile() const override { return profile; }
+    domain::DetectedState detect(
+        const domain::TweakDefinition&,
+        const domain::SystemProfile&) const override { return detected; }
+
+    app::AppOperationResult apply(
+        const planning::ExecutionPlan& plan,
+        const QString& packageName) override
+    {
+        ++applyCalls;
+        if (nextApply.status == app::AppOperationStatus::Succeeded) {
+            detected.stateId = u"enabled"_s;
+            auto record = persistence::TransactionRecord::pending(
+                plan.transactionId, packageName, u"D:/ChatGPT/Temp/Tweakopedia/fake"_s);
+            record.status = persistence::TransactionStatus::Succeeded;
+            records.append(record);
+            nextApply.transactionId = plan.transactionId;
+        }
+        return nextApply;
+    }
+
+    app::AppOperationResult rollback(const QUuid& transactionId) override
+    {
+        ++rollbackCalls;
+        detected.stateId = u"disabled"_s;
+        for (auto& record : records) {
+            if (record.id == transactionId) record.status = persistence::TransactionStatus::RolledBack;
+        }
+        return {.status = app::AppOperationStatus::Succeeded, .transactionId = transactionId};
+    }
+
+    QVector<persistence::TransactionRecord> history() const override { return records; }
+};
+
+FakeAppServices services()
+{
+    FakeAppServices result;
+    const auto loaded = content::TweakCatalogLoader{}.loadDirectory(
+        QStringLiteral(TWEAKOPEDIA_TEST_CONTENT_ROOT));
+    Q_ASSERT(loaded.catalog.has_value());
+    result.catalog = *loaded.catalog;
+    return result;
+}
+
+} // namespace
+
+class AppControllerTest final : public QObject
+{
+    Q_OBJECT
+
+private slots:
+    void startupQueuePreviewCancelSuccessAndRollback()
+    {
+        auto backend = services();
+        app::AppController controller(backend);
+
+        QVERIFY(controller.startup());
+        QCOMPARE(controller.tweaks()->rowCount(), 1);
+        QCOMPARE(controller.tweaks()->data(
+                     controller.tweaks()->index(0), app::TweakListModel::CurrentStateRole).toString(),
+                 u"disabled"_s);
+
+        QVERIFY(controller.selectTarget(u"filesystem.win32-long-paths"_s, u"enabled"_s));
+        QCOMPARE(backend.applyCalls, 0);
+        QCOMPARE(controller.queue()->rowCount(), 1);
+        QCOMPARE(controller.tweaks()->data(
+                     controller.tweaks()->index(0), app::TweakListModel::CurrentStateRole).toString(),
+                 u"disabled"_s);
+        QVERIFY(controller.buildPreview());
+        QVERIFY(controller.previewSummary().contains(u"1"));
+
+        QVERIFY(!controller.applyQueue(u"Мой пакет"_s));
+        QCOMPARE(controller.lastErrorCode(), u"launch.cancelled"_s);
+        QCOMPARE(controller.queue()->rowCount(), 1);
+
+        backend.nextApply = {.status = app::AppOperationStatus::Succeeded};
+        QVERIFY(controller.applyQueue(u"Мой пакет"_s));
+        QCOMPARE(controller.queue()->rowCount(), 0);
+        QCOMPARE(controller.history()->rowCount(), 1);
+        QCOMPARE(controller.tweaks()->data(
+                     controller.tweaks()->index(0), app::TweakListModel::CurrentStateRole).toString(),
+                 u"enabled"_s);
+        QCOMPARE(controller.tweaks()->data(
+                     controller.tweaks()->index(0), app::TweakListModel::TargetStateRole).toString(),
+                 QString{});
+
+        const auto transactionId = backend.records.first().id.toString(QUuid::WithoutBraces);
+        QVERIFY(controller.rollback(transactionId));
+        QCOMPARE(backend.rollbackCalls, 1);
+        QCOMPARE(controller.tweaks()->data(
+                     controller.tweaks()->index(0), app::TweakListModel::CurrentStateRole).toString(),
+                 u"disabled"_s);
+    }
+
+    void opensCompleteExplanationWithoutArticleLinks()
+    {
+        auto backend = services();
+        app::AppController controller(backend);
+        QVERIFY(controller.startup());
+
+        const auto explanation = controller.openExplanation(u"filesystem.win32-long-paths"_s);
+
+        QVERIFY(!explanation.value(u"purpose"_s).toString().isEmpty());
+        QVERIFY(!explanation.value(u"mechanism"_s).toString().isEmpty());
+        QVERIFY(!explanation.contains(u"article"_s));
+        QVERIFY(!explanation.contains(u"sources"_s));
+    }
+};
+
+QTEST_APPLESS_MAIN(AppControllerTest)
+
+#include "AppControllerTest.moc"
