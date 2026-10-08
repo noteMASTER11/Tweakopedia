@@ -275,7 +275,7 @@ Item {
                     objectName: "relatedArticlesFlow"
                     Layout.fillWidth: true
                     Layout.preferredHeight: childrenRect.height
-                    spacing: 10
+                    spacing: 12
 
                     Repeater {
                         id: relatedRepeater
@@ -286,7 +286,8 @@ Item {
                             article: modelData
                             width: root.stackRelated
                                 ? parent.width
-                                : Math.max(190, Math.min(260, (parent.width - 20) / 3))
+                                : Math.max(190, Math.min(260,
+                                    (parent.width - parent.spacing * 2) / 3))
                             onArticleRequested: id => root.controller.openArticle(id)
                         }
                     }

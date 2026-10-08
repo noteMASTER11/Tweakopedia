@@ -369,5 +369,43 @@ TestCase {
         verify(related.width > page.width * 0.7)
     }
 
+    function test_relatedArticleCardsKeepFluentGuttersAndContentInsets() {
+        const data = articleData("privacy.diagnostic-data")
+        data.relatedArticles = []
+        for (let index = 0; index < 6; ++index) {
+            data.relatedArticles.push({
+                id: "related.layout." + index,
+                title: "Связанная статья " + (index + 1),
+                summary: "Описание связанного материала для проверки сетки.",
+                path: "Конфиденциальность › Диагностика"
+            })
+        }
+        articleModel.article = data
+        articleModel.hasArticle = true
+
+        const page = createTemporaryObject(pageComponent, this, {
+            width: 1440,
+            availableWindowWidth: 1440
+        })
+        const first = findChild(page, "relatedArticle_related.layout.0")
+        const second = findChild(page, "relatedArticle_related.layout.1")
+        const fourth = findChild(page, "relatedArticle_related.layout.3")
+        verify(first)
+        verify(second)
+        verify(fourth)
+        wait(0)
+
+        const horizontalGap = second.x - first.x - first.width
+        const verticalGap = fourth.y - first.y - first.height
+        verify(horizontalGap >= 12)
+        verify(verticalGap >= 12)
+        verify(first.contentItem.x >= 16)
+        verify(first.contentItem.y >= 14)
+
+        first.forceActiveFocus()
+        tryVerify(function() { return first.background.border.width === 2 })
+        verify(first.contentItem.x >= first.background.border.width + 12)
+    }
+
     Component { id: signalSpy; SignalSpy {} }
 }

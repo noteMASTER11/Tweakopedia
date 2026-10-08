@@ -11,7 +11,11 @@ AbstractButton {
 
     objectName: "relatedArticle_" + article.id
     implicitWidth: 210
-    implicitHeight: 112
+    implicitHeight: 124
+    leftPadding: 16
+    rightPadding: 16
+    topPadding: 14
+    bottomPadding: 14
     focusPolicy: Qt.StrongFocus
     Accessible.role: Accessible.Button
     Accessible.name: "Открыть статью: " + article.title
