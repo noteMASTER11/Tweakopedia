@@ -1,0 +1,56 @@
+id: desktop.taskbar-end-task-switch
+title: 'Команда «Завершить задачу» на панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Показывает или скрывает команду принудительного завершения приложения в меню панели задач.'
+explanation:
+  purpose: 'Показывает или скрывает команду принудительного завершения приложения в меню панели задач.'
+  mechanism: 'Windows или приложение читает DWORD TaskbarEndTask и применяет соответствующий режим.'
+  effect: 'При включении контекстное меню работающего приложения получает команду «Завершить задачу».'
+  tradeoffs: 'Команда завершает процесс без обычного запроса на сохранение данных.'
+  recommendation: 'Включайте, если нужен быстрый способ закрывать зависшие приложения.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings\TaskbarEndTask: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings'
+        value_name: TaskbarEndTask
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings'
+        value_name: TaskbarEndTask
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22621, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings'
+  value_name: TaskbarEndTask
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

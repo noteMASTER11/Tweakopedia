@@ -1,0 +1,59 @@
+id: desktop.start-suggestions-user
+title: 'Эпизодические предложения в меню «Пуск»'
+category: desktop
+subcategory: spotlight
+kind: setting
+summary: 'Управляет эпизодическими предложениями приложений и возможностей в меню «Пуск».'
+explanation:
+  purpose: 'Управляет эпизодическими предложениями приложений и возможностей в меню «Пуск».'
+  mechanism: 'Windows или приложение читает DWORD SubscribedContent-338388Enabled и применяет соответствующий режим.'
+  effect: 'При выключении соответствующий канал предложений меню «Пуск» перестаёт отображаться.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Отключайте для более предсказуемого состава меню «Пуск».'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager\SubscribedContent-338388Enabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+        value_name: SubscribedContent-338388Enabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+        value_name: SubscribedContent-338388Enabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+  value_name: SubscribedContent-338388Enabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

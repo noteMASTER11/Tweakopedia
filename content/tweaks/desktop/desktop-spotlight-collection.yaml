@@ -1,0 +1,56 @@
+id: desktop.desktop-spotlight-collection
+title: 'Коллекция Windows Spotlight на рабочем столе'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Управляет использованием коллекции Windows Spotlight в качестве фона рабочего стола.'
+explanation:
+  purpose: 'Управляет использованием коллекции Windows Spotlight в качестве фона рабочего стола.'
+  mechanism: 'Windows или приложение читает DWORD DisableSpotlightCollectionOnDesktop и применяет соответствующий режим.'
+  effect: 'При выключении Windows не предлагает и не применяет коллекцию Spotlight на рабочем столе.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Отключайте при использовании статических или собственных обоев.'
+  technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows\CloudContent\DisableSpotlightCollectionOnDesktop: 1 — выключено, 0 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\CloudContent'
+        value_name: DisableSpotlightCollectionOnDesktop
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\CloudContent'
+        value_name: DisableSpotlightCollectionOnDesktop
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\CloudContent'
+  value_name: DisableSpotlightCollectionOnDesktop
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

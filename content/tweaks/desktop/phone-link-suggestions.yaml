@@ -1,0 +1,56 @@
+id: desktop.phone-link-suggestions
+title: 'Предложения «Связи с телефоном»'
+category: desktop
+subcategory: spotlight
+kind: setting
+summary: 'Управляет предложениями использовать мобильное устройство вместе с Windows.'
+explanation:
+  purpose: 'Управляет предложениями использовать мобильное устройство вместе с Windows.'
+  mechanism: 'Windows или приложение читает DWORD OptedIn и применяет соответствующий режим.'
+  effect: 'При выключении Windows не предлагает подключить телефон через этот канал.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Отключайте, если интеграция с телефоном не используется.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Mobility\OptedIn: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Mobility'
+        value_name: OptedIn
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Mobility'
+        value_name: OptedIn
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Mobility'
+  value_name: OptedIn
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

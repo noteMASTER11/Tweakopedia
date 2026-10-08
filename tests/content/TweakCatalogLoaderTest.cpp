@@ -192,7 +192,7 @@ private slots:
 
         QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 273);
+        QCOMPARE(result.catalog->size(), 335);
 
         const QStringList expectedIds{
             u"apps.windows-ink-workspace"_s,
@@ -403,6 +403,68 @@ private slots:
             u"privacy.find-my-device"_s,
             u"privacy.location-services"_s,
             u"updates.early-feature-updates"_s,
+            u"apps.chrome-ai-mode"_s,
+            u"apps.chrome-autofill-predictions"_s,
+            u"apps.chrome-ai-themes"_s,
+            u"apps.chrome-devtools-ai"_s,
+            u"apps.chrome-gemini-find-fill"_s,
+            u"apps.chrome-gemini"_s,
+            u"apps.chrome-gemini-spark"_s,
+            u"apps.chrome-help-me-write"_s,
+            u"apps.chrome-search-content-sharing"_s,
+            u"apps.chrome-smart-tab-sharing"_s,
+            u"apps.chrome-tab-compare"_s,
+            u"apps.chrome-third-party-ai-chat"_s,
+            u"apps.chrome-voice-typing"_s,
+            u"apps.edge-new-tab-content"_s,
+            u"apps.edge-default-top-sites"_s,
+            u"apps.edge-shopping-assistant"_s,
+            u"apps.edge-tab-organization"_s,
+            u"apps.edge-alternate-error-pages"_s,
+            u"apps.edge-user-feedback"_s,
+            u"apps.edge-recommendations"_s,
+            u"apps.edge-default-browser-prompt"_s,
+            u"apps.edge-default-browser-campaign"_s,
+            u"apps.edge-spotlight-recommendations"_s,
+            u"apps.edge-acrobat-subscription-button"_s,
+            u"apps.edge-startup-boost"_s,
+            u"apps.edge-background-mode"_s,
+            u"apps.edge-new-tab-quick-links"_s,
+            u"apps.edge-address-bar-trending-suggestions"_s,
+            u"desktop.welcome-experience-user"_s,
+            u"desktop.start-suggestions-user"_s,
+            u"desktop.system-pane-suggestions"_s,
+            u"desktop.start-iris-recommendations"_s,
+            u"desktop.tips-user"_s,
+            u"desktop.soft-landing-user"_s,
+            u"desktop.settings-suggestions-338393"_s,
+            u"desktop.settings-suggestions-353694"_s,
+            u"desktop.settings-suggestions-353696"_s,
+            u"desktop.settings-suggestions-353698"_s,
+            u"desktop.settings-account-notifications"_s,
+            u"desktop.setup-completion-suggestions"_s,
+            u"desktop.suggested-service-notifications"_s,
+            u"desktop.phone-link-suggestions"_s,
+            u"desktop.start-account-notifications-user"_s,
+            u"desktop.windows-backup-reminders"_s,
+            u"privacy.advertising-id-user"_s,
+            u"privacy.tailored-experiences-user"_s,
+            u"privacy.online-speech-user"_s,
+            u"apps.edge-personalization-reporting"_s,
+            u"apps.edge-diagnostic-data"_s,
+            u"desktop.search-web-suggestions-user"_s,
+            u"desktop.cortana-consent"_s,
+            u"desktop.chat-taskbar"_s,
+            u"desktop.meet-now-taskbar"_s,
+            u"desktop.desktop-spotlight-collection"_s,
+            u"gaming.controller-game-bar"_s,
+            u"desktop.device-search-history-user"_s,
+            u"desktop.taskbar-end-task-switch"_s,
+            u"desktop.desktop-spotlight-icon"_s,
+            u"desktop.start-all-apps-view-mode"_s,
+            u"desktop.explorer-gallery-navigation"_s,
+            u"desktop.explorer-home-navigation"_s,
+            u"desktop.onedrive-navigation"_s,
         };
         for (const auto& expectedId : expectedIds) {
             const auto id = TweakId::parse(expectedId);
@@ -459,6 +521,44 @@ private slots:
                  u"enabled_model_improvement"_s);
         QCOMPARE(chromeHistory->detection->statesByValue.value(1), u"enabled_private"_s);
         QCOMPARE(chromeHistory->detection->statesByValue.value(2), u"disabled"_s);
+
+        const auto chromeThemesId = *TweakId::parse(u"apps.chrome-ai-themes"_s);
+        const auto* chromeThemes = result.catalog->find(chromeThemesId);
+        QVERIFY(chromeThemes != nullptr);
+        QCOMPARE(chromeThemes->states.size(), 3);
+        QCOMPARE(chromeThemes->detection->statesByValue.value(0),
+                 u"enabled_model_improvement"_s);
+        QCOMPARE(chromeThemes->detection->statesByValue.value(1), u"enabled_private"_s);
+        QCOMPARE(chromeThemes->detection->statesByValue.value(2), u"disabled"_s);
+
+        const auto topSitesId = *TweakId::parse(u"apps.edge-default-top-sites"_s);
+        const auto* topSites = result.catalog->find(topSitesId);
+        QVERIFY(topSites != nullptr);
+        QCOMPARE(topSites->detection->statesByValue.value(0), u"enabled"_s);
+        QCOMPARE(topSites->detection->statesByValue.value(1), u"disabled"_s);
+
+        const auto meetNowId = *TweakId::parse(u"desktop.meet-now-taskbar"_s);
+        const auto* meetNow = result.catalog->find(meetNowId);
+        QVERIFY(meetNow != nullptr);
+        QCOMPARE(meetNow->compatibility.operatingSystems,
+                 QVector{WindowsFamily::Windows10});
+        QVERIFY(meetNow->compatibility.maximumBuild.has_value());
+        QCOMPARE(*meetNow->compatibility.maximumBuild, 19045U);
+
+        const auto chatId = *TweakId::parse(u"desktop.chat-taskbar"_s);
+        const auto* chat = result.catalog->find(chatId);
+        QVERIFY(chat != nullptr);
+        QCOMPARE(chat->compatibility.operatingSystems,
+                 QVector{WindowsFamily::Windows11});
+        QCOMPARE(chat->compatibility.minimumBuild, 22000U);
+
+        const auto allAppsViewId = *TweakId::parse(u"desktop.start-all-apps-view-mode"_s);
+        const auto* allAppsView = result.catalog->find(allAppsViewId);
+        QVERIFY(allAppsView != nullptr);
+        QCOMPARE(allAppsView->states.size(), 3);
+        QCOMPARE(allAppsView->detection->statesByValue.value(0), u"category"_s);
+        QCOMPARE(allAppsView->detection->statesByValue.value(1), u"grid"_s);
+        QCOMPARE(allAppsView->detection->statesByValue.value(2), u"list"_s);
     }
 };
 

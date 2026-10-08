@@ -1,0 +1,60 @@
+id: apps.chrome-gemini-spark
+title: 'Кнопка Gemini Spark в Chrome'
+category: apps
+subcategory: chrome-ai
+kind: setting
+summary: 'Управляет компактной точкой входа Gemini Spark в интерфейсе Chrome.'
+explanation:
+  purpose: 'Управляет компактной точкой входа Gemini Spark в интерфейсе Chrome.'
+  mechanism: 'Windows или приложение читает DWORD GeminiSparkSettings и применяет соответствующий режим.'
+  effect: 'При запрете кнопка и связанные приглашения Gemini Spark не отображаются.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Запрещайте, если эта точка входа занимает место или не используется.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Google\Chrome\GeminiSparkSettings: 1 — запретить, 0 — разрешить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [chrome]
+states:
+  disabled:
+    title: 'Запретить'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: GeminiSparkSettings
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Разрешить'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: GeminiSparkSettings
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Google\Chrome'
+  value_name: GeminiSparkSettings
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

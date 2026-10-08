@@ -1,0 +1,57 @@
+id: desktop.chat-taskbar
+title: 'Кнопка «Чат» на панели задач Windows 11'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Показывает или скрывает кнопку встроенного чата на ранних выпусках Windows 11.'
+explanation:
+  purpose: 'Показывает или скрывает кнопку встроенного чата на ранних выпусках Windows 11.'
+  mechanism: 'Windows или приложение читает DWORD TaskbarMn и применяет соответствующий режим.'
+  effect: 'При выключении кнопка «Чат» исчезает с панели задач.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Отключайте, если встроенный чат не используется.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarMn: 0 — скрыто, 1 — показано.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+  max_build: 22631
+states:
+  disabled:
+    title: 'Скрыто'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: TaskbarMn
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показано'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: TaskbarMn
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22000, 22631]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: TaskbarMn
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

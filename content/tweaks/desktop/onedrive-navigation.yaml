@@ -1,0 +1,60 @@
+id: desktop.onedrive-navigation
+title: 'OneDrive в области навигации Проводника'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Показывает или скрывает OneDrive в левой панели Проводника.'
+explanation:
+  purpose: 'Показывает или скрывает OneDrive в левой панели Проводника.'
+  mechanism: 'Windows или приложение читает DWORD System.IsPinnedToNameSpaceTree и применяет соответствующий режим.'
+  effect: 'При выключении узел OneDrive скрывается, но клиент синхронизации и файлы продолжают работать.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Скрывайте узел, если OneDrive не используется через Проводник.'
+  technical_details: 'DWORD HKCU\Software\Classes\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}\System.IsPinnedToNameSpaceTree: 0 — скрыто, 1 — показано.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [onedrive]
+states:
+  disabled:
+    title: 'Скрыто'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Classes\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}'
+        value_name: System.IsPinnedToNameSpaceTree
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показано'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Classes\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}'
+        value_name: System.IsPinnedToNameSpaceTree
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Classes\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}'
+  value_name: System.IsPinnedToNameSpaceTree
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

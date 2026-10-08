@@ -1,0 +1,60 @@
+id: apps.chrome-third-party-ai-chat
+title: 'Сторонние ИИ-чаты в Chrome'
+category: apps
+subcategory: chrome-ai
+kind: setting
+summary: 'Управляет интеграцией сторонних ИИ-чатов с интерфейсом Chrome.'
+explanation:
+  purpose: 'Управляет интеграцией сторонних ИИ-чатов с интерфейсом Chrome.'
+  mechanism: 'Windows или приложение читает DWORD ThirdPartyAiChatSettings и применяет соответствующий режим.'
+  effect: 'При запрете точки входа поддерживаемых сторонних ИИ-чатов не показываются.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Запрещайте, если сторонние ИИ-сервисы не должны встраиваться в браузер.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Google\Chrome\ThirdPartyAiChatSettings: 1 — запретить, 0 — разрешить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [chrome]
+states:
+  disabled:
+    title: 'Запретить'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: ThirdPartyAiChatSettings
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Разрешить'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: ThirdPartyAiChatSettings
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Google\Chrome'
+  value_name: ThirdPartyAiChatSettings
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

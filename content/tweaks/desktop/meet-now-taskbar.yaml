@@ -1,0 +1,57 @@
+id: desktop.meet-now-taskbar
+title: 'Кнопка «Провести собрание» в Windows 10'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Показывает или скрывает кнопку «Провести собрание» на панели задач Windows 10.'
+explanation:
+  purpose: 'Показывает или скрывает кнопку «Провести собрание» на панели задач Windows 10.'
+  mechanism: 'Windows или приложение читает DWORD HideSCAMeetNow и применяет соответствующий режим.'
+  effect: 'При выключении кнопка и связанное меню Skype Meet Now скрываются.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Отключайте, если Meet Now не используется.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\HideSCAMeetNow: 1 — скрыто, 0 — показано.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 19041
+  max_build: 19045
+states:
+  disabled:
+    title: 'Скрыто'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: HideSCAMeetNow
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Показано'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: HideSCAMeetNow
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [19041, 19045]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+  value_name: HideSCAMeetNow
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

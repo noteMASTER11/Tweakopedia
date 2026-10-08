@@ -1,0 +1,70 @@
+id: apps.edge-diagnostic-data
+title: 'Уровень диагностических данных Microsoft Edge'
+category: apps
+subcategory: edge-ui
+kind: setting
+summary: 'Выбирает объём диагностических данных браузера Edge.'
+explanation:
+  purpose: 'Выбирает объём диагностических данных браузера Edge.'
+  mechanism: 'Windows или приложение читает DWORD DiagnosticData и применяет соответствующий режим.'
+  effect: 'Можно выключить отправку, оставить только обязательные данные либо разрешить дополнительные данные об использовании и сбоях.'
+  tradeoffs: 'Полное отключение уменьшает объём сведений для диагностики проблем; режим дополнительных данных передаёт больше сведений об использовании.'
+  recommendation: 'Обычно достаточно режима обязательных данных.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Edge\DiagnosticData: 0 — выключено, 1 — только обязательные, 2 — обязательные и дополнительные.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [edge]
+states:
+  off:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: DiagnosticData
+        view: registry64
+        value: 0
+  required:
+    title: 'Только обязательные'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: DiagnosticData
+        view: registry64
+        value: 1
+  optional:
+    title: 'Обязательные и дополнительные'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: DiagnosticData
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: required
+  - os: windows11
+    builds: [22000, 26200]
+    state: required
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Edge'
+  value_name: DiagnosticData
+  view: registry64
+  states:
+    0: off
+    1: required
+    2: optional
+  missing_state: required
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

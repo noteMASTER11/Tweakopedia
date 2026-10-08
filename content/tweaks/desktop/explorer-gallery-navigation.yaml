@@ -1,0 +1,56 @@
+id: desktop.explorer-gallery-navigation
+title: '«Галерея» в области навигации Проводника'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Показывает или скрывает раздел «Галерея» в левой панели Проводника.'
+explanation:
+  purpose: 'Показывает или скрывает раздел «Галерея» в левой панели Проводника.'
+  mechanism: 'Windows или приложение читает DWORD System.IsPinnedToNameSpaceTree и применяет соответствующий режим.'
+  effect: 'При выключении узел «Галерея» исчезает из дерева навигации, но функция и файлы не удаляются.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Скрывайте раздел, если просмотр изображений через Галерею не используется.'
+  technical_details: 'DWORD HKCU\Software\Classes\CLSID\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}\System.IsPinnedToNameSpaceTree: 0 — скрыто, 1 — показано.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  disabled:
+    title: 'Скрыто'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Classes\CLSID\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}'
+        value_name: System.IsPinnedToNameSpaceTree
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показано'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Classes\CLSID\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}'
+        value_name: System.IsPinnedToNameSpaceTree
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22621, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Classes\CLSID\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}'
+  value_name: System.IsPinnedToNameSpaceTree
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

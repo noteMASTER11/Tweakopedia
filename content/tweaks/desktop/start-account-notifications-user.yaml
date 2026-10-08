@@ -1,0 +1,56 @@
+id: desktop.start-account-notifications-user
+title: 'Уведомления учётной записи в меню «Пуск»: пользовательский переключатель'
+category: desktop
+subcategory: spotlight
+kind: setting
+summary: 'Управляет пользовательским переключателем уведомлений учётной записи в меню «Пуск».'
+explanation:
+  purpose: 'Управляет пользовательским переключателем уведомлений учётной записи в меню «Пуск».'
+  mechanism: 'Windows или приложение читает DWORD Start_AccountNotifications и применяет соответствующий режим.'
+  effect: 'При выключении предложения облачного хранилища, подписок и учётной записи в меню «Пуск» скрываются.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Отключайте, если эти уведомления не используются.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\Start_AccountNotifications: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: Start_AccountNotifications
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: Start_AccountNotifications
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: Start_AccountNotifications
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

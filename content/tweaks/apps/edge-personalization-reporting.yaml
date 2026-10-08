@@ -1,0 +1,60 @@
+id: apps.edge-personalization-reporting
+title: 'Персонализация сервисов по данным Edge'
+category: apps
+subcategory: edge-ui
+kind: setting
+summary: 'Управляет использованием истории, избранного и других данных Edge для персонализации сервисов Microsoft.'
+explanation:
+  purpose: 'Управляет использованием истории, избранного и других данных Edge для персонализации сервисов Microsoft.'
+  mechanism: 'Windows или приложение читает DWORD PersonalizationReportingEnabled и применяет соответствующий режим.'
+  effect: 'При запрете пользователь не может включить передачу этих данных для персонализации рекламы, поиска и новостей.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Запрещайте, если межсервисная персонализация не нужна.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Edge\PersonalizationReportingEnabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [edge]
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: PersonalizationReportingEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: PersonalizationReportingEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Edge'
+  value_name: PersonalizationReportingEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

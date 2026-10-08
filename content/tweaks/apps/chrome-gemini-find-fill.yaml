@@ -1,0 +1,70 @@
+id: apps.chrome-gemini-find-fill
+title: 'Поиск и заполнение с Gemini в Chrome'
+category: apps
+subcategory: chrome-ai
+kind: setting
+summary: 'Управляет функцией Gemini для поиска сведений и заполнения полей на страницах.'
+explanation:
+  purpose: 'Управляет функцией Gemini для поиска сведений и заполнения полей на страницах.'
+  mechanism: 'Windows или приложение читает DWORD FindAndFillWithGeminiSettings и применяет соответствующий режим.'
+  effect: 'При запрете Chrome не передаёт содержимое формы этой функции и не показывает соответствующие действия.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Запрещайте, если автоматическое заполнение через Gemini не используется.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Google\Chrome\FindAndFillWithGeminiSettings: 0 — разрешить и улучшать модели, 1 — разрешить без улучшения моделей, 2 — запретить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [chrome]
+states:
+  enabled_model_improvement:
+    title: 'Разрешить и улучшать модели'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: FindAndFillWithGeminiSettings
+        view: registry64
+        value: 0
+  enabled_private:
+    title: 'Разрешить без улучшения моделей'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: FindAndFillWithGeminiSettings
+        view: registry64
+        value: 1
+  disabled:
+    title: 'Запретить'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: FindAndFillWithGeminiSettings
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled_model_improvement
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled_model_improvement
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Google\Chrome'
+  value_name: FindAndFillWithGeminiSettings
+  view: registry64
+  states:
+    0: enabled_model_improvement
+    1: enabled_private
+    2: disabled
+  missing_state: enabled_model_improvement
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

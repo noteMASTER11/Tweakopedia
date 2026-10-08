@@ -1,0 +1,60 @@
+id: apps.edge-new-tab-quick-links
+title: 'Быстрые ссылки на новой вкладке Edge'
+category: apps
+subcategory: edge-ui
+kind: setting
+summary: 'Разрешает или запрещает блок быстрых ссылок на новой вкладке Edge.'
+explanation:
+  purpose: 'Разрешает или запрещает блок быстрых ссылок на новой вкладке Edge.'
+  mechanism: 'Windows или приложение читает DWORD NewTabPageQuickLinksEnabled и применяет соответствующий режим.'
+  effect: 'При запрете быстрые ссылки скрываются, а их переключатель в настройках новой вкладки блокируется.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Запрещайте, если новая вкладка не должна содержать плитки сайтов.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Edge\NewTabPageQuickLinksEnabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [edge]
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: NewTabPageQuickLinksEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: NewTabPageQuickLinksEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Edge'
+  value_name: NewTabPageQuickLinksEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

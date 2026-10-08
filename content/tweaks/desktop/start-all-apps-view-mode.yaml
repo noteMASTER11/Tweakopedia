@@ -1,0 +1,66 @@
+id: desktop.start-all-apps-view-mode
+title: 'Представление списка «Все приложения»'
+category: desktop
+subcategory: start
+kind: setting
+summary: 'Выбирает категорийное, плиточное или списочное представление раздела «Все приложения».'
+explanation:
+  purpose: 'Выбирает категорийное, плиточное или списочное представление раздела «Все приложения».'
+  mechanism: 'Windows или приложение читает DWORD AllAppsViewMode и применяет соответствующий режим.'
+  effect: 'Меняется способ группировки и размещения приложений в меню «Пуск».'
+  tradeoffs: 'Доступность вариантов зависит от версии меню «Пуск» в конкретной сборке Windows 11.'
+  recommendation: 'Выберите вариант, который удобнее для размера экрана и числа приложений.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Start\AllAppsViewMode: 0 — категории, 1 — сетка, 2 — список.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 26100
+states:
+  category:
+    title: 'Категории'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Start'
+        value_name: AllAppsViewMode
+        view: registry64
+        value: 0
+  grid:
+    title: 'Сетка'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Start'
+        value_name: AllAppsViewMode
+        view: registry64
+        value: 1
+  list:
+    title: 'Список'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Start'
+        value_name: AllAppsViewMode
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows11
+    builds: [26100, 26200]
+    state: list
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Start'
+  value_name: AllAppsViewMode
+  view: registry64
+  states:
+    0: category
+    1: grid
+    2: list
+  missing_state: list
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

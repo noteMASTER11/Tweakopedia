@@ -1,0 +1,60 @@
+id: apps.edge-tab-organization
+title: 'Предложения организации вкладок Edge'
+category: apps
+subcategory: edge-ui
+kind: setting
+summary: 'Управляет автоматическими предложениями по организации открытых вкладок.'
+explanation:
+  purpose: 'Управляет автоматическими предложениями по организации открытых вкладок.'
+  mechanism: 'Windows или приложение читает DWORD TabServicesEnabled и применяет соответствующий режим.'
+  effect: 'При выключении Edge не предлагает группировать и упорядочивать вкладки этим механизмом.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Отключайте, если вкладки организуются вручную.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Edge\TabServicesEnabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [edge]
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: TabServicesEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: TabServicesEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Edge'
+  value_name: TabServicesEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

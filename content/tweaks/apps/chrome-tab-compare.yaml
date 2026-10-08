@@ -1,0 +1,70 @@
+id: apps.chrome-tab-compare
+title: 'Сравнение вкладок с помощью ИИ в Chrome'
+category: apps
+subcategory: chrome-ai
+kind: setting
+summary: 'Управляет ИИ-сравнением товаров и другого содержимого нескольких вкладок.'
+explanation:
+  purpose: 'Управляет ИИ-сравнением товаров и другого содержимого нескольких вкладок.'
+  mechanism: 'Windows или приложение читает DWORD TabCompareSettings и применяет соответствующий режим.'
+  effect: 'При запрете Chrome не создаёт сводное сравнение по открытым вкладкам.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Запрещайте, если сравнение вкладок не используется.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Google\Chrome\TabCompareSettings: 0 — разрешить и улучшать модели, 1 — разрешить без улучшения моделей, 2 — запретить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [chrome]
+states:
+  enabled_model_improvement:
+    title: 'Разрешить и улучшать модели'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: TabCompareSettings
+        view: registry64
+        value: 0
+  enabled_private:
+    title: 'Разрешить без улучшения моделей'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: TabCompareSettings
+        view: registry64
+        value: 1
+  disabled:
+    title: 'Запретить'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: TabCompareSettings
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled_model_improvement
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled_model_improvement
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Google\Chrome'
+  value_name: TabCompareSettings
+  view: registry64
+  states:
+    0: enabled_model_improvement
+    1: enabled_private
+    2: disabled
+  missing_state: enabled_model_improvement
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

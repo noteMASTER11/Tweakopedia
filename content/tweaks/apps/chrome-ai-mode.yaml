@@ -1,0 +1,60 @@
+id: apps.chrome-ai-mode
+title: 'Режим ИИ в Chrome'
+category: apps
+subcategory: chrome-ai
+kind: setting
+summary: 'Управляет интеграцией Google AI Mode с адресной строкой и поиском новой вкладки.'
+explanation:
+  purpose: 'Управляет интеграцией Google AI Mode с адресной строкой и поиском новой вкладки.'
+  mechanism: 'Windows или приложение читает DWORD AIModeSettings и применяет соответствующий режим.'
+  effect: 'При запрете точки входа AI Mode исчезают из адресной строки и поля поиска новой вкладки.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Запрещайте, если AI Mode не используется или требуется обычный поиск без дополнительных точек входа.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Google\Chrome\AIModeSettings: 1 — запретить, 0 — разрешить.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [chrome]
+states:
+  disabled:
+    title: 'Запретить'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: AIModeSettings
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Разрешить'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Google\Chrome'
+        value_name: AIModeSettings
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Google\Chrome'
+  value_name: AIModeSettings
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

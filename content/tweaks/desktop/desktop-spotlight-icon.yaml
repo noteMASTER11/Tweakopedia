@@ -1,0 +1,56 @@
+id: desktop.desktop-spotlight-icon
+title: 'Значок Windows Spotlight на рабочем столе'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Показывает или скрывает значок сведений Windows Spotlight на рабочем столе.'
+explanation:
+  purpose: 'Показывает или скрывает значок сведений Windows Spotlight на рабочем столе.'
+  mechanism: 'Windows или приложение читает DWORD {2cc5ca98-6485-489a-920e-b3e88a6ccce3} и применяет соответствующий режим.'
+  effect: 'При выключении значок Spotlight скрывается, не меняя выбранное фоновое изображение.'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Отключайте, если значок мешает.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel\{2cc5ca98-6485-489a-920e-b3e88a6ccce3}: 1 — скрыто, 0 — показано.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  disabled:
+    title: 'Скрыто'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel'
+        value_name: '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}'
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Показано'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel'
+        value_name: '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}'
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel'
+  value_name: '{2cc5ca98-6485-489a-920e-b3e88a6ccce3}'
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

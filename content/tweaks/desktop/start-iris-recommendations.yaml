@@ -1,0 +1,56 @@
+id: desktop.start-iris-recommendations
+title: 'Рекомендации Iris в меню «Пуск»'
+category: desktop
+subcategory: spotlight
+kind: setting
+summary: 'Управляет рекомендациями советов, ярлыков и новых приложений в меню «Пуск» Windows 11.'
+explanation:
+  purpose: 'Управляет рекомендациями советов, ярлыков и новых приложений в меню «Пуск» Windows 11.'
+  mechanism: 'Windows или приложение читает DWORD Start_IrisRecommendations и применяет соответствующий режим.'
+  effect: 'При выключении соответствующие рекомендации не добавляются в нижнюю часть меню «Пуск».'
+  tradeoffs: 'Принудительное значение имеет приоритет над пользовательским переключателем соответствующей функции.'
+  recommendation: 'Отключайте для более компактного меню «Пуск».'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\Start_IrisRecommendations: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: Start_IrisRecommendations
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: Start_IrisRecommendations
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: Start_IrisRecommendations
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false

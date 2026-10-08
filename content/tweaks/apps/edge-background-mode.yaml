@@ -1,0 +1,60 @@
+id: apps.edge-background-mode
+title: 'Фоновый режим Microsoft Edge'
+category: apps
+subcategory: edge-ui
+kind: setting
+summary: 'Разрешает приложениям и процессам Edge работать после закрытия последнего окна.'
+explanation:
+  purpose: 'Разрешает приложениям и процессам Edge работать после закрытия последнего окна.'
+  mechanism: 'Windows или приложение читает DWORD BackgroundModeEnabled и применяет соответствующий режим.'
+  effect: 'При выключении фоновые приложения Edge завершаются вместе с последним окном браузера.'
+  tradeoffs: 'Отключение уменьшает число фоновых процессов, но может задержать уведомления и запуск расширений.'
+  recommendation: 'Отключайте, если фоновые приложения и уведомления Edge не нужны.'
+  technical_details: 'DWORD HKLM\SOFTWARE\Policies\Microsoft\Edge\BackgroundModeEnabled: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [edge]
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: BackgroundModeEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Edge'
+        value_name: BackgroundModeEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Edge'
+  value_name: BackgroundModeEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

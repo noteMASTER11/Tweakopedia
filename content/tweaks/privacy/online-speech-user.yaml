@@ -1,0 +1,59 @@
+id: privacy.online-speech-user
+title: 'Облачное распознавание речи: пользовательский переключатель'
+category: privacy
+subcategory: personalization
+kind: setting
+summary: 'Управляет пользовательским согласием на облачное распознавание речи Windows.'
+explanation:
+  purpose: 'Управляет пользовательским согласием на облачное распознавание речи Windows.'
+  mechanism: 'Windows или приложение читает DWORD HasAccepted и применяет соответствующий режим.'
+  effect: 'При выключении функции, которым требуется облачное распознавание речи, перестают его использовать.'
+  tradeoffs: 'Диктовка и голосовые функции, зависящие от облачной службы, могут стать недоступны.'
+  recommendation: 'Оставляйте включённым только при использовании облачной диктовки.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy\HasAccepted: 0 — выключено, 1 — включено.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy'
+        value_name: HasAccepted
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy'
+        value_name: HasAccepted
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy'
+  value_name: HasAccepted
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false
