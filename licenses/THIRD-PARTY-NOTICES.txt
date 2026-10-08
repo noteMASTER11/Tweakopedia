@@ -1,0 +1,9 @@
+Tweakopedia third-party components
+
+Qt 6.8.3 - GNU Lesser General Public License version 3.
+miniz 3.1.2 - MIT License.
+nlohmann/json 3.12.0 - MIT License.
+yaml-cpp 0.8.0 - MIT License.
+SF Pro font - bundled application resource; copyright Apple Inc.
+
+The corresponding license texts are included in this directory of the extracted runtime.

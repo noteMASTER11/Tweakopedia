@@ -15,7 +15,7 @@ execute_process(
         --no-translations
         --qmldir "${QML_SOURCE}"
         --dir "${PACKAGE_ROOT}"
-        "${PACKAGE_ROOT}/Tweakopedia.exe"
+        "${PACKAGE_ROOT}/Tweakopedia.App.exe"
     RESULT_VARIABLE deploy_result
     OUTPUT_VARIABLE deploy_output
     ERROR_VARIABLE deploy_error

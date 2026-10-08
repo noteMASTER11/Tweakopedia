@@ -62,6 +62,14 @@ target_link_libraries(BootstrapApplicationTest PRIVATE
 add_dependencies(BootstrapApplicationTest BootstrapArgumentProbe)
 add_test(NAME BootstrapApplication COMMAND BootstrapApplicationTest)
 
+add_executable(PackagerCliTest package/PackagerCliTest.cpp)
+target_compile_definitions(PackagerCliTest PRIVATE
+    TWEAKOPEDIA_TEST_PACKAGER="$<TARGET_FILE:TweakopediaPackager>"
+)
+target_link_libraries(PackagerCliTest PRIVATE Qt6::Test TweakopediaPackage)
+add_dependencies(PackagerCliTest TweakopediaPackager)
+add_test(NAME PackagerCli COMMAND PackagerCliTest)
+
 add_executable(DomainTweakDefinitionTest
     domain/TweakDefinitionTest.cpp
 )

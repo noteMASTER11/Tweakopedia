@@ -272,4 +272,50 @@ Result<void> ZipPayload::extract(
     return Result<void>::success();
 }
 
+Result<PayloadManifest> ZipPayload::readManifest(
+    const std::filesystem::path& containerPath,
+    const PackageInfo& package)
+{
+    std::error_code error;
+    const auto containerSize = std::filesystem::file_size(containerPath, error);
+    if (error || package.footer.payloadOffset > containerSize
+        || package.footer.payloadSize > containerSize - package.footer.payloadOffset) {
+        return Result<PayloadManifest>::failure(
+            ErrorCode::InvalidArchive, "Container slice is invalid");
+    }
+
+    mz_zip_archive archive{};
+    const auto containerName = narrowPath(containerPath);
+    if (!mz_zip_reader_init_file_v2(
+            &archive, containerName.c_str(), 0,
+            package.footer.payloadOffset, package.footer.payloadSize)) {
+        return Result<PayloadManifest>::failure(
+            ErrorCode::InvalidArchive, "Cannot open ZIP payload");
+    }
+    const auto closeWith = [&](Result<PayloadManifest> result) {
+        mz_zip_reader_end(&archive);
+        return result;
+    };
+    if (mz_zip_reader_get_num_files(&archive) == 0 || archiveName(archive, 0) != "payload-manifest.json") {
+        return closeWith(Result<PayloadManifest>::failure(
+            ErrorCode::InvalidArchive, "Payload manifest is not the first ZIP entry"));
+    }
+    mz_zip_archive_file_stat stat{};
+    if (!mz_zip_reader_file_stat(&archive, 0, &stat)
+        || !isNormalFile(stat) || stat.m_uncomp_size > maxManifestSize) {
+        return closeWith(Result<PayloadManifest>::failure(
+            ErrorCode::InvalidArchive, "Payload manifest ZIP entry is invalid"));
+    }
+    size_t size{};
+    void* bytes = mz_zip_reader_extract_to_heap(&archive, 0, &size, 0);
+    if (!bytes) {
+        return closeWith(Result<PayloadManifest>::failure(
+            ErrorCode::InvalidArchive, "Cannot read payload manifest"));
+    }
+    auto parsed = PayloadManifest::parse(
+        std::string_view(static_cast<const char*>(bytes), size));
+    mz_free(bytes);
+    return closeWith(std::move(parsed));
+}
+
 }

@@ -22,6 +22,10 @@ public:
         const std::filesystem::path& containerPath,
         const PackageInfo& package,
         const std::filesystem::path& destination);
+
+    static Result<PayloadManifest> readManifest(
+        const std::filesystem::path& containerPath,
+        const PackageInfo& package);
 };
 
 }
