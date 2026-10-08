@@ -1,0 +1,59 @@
+id: boot.login-power-button
+title: Кнопка питания на экране входа
+category: boot
+subcategory: sign-in
+kind: setting
+summary: Управляет кнопкой выключения и перезагрузки до входа пользователя.
+explanation:
+  purpose: Позволяет запретить выключение компьютера через стандартное меню до входа в учётную запись.
+  mechanism: Политика shutdownwithoutlogon определяет доступность системной команды питания на форме входа.
+  effect: При выключении кнопка питания исчезает с экрана входа.
+  tradeoffs: Для штатного выключения через интерфейс сначала потребуется войти в систему.
+  recommendation: На личных компьютерах обычно оставляйте включённой; ограничивайте на управляемых рабочих местах.
+  technical_details: Изменяется 32-битный DWORD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\shutdownwithoutlogon. Значение 0 скрывает кнопку, 1 показывает.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Выключено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: shutdownwithoutlogon
+        view: registry64
+        value: 0
+  enabled:
+    title: Включено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+        value_name: shutdownwithoutlogon
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+  value_name: shutdownwithoutlogon
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,59 @@
+id: filesystem.removable-disk-write-access
+title: Запись на съёмные диски
+category: filesystem
+subcategory: removable
+kind: setting
+summary: Разрешает или запрещает запись на устройства класса съёмных дисков.
+explanation:
+  purpose: Позволяет перевести съёмные диски в режим только для чтения на уровне системной политики.
+  mechanism: Политика Removable Disks Deny write access задаёт DWORD Deny_Write для класса устройств съёмных дисков.
+  effect: При выключении записи файлы со съёмных дисков можно читать, но нельзя изменять, удалять или создавать.
+  tradeoffs: Ограничение применяется ко всему классу съёмных дисков, а не только к выбранному USB-устройству.
+  recommendation: Запрещайте запись только тогда, когда для всех съёмных дисков на компьютере действительно требуется режим чтения.
+  technical_details: Изменяется 32-битный DWORD HKLM\Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}\Deny_Write. Значение 1 запрещает запись, 0 разрешает её.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Запись запрещена
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}'
+        value_name: Deny_Write
+        view: registry64
+        value: 1
+  enabled:
+    title: Запись разрешена
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}'
+        value_name: Deny_Write
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\RemovableStorageDevices\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}'
+  value_name: Deny_Write
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

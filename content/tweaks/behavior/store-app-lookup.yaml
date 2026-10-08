@@ -1,0 +1,59 @@
+id: behavior.store-app-lookup
+title: Поиск приложения в Microsoft Store
+category: behavior
+subcategory: windows
+kind: setting
+summary: Управляет предложением найти приложение в Microsoft Store при открытии файла неизвестного типа.
+explanation:
+  purpose: Позволяет оставить в выборе только уже установленные программы или вернуть предложение Microsoft Store.
+  mechanism: Политика NoUseStoreOpenWith запрещает Windows обращаться к Store из диалога выбора приложения.
+  effect: При выключении Windows не предлагает искать обработчик неизвестного файла в Microsoft Store.
+  tradeoffs: Подходящее приложение придётся найти и установить самостоятельно.
+  recommendation: Выключение уместно, если приложения устанавливаются вручную и предложение Store не используется.
+  technical_details: Изменяется 32-битный DWORD HKLM\Software\Policies\Microsoft\Windows\Explorer\NoUseStoreOpenWith. Значение 1 выключает поиск в Store, 0 включает его.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Выключено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: NoUseStoreOpenWith
+        view: registry64
+        value: 1
+  enabled:
+    title: Включено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: NoUseStoreOpenWith
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Windows\Explorer'
+  value_name: NoUseStoreOpenWith
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

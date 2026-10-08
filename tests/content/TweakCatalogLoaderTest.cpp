@@ -135,15 +135,21 @@ private slots:
 
         QVERIFY(result.errors.isEmpty());
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 8);
+        QCOMPARE(result.catalog->size(), 14);
 
         const QStringList expectedIds{
+            u"apps.windows-ink-workspace"_s,
             u"behavior.disable-aero-shake"_s,
-            u"behavior.reduce-startup-delay"_s,
+            u"behavior.store-app-lookup"_s,
+            u"boot.hide-last-user-name"_s,
+            u"boot.last-logon-info"_s,
+            u"boot.lock-screen"_s,
+            u"boot.login-network-icon"_s,
+            u"boot.login-power-button"_s,
             u"boot.verbose-logon-messages"_s,
-            u"desktop.show-windows-version"_s,
-            u"filesystem.usb-write-protection"_s,
+            u"filesystem.removable-disk-write-access"_s,
             u"filesystem.win32-long-paths"_s,
+            u"network.administrative-shares"_s,
             u"network.elevated-mapped-drives"_s,
             u"updates.exclude-driver-updates"_s,
         };
@@ -152,6 +158,29 @@ private slots:
             QVERIFY2(id.has_value(), qPrintable(expectedId));
             QVERIFY2(result.catalog->find(*id) != nullptr, qPrintable(expectedId));
         }
+
+        const auto aeroShakeId = *TweakId::parse(u"behavior.disable-aero-shake");
+        const auto* aeroShake = result.catalog->find(aeroShakeId);
+        QVERIFY(aeroShake != nullptr);
+        QCOMPARE(aeroShake->detection->location.hive, RegistryHive::CurrentUser);
+        QCOMPARE(aeroShake->detection->location.key,
+                 u"Software\\Policies\\Microsoft\\Windows\\Explorer"_s);
+        QCOMPARE(aeroShake->detection->location.valueName, u"NoWindowMinimizingShortcuts"_s);
+
+        const auto removableWriteId = *TweakId::parse(u"filesystem.removable-disk-write-access");
+        const auto* removableWrite = result.catalog->find(removableWriteId);
+        QVERIFY(removableWrite != nullptr);
+        QCOMPARE(removableWrite->detection->location.hive, RegistryHive::LocalMachine);
+        QCOMPARE(removableWrite->detection->location.key,
+                 u"Software\\Policies\\Microsoft\\Windows\\RemovableStorageDevices\\{53f5630d-b6bf-11d0-94f2-00a0c91efb8b}"_s);
+        QCOMPARE(removableWrite->detection->location.valueName, u"Deny_Write"_s);
+
+        const auto inkId = *TweakId::parse(u"apps.windows-ink-workspace");
+        const auto* ink = result.catalog->find(inkId);
+        QVERIFY(ink != nullptr);
+        QCOMPARE(ink->detection->statesByValue.value(0), u"disabled"_s);
+        QCOMPARE(ink->detection->statesByValue.value(1), u"enabled_after_sign_in"_s);
+        QCOMPARE(ink->detection->statesByValue.value(2), u"enabled"_s);
     }
 };
 

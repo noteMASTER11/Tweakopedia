@@ -1,0 +1,59 @@
+id: boot.lock-screen
+title: Экран блокировки
+category: boot
+subcategory: sign-in
+kind: setting
+summary: Управляет промежуточным экраном с фоном и уведомлениями перед формой входа.
+explanation:
+  purpose: Позволяет сразу показывать форму входа вместо дополнительного экрана блокировки.
+  mechanism: Политика NoLockScreen запрещает оболочке отображать промежуточный экран блокировки.
+  effect: При выключении после загрузки или блокировки сразу появляется форма входа.
+  tradeoffs: Фон, часы и уведомления экрана блокировки больше не отображаются.
+  recommendation: Выключайте, если дополнительный экран не используется и нужен прямой переход к входу.
+  technical_details: Изменяется 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\Windows\Personalization\NoLockScreen. Значение 1 выключает экран блокировки, 0 включает.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: Выключено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Personalization'
+        value_name: NoLockScreen
+        view: registry64
+        value: 1
+  enabled:
+    title: Включено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\Personalization'
+        value_name: NoLockScreen
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\Personalization'
+  value_name: NoLockScreen
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: low
+reversibility: reversible
+requires_network: false

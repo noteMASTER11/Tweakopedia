@@ -68,7 +68,10 @@ private slots:
         const auto loaded = content::TweakCatalogLoader{}.loadDirectory(
             QStringLiteral(TWEAKOPEDIA_TEST_CONTENT_ROOT));
         QVERIFY(loaded.catalog.has_value());
-        const auto& tweak = loaded.catalog->tweaks().first();
+        const auto longPathsId = *domain::TweakId::parse(u"filesystem.win32-long-paths");
+        const auto* loadedTweak = loaded.catalog->find(longPathsId);
+        QVERIFY(loadedTweak != nullptr);
+        const auto& tweak = *loadedTweak;
         tests::FakeRegistryBackend backend;
         const auto detected = detection::RegistryDwordStateDetector{}.detect(tweak, backend, profile());
         QCOMPARE(detected.stateId, u"disabled"_s);
@@ -113,7 +116,11 @@ private slots:
     {
         const auto loaded = content::TweakCatalogLoader{}.loadDirectory(
             QStringLiteral(TWEAKOPEDIA_TEST_CONTENT_ROOT));
-        const auto& tweak = loaded.catalog->tweaks().first();
+        QVERIFY(loaded.catalog.has_value());
+        const auto longPathsId = *domain::TweakId::parse(u"filesystem.win32-long-paths");
+        const auto* loadedTweak = loaded.catalog->find(longPathsId);
+        QVERIFY(loadedTweak != nullptr);
+        const auto& tweak = *loadedTweak;
         tests::FakeRegistryBackend backend;
         const auto detected = detection::RegistryDwordStateDetector{}.detect(tweak, backend, profile());
         planning::TweakQueue queue;

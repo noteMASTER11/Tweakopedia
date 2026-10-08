@@ -9,11 +9,8 @@ categories:
     subcategories:
       - id: diagnostics
         title: Сообщения и диагностика входа
-  - id: desktop
-    title: Рабочий стол и панель задач
-    subcategories:
-      - id: desktop
-        title: Рабочий стол
+      - id: sign-in
+        title: Экран блокировки и входа
   - id: filesystem
     title: Накопители, NTFS и файловая система
     subcategories:
@@ -26,6 +23,13 @@ categories:
     subcategories:
       - id: mapped-drives
         title: Подключённые сетевые диски
+      - id: sharing
+        title: Общие ресурсы
+  - id: apps
+    title: Компоненты и приложения Windows
+    subcategories:
+      - id: pen
+        title: Перо и рукописный ввод
   - id: updates
     title: Обновления Windows
     subcategories:

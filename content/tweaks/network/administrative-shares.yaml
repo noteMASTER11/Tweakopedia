@@ -1,0 +1,60 @@
+id: network.administrative-shares
+title: Административные общие ресурсы
+category: network
+subcategory: sharing
+kind: setting
+summary: Управляет автоматическим созданием скрытых ресурсов ADMIN$, C$ и ресурсов других локальных дисков.
+explanation:
+  purpose: Позволяет отключить стандартные скрытые ресурсы, используемые удалённым администрированием.
+  mechanism: Служба сервера проверяет DWORD AutoShareWks при публикации административных ресурсов рабочей станции.
+  effect: При выключении Windows не создаёт ADMIN$ и скрытые ресурсы локальных томов автоматически.
+  tradeoffs: Средства удалённого управления, резервного копирования и развёртывания могут перестать находить компьютер привычным способом.
+  recommendation: Оставляйте включёнными в управляемой сети; выключайте только после проверки зависимых инструментов.
+  technical_details: Изменяется 32-битный DWORD HKLM\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters\AutoShareWks. Значение 0 выключает автоматические ресурсы, 1 включает.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+  required_components: [LanmanServer]
+states:
+  disabled:
+    title: Выключены
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters'
+        value_name: AutoShareWks
+        view: registry64
+        value: 0
+  enabled:
+    title: Включены
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters'
+        value_name: AutoShareWks
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters'
+  value_name: AutoShareWks
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

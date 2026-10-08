@@ -6,11 +6,11 @@ kind: setting
 summary: Не позволяет жесту встряхивания активного окна сворачивать остальные окна.
 explanation:
   purpose: Убирает случайное сворачивание фоновых окон при резком перемещении активного окна мышью.
-  mechanism: Explorer проверяет пользовательский DWORD DisallowShaking перед обработкой жеста Aero Shake.
+  mechanism: Пользовательская политика NoWindowMinimizingShortcuts запрещает оболочке выполнять жест Aero Shake.
   effect: Встряхивание активного окна больше не меняет состояние остальных окон.
   tradeoffs: Быстро свернуть все остальные окна этим жестом будет нельзя; другие способы сворачивания сохраняются.
   recommendation: Включайте блокировку, если Aero Shake срабатывает случайно или не используется.
-  technical_details: Изменяется 32-битный DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\DisallowShaking. Значение 1 блокирует жест, 0 разрешает его.
+  technical_details: Изменяется 32-битный DWORD HKCU\Software\Policies\Microsoft\Windows\Explorer\NoWindowMinimizingShortcuts. Значение 1 блокирует жест, 0 разрешает его.
 compatibility:
   architectures: [x64]
   os: [windows10, windows11]
@@ -21,8 +21,8 @@ states:
     operations:
       - type: registry.set_dword
         hive: HKCU
-        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
-        value_name: DisallowShaking
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: NoWindowMinimizingShortcuts
         view: registry64
         value: 0
   enabled:
@@ -30,8 +30,8 @@ states:
     operations:
       - type: registry.set_dword
         hive: HKCU
-        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
-        value_name: DisallowShaking
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: NoWindowMinimizingShortcuts
         view: registry64
         value: 1
 windows_defaults:
@@ -44,8 +44,8 @@ windows_defaults:
 detect:
   type: registry.dword
   hive: HKCU
-  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
-  value_name: DisallowShaking
+  key: 'Software\Policies\Microsoft\Windows\Explorer'
+  value_name: NoWindowMinimizingShortcuts
   view: registry64
   states:
     0: disabled

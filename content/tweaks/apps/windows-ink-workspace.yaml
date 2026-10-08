@@ -1,0 +1,69 @@
+id: apps.windows-ink-workspace
+title: Рабочая область Windows Ink
+category: apps
+subcategory: pen
+kind: setting
+summary: Управляет системной рабочей областью пера и связанными элементами рукописного ввода.
+explanation:
+  purpose: Позволяет отключить Windows Ink на компьютере, где перо и рукописный ввод не используются.
+  mechanism: Политика AllowWindowsInkWorkspace задаёт один из трёх режимов рабочей области Windows Ink, включая отдельный режим без доступа с экрана блокировки.
+  effect: Рабочую область можно полностью отключить, разрешить только после входа либо разрешить также с экрана блокировки.
+  tradeoffs: Быстрые функции пера, заметок и набросков через Windows Ink использовать не получится.
+  recommendation: Оставляйте включённой на устройствах с пером; выключайте на обычных настольных компьютерах при отсутствии сценариев Ink.
+  technical_details: Изменяется 32-битный DWORD HKLM\SOFTWARE\Policies\Microsoft\WindowsInkWorkspace\AllowWindowsInkWorkspace. Значение 0 отключает рабочую область, 1 разрешает её только после входа, 2 разрешает также с экрана блокировки и является стандартным значением Windows.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 14393
+states:
+  disabled:
+    title: Выключено
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\WindowsInkWorkspace'
+        value_name: AllowWindowsInkWorkspace
+        view: registry64
+        value: 0
+  enabled_after_sign_in:
+    title: Включено только после входа
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\WindowsInkWorkspace'
+        value_name: AllowWindowsInkWorkspace
+        view: registry64
+        value: 1
+  enabled:
+    title: Включено везде
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\WindowsInkWorkspace'
+        value_name: AllowWindowsInkWorkspace
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [14393, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\WindowsInkWorkspace'
+  value_name: AllowWindowsInkWorkspace
+  view: registry64
+  states:
+    0: disabled
+    1: enabled_after_sign_in
+    2: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: sign_out
+impact: medium
+reversibility: reversible
+requires_network: false
