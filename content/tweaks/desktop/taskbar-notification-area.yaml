@@ -1,0 +1,60 @@
+id: desktop.taskbar-notification-area
+title: 'Область уведомлений панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Показывает или скрывает область уведомлений на панели задач.'
+explanation:
+  purpose: 'Управляет видимостью области со значками фоновых приложений и системных компонентов.'
+  mechanism: 'NoTrayItemsDisplay скрывает область уведомлений для текущего пользователя.'
+  effect: 'При отключении значки области уведомлений перестают отображаться на панели задач.'
+  tradeoffs: 'Скрытые приложения продолжают работать, но доступ к их значкам и состоянию теряется.'
+  recommendation: 'Оставьте включённым, если используете значки фоновых приложений.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoTrayItemsDisplay: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Скрывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: NoTrayItemsDisplay
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: NoTrayItemsDisplay
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+  value_name: NoTrayItemsDisplay
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false
+

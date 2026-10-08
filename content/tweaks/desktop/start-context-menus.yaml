@@ -1,0 +1,60 @@
+id: desktop.start-context-menus
+title: 'Контекстные меню в меню «Пуск»'
+category: desktop
+subcategory: start
+kind: setting
+summary: 'Разрешает или запрещает открывать контекстные меню элементов в меню «Пуск».'
+explanation:
+  purpose: 'Управляет меню, которое появляется при щелчке правой кнопкой по приложению или другому элементу меню «Пуск».'
+  mechanism: 'Политика DisableContextMenusInStart блокирует обработку вызовов контекстного меню.'
+  effect: 'При отключении пользователь не сможет вызвать команды закрепления, удаления и другие действия через контекстное меню «Пуска».'
+  tradeoffs: 'Часть действий останется доступна через параметры Windows или саму программу.'
+  recommendation: 'Оставьте включённым на обычном персональном компьютере.'
+  technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows\Explorer\DisableContextMenusInStart: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 17134
+states:
+  disabled:
+    title: 'Запрещать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: DisableContextMenusInStart
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Разрешать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: DisableContextMenusInStart
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [17134, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\Explorer'
+  value_name: DisableContextMenusInStart
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false
+

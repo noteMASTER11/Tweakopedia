@@ -1,0 +1,57 @@
+id: desktop.taskbar-toolbars
+title: 'Панели инструментов на панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Разрешает или запрещает панели инструментов на классической панели задач Windows 10.'
+explanation:
+  purpose: 'Управляет встроенными и пользовательскими панелями инструментов на панели задач Windows 10.'
+  mechanism: 'NoToolbarsOnTaskbar скрывает панели инструментов и команду их настройки.'
+  effect: 'При отключении панели «Адрес», «Ссылки», «Рабочий стол» и пользовательские панели не отображаются.'
+  tradeoffs: 'Параметр относится к классической панели задач и не предлагается в Windows 11.'
+  recommendation: 'Оставьте включённым, если используете панели инструментов Windows 10.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoToolbarsOnTaskbar: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Запрещать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: NoToolbarsOnTaskbar
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Разрешать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: NoToolbarsOnTaskbar
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+  value_name: NoToolbarsOnTaskbar
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

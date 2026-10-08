@@ -1,0 +1,60 @@
+id: desktop.start-uninstall-command
+title: 'Команда удаления приложений в меню «Пуск»'
+category: desktop
+subcategory: start
+kind: setting
+summary: 'Показывает или скрывает команду удаления приложений в меню «Пуск».'
+explanation:
+  purpose: 'Управляет доступностью команды удаления в контекстном меню приложений.'
+  mechanism: 'Политика NoUninstallFromStart запрещает запуск удаления непосредственно из меню «Пуск».'
+  effect: 'При отключении команда «Удалить» исчезает, но приложения по-прежнему можно удалять другими штатными способами.'
+  tradeoffs: 'Скрытие команды усложняет обычное обслуживание приложений.'
+  recommendation: 'Оставьте включённым, если компьютер не работает в ограниченном публичном режиме.'
+  technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows\Explorer\NoUninstallFromStart: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Скрывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: NoUninstallFromStart
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: NoUninstallFromStart
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\Explorer'
+  value_name: NoUninstallFromStart
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

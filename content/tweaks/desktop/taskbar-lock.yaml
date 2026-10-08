@@ -1,0 +1,57 @@
+id: desktop.taskbar-lock
+title: 'Закрепление панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Закрепляет классическую панель задач Windows 10, запрещая менять её размер и положение.'
+explanation:
+  purpose: 'Защищает классическую панель задач от случайного перемещения и изменения размера.'
+  mechanism: 'Политика LockTaskbar фиксирует расположение и размер панели задач.'
+  effect: 'Панель задач нельзя перетащить к другому краю экрана или изменить её высоту.'
+  tradeoffs: 'Параметр не относится к штатной панели задач Windows 11.'
+  recommendation: 'Включайте после завершения настройки панели задач Windows 10.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\LockTaskbar: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не закреплять'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: LockTaskbar
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Закреплять'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: LockTaskbar
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+  value_name: LockTaskbar
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

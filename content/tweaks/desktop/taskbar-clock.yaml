@@ -1,0 +1,60 @@
+id: desktop.taskbar-clock
+title: 'Часы в области уведомлений'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Показывает или скрывает системные часы на панели задач.'
+explanation:
+  purpose: 'Управляет видимостью часов в области уведомлений панели задач.'
+  mechanism: 'Политика HideClock скрывает часы для текущего пользователя.'
+  effect: 'При отключении часы исчезают с панели задач; системные дата и время не изменяются.'
+  tradeoffs: 'Для просмотра времени потребуется другой интерфейс или приложение.'
+  recommendation: 'Оставьте включённым, если часы не заменены другим виджетом.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\HideClock: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Скрывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: HideClock
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: HideClock
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+  value_name: HideClock
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

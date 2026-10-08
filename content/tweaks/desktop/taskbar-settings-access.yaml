@@ -1,0 +1,60 @@
+id: desktop.taskbar-settings-access
+title: 'Изменение параметров панели задач и меню «Пуск»'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Разрешает или запрещает пользователю изменять параметры панели задач и меню «Пуск».'
+explanation:
+  purpose: 'Ограничивает доступ к настройке панели задач и меню «Пуск» для текущего пользователя.'
+  mechanism: 'NoSetTaskbar блокирует открытие и изменение соответствующих параметров оболочки.'
+  effect: 'При отключении пользователь не сможет менять настройки панели задач обычным способом.'
+  tradeoffs: 'Ограничение затрудняет персональную настройку интерфейса.'
+  recommendation: 'Оставьте включённым, кроме компьютеров с фиксированной конфигурацией интерфейса.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\NoSetTaskbar: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Запрещать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: NoSetTaskbar
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Разрешать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: NoSetTaskbar
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+  value_name: NoSetTaskbar
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false
+

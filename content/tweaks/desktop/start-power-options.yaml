@@ -1,0 +1,60 @@
+id: desktop.start-power-options
+title: 'Команды питания в меню «Пуск» и на экране входа'
+category: desktop
+subcategory: start
+kind: setting
+summary: 'Показывает или скрывает команды выключения, перезагрузки, сна и гибернации.'
+explanation:
+  purpose: 'Управляет видимостью основных команд питания в меню «Пуск», на экране входа и экране Ctrl+Alt+Delete.'
+  mechanism: 'Машинная политика HidePowerOptions скрывает элементы интерфейса, не отключая сами системные функции питания.'
+  effect: 'При отключении пользователь не увидит штатные кнопки выключения, перезагрузки, сна и гибернации в указанных интерфейсах.'
+  tradeoffs: 'Программы и команды командной строки всё ещё могут инициировать эти действия.'
+  recommendation: 'Оставьте включённым на персональном компьютере.'
+  technical_details: 'DWORD HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\HidePowerOptions: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Скрывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: HidePowerOptions
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKLM
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: HidePowerOptions
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKLM
+  key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+  value_name: HidePowerOptions
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false
+

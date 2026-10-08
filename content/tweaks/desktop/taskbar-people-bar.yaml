@@ -1,0 +1,57 @@
+id: desktop.taskbar-people-bar
+title: 'Панель «Люди» на панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Разрешает или скрывает панель «Люди» в Windows 10.'
+explanation:
+  purpose: 'Управляет устаревшей функцией закрепления контактов на панели задач Windows 10.'
+  mechanism: 'HidePeopleBar удаляет значок, переключатель в параметрах и возможность закреплять контакты.'
+  effect: 'При отключении интерфейс «Люди» не отображается на панели задач.'
+  tradeoffs: 'Параметр не относится к штатной панели задач Windows 11.'
+  recommendation: 'Отключайте, если не пользуетесь закреплёнными контактами Windows 10.'
+  technical_details: 'DWORD HKCU\Software\Policies\Microsoft\Windows\Explorer\HidePeopleBar: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10]
+  min_build: 15063
+states:
+  disabled:
+    title: 'Скрывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: HidePeopleBar
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Policies\Microsoft\Windows\Explorer'
+        value_name: HidePeopleBar
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [15063, 19045]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Policies\Microsoft\Windows\Explorer'
+  value_name: HidePeopleBar
+  view: registry64
+  states:
+    0: enabled
+    1: disabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+
