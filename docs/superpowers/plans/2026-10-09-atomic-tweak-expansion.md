@@ -37,9 +37,9 @@
 - Consumes: `TweakCatalogLoader::loadDirectory()` and `TweakCatalog::find()`.
 - Produces: a failing contract for 335 entries, all new IDs and representative state mappings.
 
-- [ ] Add assertions for the total count, the 62 IDs and representative multi-state/inverted/compatibility definitions.
-- [ ] Build `TweakCatalogLoaderTest` and run it; expect failure because the new content is absent.
-- [ ] Commit the failing contract together with Task 2 content after it turns green.
+- [x] Add assertions for the total count, the 62 IDs and representative multi-state/inverted/compatibility definitions.
+- [x] Build `TweakCatalogLoaderTest` and run it; expect failure because the new content is absent.
+- [x] Commit the failing contract together with Task 2 content after it turns green.
 
 ### Task 2: Add browser policy content
 
@@ -50,9 +50,9 @@
 - Consumes: the catalog contract from Task 1 and existing `apps/chrome-ai` and `apps/edge-ui` subcategories.
 - Produces: 28 loadable browser policy definitions.
 
-- [ ] Add Chrome definitions with six binary and seven three-state policies.
-- [ ] Add Edge definitions with correct direct or inverted boolean mappings.
-- [ ] Build and run `TweakCatalogLoaderTest`; expect the count to advance but the Task 1 contract to remain red until all tasks are present.
+- [x] Add Chrome definitions with six binary and seven three-state policies.
+- [x] Add Edge definitions with correct direct or inverted boolean mappings.
+- [x] Build and run `TweakCatalogLoaderTest`; expect the count to advance but the Task 1 contract to remain red until all tasks are present.
 
 ### Task 3: Add Windows suggestion and diagnostic content
 
@@ -63,8 +63,8 @@
 - Consumes: the contract from Task 1 and existing desktop/privacy category metadata.
 - Produces: 21 loadable user and diagnostic definitions.
 
-- [ ] Add every independently detected DWORD as its own article and control.
-- [ ] Build and run `TweakCatalogLoaderTest`; expect the contract to remain red only for the final shell package.
+- [x] Add every independently detected DWORD as its own article and control.
+- [x] Build and run `TweakCatalogLoaderTest`; expect the contract to remain red only for the final shell package.
 
 ### Task 4: Add shell and system content
 
@@ -75,10 +75,10 @@
 - Consumes: the contract from Task 1.
 - Produces: 13 definitions and a complete 335-entry catalog.
 
-- [ ] Add the shell entries, including the three-state Start menu selector and exact OS build bounds.
-- [ ] Build and run `TweakCatalogLoaderTest`; expect PASS.
-- [ ] Run all CTest targets; expect 47/47 PASS.
-- [ ] Commit the content package.
+- [x] Add the shell entries, including the three-state Start menu selector and exact OS build bounds.
+- [x] Build and run `TweakCatalogLoaderTest`; expect PASS.
+- [x] Run all CTest targets; expect 47/47 PASS.
+- [x] Commit the content package.
 
 ### Task 5: Package and document verification
 
@@ -90,7 +90,7 @@
 - Consumes: the green 335-entry catalog.
 - Produces: a verified portable EXE and an auditable test record.
 
-- [ ] Build `mingw-release` and package the portable EXE.
-- [ ] Run package layout validation and the full test suite against the final tree.
-- [ ] Record counts, commands and results.
+- [x] Build `mingw-release` and package the portable EXE.
+- [x] Run package layout validation and the full test suite against the final tree.
+- [x] Record counts, commands and results.
 - [ ] Commit documentation and push the branch to `origin/main` as previously authorized by the user.
