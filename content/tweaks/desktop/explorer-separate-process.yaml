@@ -1,0 +1,60 @@
+id: desktop.explorer-separate-process
+title: 'Окна папок в отдельном процессе'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Запускает окна папок отдельно от основного процесса оболочки.'
+explanation:
+  purpose: 'Запускает окна папок отдельно от основного процесса оболочки.'
+  mechanism: 'SeparateProcess просит Проводник изолировать окна папок в дополнительном explorer.exe.'
+  effect: 'Сбой отдельного окна реже перезапускает панель задач и рабочий стол.'
+  tradeoffs: 'Дополнительный процесс потребляет больше оперативной памяти.'
+  recommendation: 'Включайте при нестабильных расширениях Проводника или достаточном объёме памяти.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\SeparateProcess: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Общий процесс'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: SeparateProcess
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Отдельный процесс'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: SeparateProcess
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: SeparateProcess
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

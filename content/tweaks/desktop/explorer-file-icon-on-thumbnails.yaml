@@ -1,0 +1,60 @@
+id: desktop.explorer-file-icon-on-thumbnails
+title: 'Значок типа файла поверх эскиза'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Добавляет маленький значок связанного приложения поверх миниатюры.'
+explanation:
+  purpose: 'Добавляет маленький значок связанного приложения поверх миниатюры.'
+  mechanism: 'ShowTypeOverlay включает наложение значка типа файла на созданный Проводником эскиз.'
+  effect: 'По миниатюре видны и содержимое файла, и приложение, связанное с его типом.'
+  tradeoffs: 'Наложение частично закрывает угол изображения.'
+  recommendation: 'Оставьте включённым, если различаете одинаковые по виду форматы по значку приложения.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\ShowTypeOverlay: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowTypeOverlay
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowTypeOverlay
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: ShowTypeOverlay
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

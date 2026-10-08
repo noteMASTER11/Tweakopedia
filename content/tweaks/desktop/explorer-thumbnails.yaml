@@ -1,0 +1,60 @@
+id: desktop.explorer-thumbnails
+title: 'Эскизы файлов в Проводнике'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Показывает содержимое изображений и документов вместо одинаковых значков.'
+explanation:
+  purpose: 'Показывает содержимое изображений и документов вместо одинаковых значков.'
+  mechanism: 'IconsOnly инвертированно переключает эскизы: ноль разрешает их, единица оставляет только значки.'
+  effect: 'Проводник создаёт и показывает миниатюры поддерживаемых файлов.'
+  tradeoffs: 'Построение эскизов требует времени и места для кэша, особенно в больших каталогах.'
+  recommendation: 'Оставьте включённым для фотографий и видео; отключите на медленных накопителях или серверах.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\IconsOnly: 1 или 0.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Только значки'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: IconsOnly
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Показывать эскизы'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: IconsOnly
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: IconsOnly
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

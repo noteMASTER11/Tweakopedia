@@ -1,0 +1,70 @@
+id: desktop.explorer-starting-folder
+title: 'Начальная папка Проводника'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Выбирает страницу, которая открывается при запуске нового окна Проводника.'
+explanation:
+  purpose: 'Выбирает страницу, которая открывается при запуске нового окна Проводника.'
+  mechanism: 'LaunchTo задаёт Home или Quick Access, «Этот компьютер» либо папку загрузок.'
+  effect: 'Новое окно сразу показывает выбранное расположение.'
+  tradeoffs: 'Папка загрузок удобна для браузера, а «Этот компьютер» быстрее ведёт к дискам.'
+  recommendation: 'Выберите расположение, с которого обычно начинается работа с файлами.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\LaunchTo; поддерживаемые значения: 2, 1, 3.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  home:
+    title: 'Главная или быстрый доступ'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: LaunchTo
+        view: registry64
+        value: 2
+  this_pc:
+    title: 'Этот компьютер'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: LaunchTo
+        view: registry64
+        value: 1
+  downloads:
+    title: 'Загрузки'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: LaunchTo
+        view: registry64
+        value: 3
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: home
+  - os: windows11
+    builds: [22000, 26200]
+    state: home
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: LaunchTo
+  view: registry64
+  states:
+    2: home
+    1: this_pc
+    3: downloads
+  missing_state: home
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

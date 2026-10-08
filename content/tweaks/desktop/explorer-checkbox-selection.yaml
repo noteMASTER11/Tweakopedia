@@ -1,0 +1,60 @@
+id: desktop.explorer-checkbox-selection
+title: 'Флажки выбора элементов'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Показывает флажок рядом с файлом или папкой при наведении.'
+explanation:
+  purpose: 'Показывает флажок рядом с файлом или папкой при наведении.'
+  mechanism: 'AutoCheckSelect включает выбор объектов с помощью видимых флажков.'
+  effect: 'Несколько объектов можно отмечать мышью без удерживания Ctrl.'
+  tradeoffs: 'Флажки добавляют визуальные элементы в списки и на рабочий стол.'
+  recommendation: 'Включайте для сенсорного управления или частого множественного выбора.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\AutoCheckSelect: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: AutoCheckSelect
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: AutoCheckSelect
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: AutoCheckSelect
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

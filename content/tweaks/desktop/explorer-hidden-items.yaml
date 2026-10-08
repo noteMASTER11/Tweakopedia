@@ -1,0 +1,60 @@
+id: desktop.explorer-hidden-items
+title: 'Скрытые файлы и папки'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Показывает объекты с обычным атрибутом «Скрытый».'
+explanation:
+  purpose: 'Показывает объекты с обычным атрибутом «Скрытый».'
+  mechanism: 'Hidden использует значение 1 для показа и 2 для сокрытия обычных скрытых объектов.'
+  effect: 'Скрытые папки и файлы становятся видимыми в обычных окнах Проводника.'
+  tradeoffs: 'В каталогах появляется больше служебных объектов.'
+  recommendation: 'Включайте при администрировании и диагностике; для повседневной работы можно скрыть.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\Hidden: 2 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Скрывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: Hidden
+        view: registry64
+        value: 2
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: Hidden
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: Hidden
+  view: registry64
+  states:
+    2: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

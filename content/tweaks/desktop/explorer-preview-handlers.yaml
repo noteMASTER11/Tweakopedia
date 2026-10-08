@@ -1,0 +1,60 @@
+id: desktop.explorer-preview-handlers
+title: 'Обработчики предварительного просмотра'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Разрешает приложениям показывать содержимое файлов в области предварительного просмотра.'
+explanation:
+  purpose: 'Разрешает приложениям показывать содержимое файлов в области предварительного просмотра.'
+  mechanism: 'ShowPreviewHandlers включает зарегистрированные обработчики предварительного просмотра Проводника.'
+  effect: 'Поддерживаемые документы отображаются в боковой области без открытия приложения.'
+  tradeoffs: 'Сторонний обработчик запускается при выборе файла и может замедлить просмотр каталога.'
+  recommendation: 'Оставьте включённым, если пользуетесь областью предварительного просмотра.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\ShowPreviewHandlers: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не запускать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowPreviewHandlers
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Разрешать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowPreviewHandlers
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: ShowPreviewHandlers
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

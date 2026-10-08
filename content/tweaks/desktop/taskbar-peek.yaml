@@ -1,0 +1,60 @@
+id: desktop.taskbar-peek
+title: 'Предпросмотр рабочего стола у края панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Временно показывает рабочий стол при наведении на правый край панели задач.'
+explanation:
+  purpose: 'Временно показывает рабочий стол при наведении на правый край панели задач.'
+  mechanism: 'DisablePreviewDesktop инвертированно управляет функцией Peek: ноль разрешает предпросмотр, единица запрещает.'
+  effect: 'При наведении окна становятся прозрачными и виден рабочий стол.'
+  tradeoffs: 'Функция может срабатывать случайно при перемещении указателя к системным значкам.'
+  recommendation: 'Оставьте включённым, если быстро просматриваете виджеты и файлы рабочего стола.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\DisablePreviewDesktop: 1 или 0.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Отключить'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: DisablePreviewDesktop
+        view: registry64
+        value: 1
+  enabled:
+    title: 'Включить'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: DisablePreviewDesktop
+        view: registry64
+        value: 0
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: DisablePreviewDesktop
+  view: registry64
+  states:
+    1: disabled
+    0: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

@@ -1,0 +1,60 @@
+id: desktop.explorer-show-all-navigation-folders
+title: 'Все папки в области навигации'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Добавляет в левое дерево расширенный набор системных расположений.'
+explanation:
+  purpose: 'Добавляет в левое дерево расширенный набор системных расположений.'
+  mechanism: 'NavPaneShowAllFolders включает полное дерево рабочего стола вместо сокращённого набора узлов.'
+  effect: 'В области навигации становятся доступны дополнительные системные папки и иерархия рабочего стола.'
+  tradeoffs: 'Левая панель становится длиннее и требует больше прокрутки.'
+  recommendation: 'Включайте, если часто переходите к системным расположениям через дерево.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\NavPaneShowAllFolders: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Сокращённое дерево'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: NavPaneShowAllFolders
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Полное дерево'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: NavPaneShowAllFolders
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: NavPaneShowAllFolders
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

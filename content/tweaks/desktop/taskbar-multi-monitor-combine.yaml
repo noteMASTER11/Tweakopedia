@@ -1,0 +1,70 @@
+id: desktop.taskbar-multi-monitor-combine
+title: 'Группировка кнопок на дополнительных мониторах'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Настраивает объединение окон на панелях задач дополнительных дисплеев.'
+explanation:
+  purpose: 'Настраивает объединение окон на панелях задач дополнительных дисплеев.'
+  mechanism: 'MMTaskbarGlomLevel задаёт отдельный режим группировки для вторичных панелей задач.'
+  effect: 'Кнопки на дополнительных экранах объединяются всегда, при заполнении либо никогда.'
+  tradeoffs: 'Режим заметен только при включённых панелях задач на нескольких мониторах.'
+  recommendation: 'Используйте тот же режим, что на основном мониторе, если нет отдельного сценария.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\MMTaskbarGlomLevel; поддерживаемые значения: 0, 1, 2.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  always:
+    title: 'Всегда группировать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: MMTaskbarGlomLevel
+        view: registry64
+        value: 0
+  when_full:
+    title: 'Группировать при заполнении'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: MMTaskbarGlomLevel
+        view: registry64
+        value: 1
+  never:
+    title: 'Никогда не группировать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: MMTaskbarGlomLevel
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: always
+  - os: windows11
+    builds: [22000, 26200]
+    state: always
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: MMTaskbarGlomLevel
+  view: registry64
+  states:
+    0: always
+    1: when_full
+    2: never
+  missing_state: always
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

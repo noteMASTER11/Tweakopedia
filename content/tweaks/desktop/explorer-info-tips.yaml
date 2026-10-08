@@ -1,0 +1,60 @@
+id: desktop.explorer-info-tips
+title: 'Всплывающие описания файлов и папок'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Показывает краткие сведения при наведении указателя на объект.'
+explanation:
+  purpose: 'Показывает краткие сведения при наведении указателя на объект.'
+  mechanism: 'ShowInfoTip управляет всплывающими подсказками оболочки для файлов и папок.'
+  effect: 'При наведении отображаются тип, размер и другие доступные свойства объекта.'
+  tradeoffs: 'Подсказки могут перекрывать соседние элементы и отвлекать.'
+  recommendation: 'Оставьте включённым для быстрого просмотра свойств без открытия окна.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\ShowInfoTip: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowInfoTip
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowInfoTip
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: ShowInfoTip
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

@@ -1,0 +1,57 @@
+id: desktop.taskbar-widgets-button
+title: 'Кнопка виджетов на панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Показывает или скрывает кнопку панели виджетов Windows 11.'
+explanation:
+  purpose: 'Показывает или скрывает кнопку панели виджетов Windows 11.'
+  mechanism: 'TaskbarDa определяет, отображается ли кнопка виджетов в основной области панели задач.'
+  effect: 'Кнопка виджетов появляется или исчезает; сама компонентная платформа не удаляется.'
+  tradeoffs: 'После скрытия панель виджетов всё ещё может открываться сочетанием Win+W.'
+  recommendation: 'Скрывайте кнопку, если виджеты не нужны постоянно.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDa: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  disabled:
+    title: 'Скрывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: TaskbarDa
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: TaskbarDa
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: TaskbarDa
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

@@ -1,0 +1,60 @@
+id: desktop.taskbar-task-view-button
+title: 'Кнопка представления задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Показывает или скрывает кнопку представления задач на панели задач.'
+explanation:
+  purpose: 'Показывает или скрывает кнопку представления задач на панели задач.'
+  mechanism: 'ShowTaskViewButton управляет видимостью кнопки переключения между окнами и виртуальными рабочими столами.'
+  effect: 'Кнопка появляется на панели задач или освобождает на ней место.'
+  tradeoffs: 'Скрытие кнопки не отключает представление задач: оно остаётся доступно через Win+Tab.'
+  recommendation: 'Скрывайте кнопку, если используете Win+Tab или не работаете с виртуальными рабочими столами.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\ShowTaskViewButton: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Скрывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowTaskViewButton
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowTaskViewButton
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: ShowTaskViewButton
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

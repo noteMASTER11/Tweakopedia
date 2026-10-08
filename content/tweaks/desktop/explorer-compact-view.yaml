@@ -1,0 +1,57 @@
+id: desktop.explorer-compact-view
+title: 'Компактный вид Проводника'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Уменьшает вертикальные интервалы между файлами и папками.'
+explanation:
+  purpose: 'Уменьшает вертикальные интервалы между файлами и папками.'
+  mechanism: 'UseCompactMode переключает плотную компоновку списков в Проводнике Windows 11.'
+  effect: 'В одном окне помещается больше строк без прокрутки.'
+  tradeoffs: 'Элементы становятся ближе друг к другу и менее удобны для сенсорного управления.'
+  recommendation: 'Включайте для мыши и больших списков; отключайте на сенсорных устройствах.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\UseCompactMode: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  disabled:
+    title: 'Обычные интервалы'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: UseCompactMode
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Компактные интервалы'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: UseCompactMode
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: UseCompactMode
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

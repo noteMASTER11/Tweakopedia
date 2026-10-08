@@ -1,0 +1,60 @@
+id: desktop.taskbar-multi-monitor
+title: 'Панель задач на нескольких мониторах'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Показывает панель задач на дополнительных мониторах.'
+explanation:
+  purpose: 'Показывает панель задач на дополнительных мониторах.'
+  mechanism: 'MMTaskbarEnabled включает создание панели задач на каждом подключённом дисплее.'
+  effect: 'Дополнительные мониторы получают собственную панель задач или остаются без неё.'
+  tradeoffs: 'Отключение освобождает вертикальное место, но переносит управление окнами на основной монитор.'
+  recommendation: 'Включайте при работе с приложениями одновременно на нескольких дисплеях.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\MMTaskbarEnabled: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Только основной монитор'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: MMTaskbarEnabled
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Все мониторы'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: MMTaskbarEnabled
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: MMTaskbarEnabled
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

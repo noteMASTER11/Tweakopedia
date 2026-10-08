@@ -1,0 +1,60 @@
+id: desktop.explorer-full-path-title
+title: 'Полный путь в заголовке Проводника'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Показывает полный путь к текущей папке в заголовке окна.'
+explanation:
+  purpose: 'Показывает полный путь к текущей папке в заголовке окна.'
+  mechanism: 'FullPath в CabinetState переключает короткое имя папки и полный путь в заголовке.'
+  effect: 'По заголовку окна сразу видно точное расположение открытого каталога.'
+  tradeoffs: 'Длинные пути обрезаются по ширине и делают заголовок менее компактным.'
+  recommendation: 'Включайте при администрировании и работе с одноимёнными папками.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState\FullPath: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Только имя папки'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState'
+        value_name: FullPath
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Полный путь'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState'
+        value_name: FullPath
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState'
+  value_name: FullPath
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

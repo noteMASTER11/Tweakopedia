@@ -1,0 +1,60 @@
+id: desktop.explorer-protected-system-items
+title: 'Защищённые системные файлы'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Показывает особо скрытые объекты операционной системы.'
+explanation:
+  purpose: 'Показывает особо скрытые объекты операционной системы.'
+  mechanism: 'ShowSuperHidden включает отображение файлов с системным и скрытым атрибутами.'
+  effect: 'В Проводнике становятся видны загрузочные, служебные и другие системные файлы.'
+  tradeoffs: 'Список каталогов становится перегружен; случайное изменение таких файлов может нарушить работу Windows.'
+  recommendation: 'Включайте только на время диагностики и возвращайте скрытие после работы.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\ShowSuperHidden: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Скрывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowSuperHidden
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowSuperHidden
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: ShowSuperHidden
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false
+

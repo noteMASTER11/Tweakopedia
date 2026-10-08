@@ -1,0 +1,60 @@
+id: desktop.explorer-frequent-folders
+title: 'Часто используемые папки в главной странице Проводника'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Показывает автоматически подобранные часто открываемые папки.'
+explanation:
+  purpose: 'Показывает автоматически подобранные часто открываемые папки.'
+  mechanism: 'ShowFrequent управляет динамическим разделом часто используемых расположений.'
+  effect: 'Home или Quick Access добавляет часто посещаемые папки либо оставляет только закреплённые.'
+  tradeoffs: 'Автоматический список удобен, но меняется со временем и отражает историю навигации.'
+  recommendation: 'Отключайте, если предпочитаете только вручную закреплённые папки.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\ShowFrequent: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: ShowFrequent
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: ShowFrequent
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+  value_name: ShowFrequent
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

@@ -1,0 +1,60 @@
+id: desktop.taskbar-badges
+title: 'Счётчики и метки приложений на панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Управляет небольшими счётчиками и индикаторами на кнопках приложений.'
+explanation:
+  purpose: 'Управляет небольшими счётчиками и индикаторами на кнопках приложений.'
+  mechanism: 'TaskbarBadges включает отображение меток состояния, например количества непрочитанных элементов.'
+  effect: 'Поддерживающие функцию приложения показывают или скрывают свои метки на панели задач.'
+  tradeoffs: 'При отключении часть фоновых событий становится менее заметной.'
+  recommendation: 'Оставьте включённым, если используете почту и мессенджеры на панели задач.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarBadges: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: TaskbarBadges
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: TaskbarBadges
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: TaskbarBadges
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

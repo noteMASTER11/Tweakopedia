@@ -1,0 +1,57 @@
+id: desktop.taskbar-alignment
+title: 'Выравнивание панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Располагает основные кнопки панели задач слева или по центру.'
+explanation:
+  purpose: 'Располагает основные кнопки панели задач слева или по центру.'
+  mechanism: 'TaskbarAl задаёт положение кнопок «Пуск» и закреплённых приложений в Windows 11.'
+  effect: 'Основная группа кнопок перемещается к левому краю или центру экрана.'
+  tradeoffs: 'Центральное положение меняется по мере запуска приложений; левое остаётся привычным для предыдущих версий Windows.'
+  recommendation: 'Выберите расположение, которое быстрее находится мышью на вашем размере экрана.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarAl; поддерживаемые значения: 0, 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22000
+states:
+  left:
+    title: 'Слева'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: TaskbarAl
+        view: registry64
+        value: 0
+  center:
+    title: 'По центру'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: TaskbarAl
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows11
+    builds: [22000, 26200]
+    state: center
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: TaskbarAl
+  view: registry64
+  states:
+    0: left
+    1: center
+  missing_state: center
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

@@ -1,0 +1,70 @@
+id: desktop.taskbar-multi-monitor-apps
+title: 'Размещение кнопок окон на нескольких панелях задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Выбирает, на каких мониторах показывать кнопку открытого окна.'
+explanation:
+  purpose: 'Выбирает, на каких мониторах показывать кнопку открытого окна.'
+  mechanism: 'MMTaskbarMode задаёт дублирование кнопок или привязку к монитору, на котором находится окно.'
+  effect: 'Кнопка окна появляется на всех панелях, на основной и текущей либо только на текущей.'
+  tradeoffs: 'Дублирование облегчает доступ, но повторяет одни и те же кнопки на каждом дисплее.'
+  recommendation: 'Режим «только где открыто окно» делает каждую панель задач локальной своему экрану.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\MMTaskbarMode; поддерживаемые значения: 0, 1, 2.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  all:
+    title: 'На всех панелях задач'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: MMTaskbarMode
+        view: registry64
+        value: 0
+  main_and_window:
+    title: 'На основной и где открыто окно'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: MMTaskbarMode
+        view: registry64
+        value: 1
+  window_only:
+    title: 'Только где открыто окно'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: MMTaskbarMode
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: all
+  - os: windows11
+    builds: [22000, 26200]
+    state: all
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: MMTaskbarMode
+  view: registry64
+  states:
+    0: all
+    1: main_and_window
+    2: window_only
+  missing_state: all
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

@@ -1,0 +1,60 @@
+id: desktop.explorer-expand-navigation-current
+title: 'Разворачивать дерево до текущей папки'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Автоматически раскрывает ветки навигационной панели до открытого каталога.'
+explanation:
+  purpose: 'Автоматически раскрывает ветки навигационной панели до открытого каталога.'
+  mechanism: 'NavPaneExpandToCurrentFolder синхронизирует дерево слева с текущим расположением.'
+  effect: 'Навигационная панель показывает положение открытой папки внутри иерархии.'
+  tradeoffs: 'При переходах дерево часто меняет раскрытые ветки и прокрутку.'
+  recommendation: 'Включайте, если ориентируетесь по дереву каталогов.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\NavPaneExpandToCurrentFolder: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не разворачивать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: NavPaneExpandToCurrentFolder
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Разворачивать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: NavPaneExpandToCurrentFolder
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: disabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: disabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: NavPaneExpandToCurrentFolder
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: disabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

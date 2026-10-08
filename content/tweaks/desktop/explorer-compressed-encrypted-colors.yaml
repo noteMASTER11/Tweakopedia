@@ -1,0 +1,60 @@
+id: desktop.explorer-compressed-encrypted-colors
+title: 'Цветные имена сжатых и зашифрованных файлов'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Выделяет NTFS-сжатие и шифрование цветом имени файла.'
+explanation:
+  purpose: 'Выделяет NTFS-сжатие и шифрование цветом имени файла.'
+  mechanism: 'ShowCompColor включает специальную окраску имён сжатых и зашифрованных объектов.'
+  effect: 'Проводник визуально отличает такие объекты от обычных файлов.'
+  tradeoffs: 'Цвет имени может конфликтовать с пользовательской темой или восприниматься как предупреждение.'
+  recommendation: 'Оставьте включённым, если используете NTFS-сжатие или EFS.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\ShowCompColor: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Обычный цвет'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowCompColor
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Выделять цветом'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: ShowCompColor
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: ShowCompColor
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

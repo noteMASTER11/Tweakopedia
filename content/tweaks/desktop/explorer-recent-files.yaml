@@ -1,0 +1,60 @@
+id: desktop.explorer-recent-files
+title: 'Недавние файлы в главной странице Проводника'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Показывает недавно использованные файлы в Home или Quick Access.'
+explanation:
+  purpose: 'Показывает недавно использованные файлы в Home или Quick Access.'
+  mechanism: 'ShowRecent управляет разделом недавних файлов в начальном представлении Проводника.'
+  effect: 'Главная страница получает список последних документов или скрывает его.'
+  tradeoffs: 'Список ускоряет повторное открытие, но раскрывает историю работы любому пользователю сеанса.'
+  recommendation: 'Отключайте на общих компьютерах; на личном устройстве список обычно удобен.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\ShowRecent: 0 или 1.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  disabled:
+    title: 'Не показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: ShowRecent
+        view: registry64
+        value: 0
+  enabled:
+    title: 'Показывать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+        value_name: ShowRecent
+        view: registry64
+        value: 1
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: enabled
+  - os: windows11
+    builds: [22000, 26200]
+    state: enabled
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer'
+  value_name: ShowRecent
+  view: registry64
+  states:
+    0: disabled
+    1: enabled
+  missing_state: enabled
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+

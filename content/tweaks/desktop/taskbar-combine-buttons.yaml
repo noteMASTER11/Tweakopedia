@@ -1,0 +1,70 @@
+id: desktop.taskbar-combine-buttons
+title: 'Группировка кнопок панели задач'
+category: desktop
+subcategory: taskbar
+kind: setting
+summary: 'Определяет, когда несколько окон одного приложения объединяются в одну кнопку.'
+explanation:
+  purpose: 'Определяет, когда несколько окон одного приложения объединяются в одну кнопку.'
+  mechanism: 'TaskbarGlomLevel выбирает постоянную группировку, группировку только при нехватке места или отдельные кнопки.'
+  effect: 'Окна приложений занимают одну общую кнопку либо отображаются по отдельности.'
+  tradeoffs: 'Отдельные кнопки быстрее выбираются, но занимают больше ширины.'
+  recommendation: 'На широком экране удобны отдельные кнопки; на небольшом — группировка.'
+  technical_details: 'DWORD HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarGlomLevel; поддерживаемые значения: 0, 1, 2.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  always:
+    title: 'Всегда группировать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: TaskbarGlomLevel
+        view: registry64
+        value: 0
+  when_full:
+    title: 'Группировать при заполнении'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: TaskbarGlomLevel
+        view: registry64
+        value: 1
+  never:
+    title: 'Никогда не группировать'
+    operations:
+      - type: registry.set_dword
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        value_name: TaskbarGlomLevel
+        view: registry64
+        value: 2
+windows_defaults:
+  - os: windows10
+    builds: [10240, 19045]
+    state: always
+  - os: windows11
+    builds: [22000, 26200]
+    state: always
+detect:
+  type: registry.dword
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+  value_name: TaskbarGlomLevel
+  view: registry64
+  states:
+    0: always
+    1: when_full
+    2: never
+  missing_state: always
+dependencies: []
+conflicts: []
+restart: explorer
+impact: low
+reversibility: reversible
+requires_network: false
+
