@@ -1,0 +1,48 @@
+id: experimental.file-explorer-gallery
+title: Галерея в Проводнике
+category: experimental
+subcategory: feature-store
+kind: setting
+summary: Управляет разделом «Галерея», который собирает изображения из выбранных папок в Проводнике.
+explanation:
+  purpose: Даёт единое представление фотографий и изображений без ручного обхода нескольких каталогов.
+  mechanism: Функция FileExplorerGallery включает страницу Галереи и её интеграцию с навигационной областью Проводника.
+  effect: В Проводнике появляется или скрывается раздел «Галерея» в зависимости от поддержки конкретной сборкой.
+  tradeoffs: Галерея может дополнительно перечислять и индексировать изображения; реализация и расположение элементов менялись между сборками Windows 11.
+  recommendation: Включать, если нужен встроенный просмотр коллекции изображений; иначе оставить штатное состояние Windows.
+  technical_details: Feature ID 41040327 (FileExplorerGallery). Создаётся пользовательское переопределение Runtime Feature Store.
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  default:
+    title: По умолчанию Windows
+    operations:
+      - type: feature.reset
+        feature_id: 41040327
+  disabled:
+    title: Выключено
+    operations:
+      - type: feature.set_state
+        feature_id: 41040327
+        state: disabled
+  enabled:
+    title: Включено
+    operations:
+      - type: feature.set_state
+        feature_id: 41040327
+        state: enabled
+windows_defaults:
+  - os: windows11
+    builds: [22621, 4294967295]
+    state: default
+detect:
+  type: feature.state
+  feature_id: 41040327
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -9,6 +9,8 @@ add_library(TweakopediaExecution STATIC
     ExecutorLauncher.h
     ExecutorServer.cpp
     ExecutorServer.h
+    FeatureStateExecutor.cpp
+    FeatureStateExecutor.h
     PlanValidator.cpp
     PlanValidator.h
     RegistryDwordExecutor.cpp

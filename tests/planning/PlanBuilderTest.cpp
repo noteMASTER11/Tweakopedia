@@ -161,6 +161,34 @@ private slots:
         QCOMPARE(operation.tweakId, tweak.id);
     }
 
+    void buildsTypedFeatureChangeWithBeforeFingerprint()
+    {
+        TweakDefinition tweak;
+        tweak.id = *TweakId::parse(u"experimental.end-task"_s);
+        tweak.title = u"Завершение задачи"_s;
+        tweak.compatibility.architectures = {CpuArchitecture::X64};
+        tweak.compatibility.operatingSystems = {WindowsFamily::Windows11};
+        tweak.compatibility.minimumBuild = 22621;
+        tweak.states = {{.id = u"enabled"_s, .title = u"Включено"_s,
+                         .operations = {SetFeatureStateOperation{
+                             42592269, FeatureEnabledState::Enabled}}}};
+        TweakQueue queue;
+        QVERIFY(queue.setTarget(tweak, u"enabled"_s).accepted);
+
+        const auto result = PlanBuilder{}.build(
+            TweakCatalog({tweak}), queue,
+            {{tweak.id, state(u"disabled"_s, QByteArray(64, 'f'))}}, profile());
+
+        QVERIFY(result.plan.has_value());
+        QVERIFY(std::holds_alternative<PlannedFeatureStateChange>(
+            result.plan->operations.first()));
+        const auto& operation = std::get<PlannedFeatureStateChange>(
+            result.plan->operations.first());
+        QCOMPARE(operation.change.featureId, 42592269U);
+        QCOMPARE(operation.change.state, FeatureEnabledState::Enabled);
+        QCOMPARE(operation.beforeFingerprint, QByteArray(64, 'f'));
+    }
+
     void usesFingerprintOfEachRegistryLocationForCompositeState()
     {
         auto tweak = definition(u"filesystem.composite", u"Primary");

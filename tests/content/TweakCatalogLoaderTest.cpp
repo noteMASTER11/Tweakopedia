@@ -78,6 +78,23 @@ private slots:
         QCOMPARE(tweak->detection->missingState, u"disabled"_s);
     }
 
+    void loadsTypedFeatureStoreTweak()
+    {
+        const auto result = loadSingleFixture(u"valid/feature-end-task.yaml"_s);
+
+        QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
+        QVERIFY(result.catalog.has_value());
+        const auto* tweak = result.catalog->find(*TweakId::parse(u"experimental.end-task"_s));
+        QVERIFY(tweak != nullptr);
+        QVERIFY(tweak->featureDetection.has_value());
+        QCOMPARE(tweak->featureDetection->featureId, 42592269U);
+        const auto* operation = std::get_if<SetFeatureStateOperation>(
+            &tweak->states.at(2).operations.first());
+        QVERIFY(operation != nullptr);
+        QCOMPARE(operation->featureId, 42592269U);
+        QCOMPARE(operation->state, FeatureEnabledState::Enabled);
+    }
+
     void rejectsMissingRequiredField()
     {
         const auto result = loadSingleFixture(u"invalid/missing-title.yaml"_s);
@@ -148,7 +165,7 @@ private slots:
 
         QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 212);
+        QCOMPARE(result.catalog->size(), 216);
 
         const QStringList expectedIds{
             u"apps.windows-ink-workspace"_s,
@@ -178,6 +195,10 @@ private slots:
             u"accounts.uac-uiaccess-desktop-toggle"_s,
             u"accounts.uac-uiaccess-secure-paths"_s,
             u"accounts.uac-virtualization"_s,
+            u"experimental.end-task"_s,
+            u"experimental.file-explorer-gallery"_s,
+            u"experimental.create-archive-wizard"_s,
+            u"experimental.sudo"_s,
             u"behavior.autoplay"_s,
             u"behavior.automatic-maintenance"_s,
             u"behavior.bsod-details"_s,

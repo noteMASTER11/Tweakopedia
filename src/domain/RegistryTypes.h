@@ -51,6 +51,26 @@ struct RemoveAppxPackageOperation {
     friend bool operator==(const RemoveAppxPackageOperation&, const RemoveAppxPackageOperation&) = default;
 };
 
-using OperationSpec = std::variant<SetRegistryDwordOperation, RemoveAppxPackageOperation>;
+enum class FeatureEnabledState : quint32 {
+    Default = 0,
+    Disabled = 1,
+    Enabled = 2,
+};
+
+struct FeatureStateDetection {
+    quint32 featureId{};
+};
+
+struct SetFeatureStateOperation {
+    quint32 featureId{};
+    FeatureEnabledState state{FeatureEnabledState::Default};
+
+    friend bool operator==(const SetFeatureStateOperation&, const SetFeatureStateOperation&) = default;
+};
+
+using OperationSpec = std::variant<
+    SetRegistryDwordOperation,
+    RemoveAppxPackageOperation,
+    SetFeatureStateOperation>;
 
 } // namespace tweakopedia::domain

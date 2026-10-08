@@ -1,0 +1,48 @@
+id: experimental.sudo
+title: Поддержка команды sudo
+category: experimental
+subcategory: feature-store
+kind: setting
+summary: Управляет доступностью встроенного механизма sudo в Windows 11.
+explanation:
+  purpose: Позволяет запускать отдельную команду с повышенными правами из текущего сеанса терминала.
+  mechanism: Функция Sudo включает программный компонент Windows; режим его работы затем задаётся штатным параметром «Для разработчиков».
+  effect: На поддерживаемой сборке Windows становится доступна инфраструктура команды sudo.
+  tradeoffs: Переключение Feature Store само по себе не выбирает режим sudo. Для фактического использования может потребоваться включить функцию в параметрах Windows.
+  recommendation: На Windows 11 24H2 и новее предпочитать штатный переключатель; этот пункт нужен для диагностики и возврата внутреннего флага.
+  technical_details: Feature ID 46194939 (Sudo). Создаётся пользовательское переопределение Runtime Feature Store.
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 26100
+states:
+  default:
+    title: По умолчанию Windows
+    operations:
+      - type: feature.reset
+        feature_id: 46194939
+  disabled:
+    title: Выключено
+    operations:
+      - type: feature.set_state
+        feature_id: 46194939
+        state: disabled
+  enabled:
+    title: Включено
+    operations:
+      - type: feature.set_state
+        feature_id: 46194939
+        state: enabled
+windows_defaults:
+  - os: windows11
+    builds: [26100, 4294967295]
+    state: default
+detect:
+  type: feature.state
+  feature_id: 46194939
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

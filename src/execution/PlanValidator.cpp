@@ -78,6 +78,12 @@ PlanValidationResult PlanValidator::validate(
                 addError(result, u"appx.package_name_invalid"_s,
                          u"Имя AppX-пакета содержит недопустимые символы."_s);
             }
+        } else if (const auto* operation = std::get_if<planning::PlannedFeatureStateChange>(&operationVariant)) {
+            if (operation->change.featureId == 0
+                || static_cast<quint32>(operation->change.state) > 2) {
+                addError(result, u"feature.invalid"_s,
+                         u"Feature ID или состояние недопустимы."_s);
+            }
         }
     }
     result.accepted = result.errors.isEmpty();

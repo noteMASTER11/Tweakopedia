@@ -88,6 +88,7 @@ struct TweakDefinition {
     QVector<WindowsDefaultRule> windowsDefaults;
     std::optional<RegistryDwordDetection> detection;
     std::optional<AppxPackageDetection> appxDetection;
+    std::optional<FeatureStateDetection> featureDetection;
     Impact impact{Impact::Low};
     Reversibility reversibility{Reversibility::Reversible};
     RestartRequirement restart{RestartRequirement::None};

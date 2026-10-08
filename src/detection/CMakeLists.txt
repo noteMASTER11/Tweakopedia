@@ -3,6 +3,8 @@ add_library(TweakopediaDetection STATIC
     AppxPackageStateDetector.h
     CompatibilityEvaluator.cpp
     CompatibilityEvaluator.h
+    FeatureStateDetector.cpp
+    FeatureStateDetector.h
     RegistryDwordStateDetector.cpp
     RegistryDwordStateDetector.h
 )

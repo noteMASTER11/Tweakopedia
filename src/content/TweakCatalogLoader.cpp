@@ -27,6 +27,8 @@ using domain::RegistryView;
 using domain::RestartRequirement;
 using domain::Reversibility;
 using domain::SetRegistryDwordOperation;
+using domain::SetFeatureStateOperation;
+using domain::FeatureEnabledState;
 using domain::TweakDefinition;
 using domain::TweakId;
 using domain::TweakKind;
@@ -188,10 +190,40 @@ std::optional<OperationSpec> parseOperation(ParseContext& context, const YAML::N
 {
     validateKeys(context, node, {
         u"type"_s, u"hive"_s, u"key"_s, u"value_name"_s, u"view"_s, u"value"_s,
+        u"feature_id"_s, u"state"_s,
     });
     const auto typeNode = required(context, node, "type");
-    if (!typeNode || nodeText(typeNode) != u"registry.set_dword") {
-        addError(context, u"operation.unknown"_s, u"Разрешена только типизированная операция registry.set_dword."_s, typeNode ? typeNode : node);
+    if (!typeNode) {
+        return std::nullopt;
+    }
+
+    const auto type = nodeText(typeNode);
+    if (type == u"feature.set_state" || type == u"feature.reset") {
+        const auto featureIdNode = required(context, node, "feature_id");
+        const auto featureId = featureIdNode ? parseDword(context, featureIdNode) : std::nullopt;
+        if (!featureId || *featureId == 0) {
+            if (featureId && *featureId == 0) {
+                addError(context, u"feature.id_invalid"_s, u"Feature ID должен быть больше нуля."_s, featureIdNode);
+            }
+            return std::nullopt;
+        }
+        if (type == u"feature.reset") {
+            return SetFeatureStateOperation{.featureId = *featureId, .state = FeatureEnabledState::Default};
+        }
+        const auto stateNode = required(context, node, "state");
+        const auto state = nodeText(stateNode);
+        if (state == u"enabled") {
+            return SetFeatureStateOperation{.featureId = *featureId, .state = FeatureEnabledState::Enabled};
+        }
+        if (state == u"disabled") {
+            return SetFeatureStateOperation{.featureId = *featureId, .state = FeatureEnabledState::Disabled};
+        }
+        addError(context, u"feature.state_invalid"_s, u"Состояние функции должно быть enabled или disabled."_s, stateNode);
+        return std::nullopt;
+    }
+
+    if (type != u"registry.set_dword") {
+        addError(context, u"operation.unknown"_s, u"Тип операции не поддерживается."_s, typeNode);
         return std::nullopt;
     }
 
@@ -323,15 +355,26 @@ QVector<WindowsDefaultRule> parseWindowsDefaults(ParseContext& context, const YA
     return rules;
 }
 
-std::optional<RegistryDwordDetection> parseDetection(ParseContext& context, const YAML::Node& node)
+void parseDetection(ParseContext& context, const YAML::Node& node, TweakDefinition& definition)
 {
     validateKeys(context, node, {
-        u"type"_s, u"hive"_s, u"key"_s, u"value_name"_s, u"view"_s, u"states"_s, u"missing_state"_s,
+        u"type"_s, u"hive"_s, u"key"_s, u"value_name"_s, u"view"_s, u"states"_s,
+        u"missing_state"_s, u"feature_id"_s,
     });
     const auto type = requiredString(context, node, "type");
+    if (type == u"feature.state") {
+        const auto featureIdNode = required(context, node, "feature_id");
+        const auto featureId = featureIdNode ? parseDword(context, featureIdNode) : std::nullopt;
+        if (featureId && *featureId > 0) {
+            definition.featureDetection = domain::FeatureStateDetection{.featureId = *featureId};
+        } else if (featureId && *featureId == 0) {
+            addError(context, u"feature.id_invalid"_s, u"Feature ID должен быть больше нуля."_s, featureIdNode);
+        }
+        return;
+    }
     if (type != u"registry.dword") {
-        addError(context, u"detection.unknown"_s, u"Разрешено только обнаружение registry.dword."_s, node["type"]);
-        return std::nullopt;
+        addError(context, u"detection.unknown"_s, u"Тип обнаружения не поддерживается."_s, node["type"]);
+        return;
     }
     const auto location = parseRegistryLocation(context, node);
     const auto statesNode = required(context, node, "states");
@@ -340,7 +383,7 @@ std::optional<RegistryDwordDetection> parseDetection(ParseContext& context, cons
         if (statesNode && !statesNode.IsMap()) {
             addError(context, u"type.map_required"_s, u"detect.states должен быть объектом."_s, statesNode);
         }
-        return std::nullopt;
+        return;
     }
 
     RegistryDwordDetection detection{.location = *location, .missingState = missingState};
@@ -351,7 +394,7 @@ std::optional<RegistryDwordDetection> parseDetection(ParseContext& context, cons
             detection.statesByValue.insert(*value, state);
         }
     }
-    return detection;
+    definition.detection = std::move(detection);
 }
 
 std::optional<TweakKind> parseKind(ParseContext& context, const YAML::Node& node)
@@ -443,7 +486,7 @@ std::optional<TweakDefinition> parseDefinition(ParseContext& context, const YAML
     if (compatibility) parseCompatibility(context, compatibility, definition);
     definition.states = parseStates(context, required(context, root, "states"));
     definition.windowsDefaults = parseWindowsDefaults(context, required(context, root, "windows_defaults"));
-    definition.detection = parseDetection(context, required(context, root, "detect"));
+    parseDetection(context, required(context, root, "detect"), definition);
 
     const auto restartNode = required(context, root, "restart");
     if (restartNode) {

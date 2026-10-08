@@ -1,0 +1,48 @@
+id: experimental.end-task
+title: Завершение задачи из панели задач
+category: experimental
+subcategory: feature-store
+kind: setting
+summary: Управляет командой принудительного завершения приложения в контекстном меню панели задач.
+explanation:
+  purpose: Позволяет завершить зависшее приложение прямо через его кнопку на панели задач, не открывая Диспетчер задач.
+  mechanism: Windows проверяет внутреннюю функцию EndTask в Feature Store и при её включении добавляет команду в меню кнопки приложения.
+  effect: В контекстном меню запущенного приложения появляется пункт завершения задачи.
+  tradeoffs: Команда принудительно останавливает процесс; несохранённые данные приложения могут быть потеряны. На некоторых сборках одной функции недостаточно без штатного параметра режима разработчика.
+  recommendation: Включать на поддерживаемых сборках, если часто приходится закрывать зависшие приложения.
+  technical_details: Feature ID 42592269 (EndTask). Создаётся пользовательское переопределение Runtime Feature Store.
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  default:
+    title: По умолчанию Windows
+    operations:
+      - type: feature.reset
+        feature_id: 42592269
+  disabled:
+    title: Выключено
+    operations:
+      - type: feature.set_state
+        feature_id: 42592269
+        state: disabled
+  enabled:
+    title: Включено
+    operations:
+      - type: feature.set_state
+        feature_id: 42592269
+        state: enabled
+windows_defaults:
+  - os: windows11
+    builds: [22621, 4294967295]
+    state: default
+detect:
+  type: feature.state
+  feature_id: 42592269
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false

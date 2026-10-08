@@ -5,6 +5,7 @@ miniz 3.1.2 - MIT License.
 nlohmann/json 3.12.0 - MIT License.
 yaml-cpp 0.8.0 - MIT License.
 Win11Debloat application metadata - MIT License, copyright Raphire.
+ViVe feature-management reference - GNU GPL version 3, copyright @thebookisclosed.
 SF Pro font - bundled application resource; copyright Apple Inc.
 
 The corresponding license texts are included in this directory of the extracted runtime.

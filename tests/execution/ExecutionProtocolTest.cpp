@@ -125,6 +125,28 @@ private slots:
         QVERIFY(hasError(decoded, u"appx.package_name_invalid"));
     }
 
+    void roundTripsWhitelistedFeatureChange()
+    {
+        auto original = plan();
+        original.operations = {PlannedFeatureStateChange{
+            .tweakId = *TweakId::parse(u"experimental.end-task"_s),
+            .targetState = u"enabled"_s,
+            .change = SetFeatureStateOperation{42592269, FeatureEnabledState::Enabled},
+            .beforeFingerprint = QByteArray(64, 'f'),
+            .restart = RestartRequirement::Explorer,
+        }};
+
+        const auto decoded = ExecutionProtocol::decode(ExecutionProtocol::encode(original));
+
+        QVERIFY(decoded.errors.isEmpty());
+        QVERIFY(decoded.plan.has_value());
+        const auto& operation = std::get<PlannedFeatureStateChange>(
+            decoded.plan->operations.first());
+        QCOMPARE(operation.change.featureId, 42592269U);
+        QCOMPARE(operation.change.state, FeatureEnabledState::Enabled);
+        QCOMPARE(operation.beforeFingerprint, QByteArray(64, 'f'));
+    }
+
     void producesStableJsonForSamePlan()
     {
         const auto value = plan();

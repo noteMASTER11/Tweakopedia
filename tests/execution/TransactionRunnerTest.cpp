@@ -1,4 +1,5 @@
 #include "execution/AppxPackageExecutor.h"
+#include "execution/FeatureStateExecutor.h"
 #include "execution/RegistrySnapshot.h"
 #include "execution/TransactionRunner.h"
 #include "persistence/Database.h"
@@ -100,6 +101,39 @@ public:
 
     mutable QVector<platform::AppxPackageIdentity> packages;
     QStringList removed;
+};
+
+class ScriptedFeatureBackend final : public platform::IFeatureStoreBackend
+{
+public:
+    platform::FeatureConfiguration current{.featureId = 42592269, .priority = 4,
+        .state = domain::FeatureEnabledState::Disabled};
+    platform::FeatureQueryResult query(quint32 featureId) const override
+    {
+        return featureId == current.featureId
+            ? platform::FeatureQueryResult{.success = true, .configuration = current}
+            : platform::FeatureQueryResult{.success = false};
+    }
+    platform::FeatureMutationResult setUserState(
+        quint32 featureId, domain::FeatureEnabledState state) override
+    {
+        current.featureId = featureId;
+        current.priority = 8;
+        current.state = state;
+        return {.success = true};
+    }
+    platform::FeatureMutationResult setUserConfiguration(
+        const platform::FeatureConfiguration& configuration) override
+    {
+        current = configuration;
+        return {.success = true};
+    }
+    platform::FeatureMutationResult resetUserConfiguration(quint32) override
+    {
+        current.priority = 4;
+        current.state = domain::FeatureEnabledState::Disabled;
+        return {.success = true};
+    }
 };
 
 domain::RegistryLocation location(QString name)
@@ -265,6 +299,34 @@ private slots:
         const auto operations = before->value(u"operations"_s).toArray();
         QCOMPARE(operations.size(), 1);
         QCOMPARE(operations.first().toObject().value(u"type"_s).toString(), u"appx.packages"_s);
+    }
+
+    void appliesFeatureChangeAndPersistsRestorableSnapshot()
+    {
+        Fixture fixture;
+        ScriptedBackend registry;
+        ScriptedFeatureBackend features;
+        execution::FeatureStateExecutor executor(features);
+        const auto captured = executor.capture(42592269);
+        QVERIFY(captured.success);
+        fixture.plan.operations.append(planning::PlannedFeatureStateChange{
+            .tweakId = domain::TweakId::parse(u"experimental.end-task"_s).value(),
+            .targetState = u"enabled"_s,
+            .change = {42592269, domain::FeatureEnabledState::Enabled},
+            .beforeFingerprint = captured.snapshot.fingerprint(),
+        });
+
+        execution::TransactionRunner runner(
+            registry, *fixture.files, *fixture.repository, nullptr, &features);
+        const auto result = runner.run(fixture.plan);
+
+        QVERIFY(result.success);
+        QCOMPARE(features.current.priority, 8U);
+        QCOMPARE(features.current.state, domain::FeatureEnabledState::Enabled);
+        const auto before = fixture.files->readBefore(fixture.plan.transactionId);
+        QVERIFY(before.has_value());
+        QCOMPARE(before->value(u"operations"_s).toArray().first().toObject()
+                     .value(u"type"_s).toString(), u"feature.configuration"_s);
     }
 
     void rollsBackConfirmedOperationsInReverseOrder()

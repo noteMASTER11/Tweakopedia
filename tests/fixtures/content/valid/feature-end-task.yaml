@@ -1,0 +1,48 @@
+id: experimental.end-task
+title: Завершение задачи из панели задач
+category: experimental
+subcategory: feature-store
+kind: setting
+summary: Добавляет команду завершения процесса в контекстное меню панели задач.
+explanation:
+  purpose: Ускоряет принудительное завершение зависшего приложения.
+  mechanism: Переключает внутреннюю конфигурацию функции Windows Feature Store.
+  effect: В контекстном меню кнопки приложения появляется команда завершения задачи.
+  tradeoffs: Функция зависит от конкретной сборки Windows и может измениться после обновления.
+  recommendation: Использовать только если функция присутствует в текущей сборке.
+  technical_details: Feature ID 42592269, пользовательский приоритет Feature Store.
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 22621
+states:
+  default:
+    title: По умолчанию
+    operations:
+      - type: feature.reset
+        feature_id: 42592269
+  disabled:
+    title: Выключено
+    operations:
+      - type: feature.set_state
+        feature_id: 42592269
+        state: disabled
+  enabled:
+    title: Включено
+    operations:
+      - type: feature.set_state
+        feature_id: 42592269
+        state: enabled
+windows_defaults:
+  - os: windows11
+    builds: [22621, 4294967295]
+    state: default
+detect:
+  type: feature.state
+  feature_id: 42592269
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false

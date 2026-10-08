@@ -170,6 +170,10 @@ add_executable(WindowsAppxPackageProviderTest
 target_link_libraries(WindowsAppxPackageProviderTest PRIVATE Qt6::Test TweakopediaPlatform)
 add_test(NAME WindowsAppxPackageProvider COMMAND WindowsAppxPackageProviderTest)
 
+add_executable(WindowsFeatureStoreBackendTest platform/WindowsFeatureStoreBackendTest.cpp)
+target_link_libraries(WindowsFeatureStoreBackendTest PRIVATE Qt6::Test TweakopediaPlatform)
+add_test(NAME WindowsFeatureStoreBackend COMMAND WindowsFeatureStoreBackendTest)
+
 add_executable(RegistryDwordStateDetectorTest
     detection/RegistryDwordStateDetectorTest.cpp
     fakes/FakeRegistryBackend.cpp
@@ -195,6 +199,10 @@ add_executable(AppxPackageStateDetectorTest
 )
 target_link_libraries(AppxPackageStateDetectorTest PRIVATE Qt6::Test TweakopediaDetection TweakopediaPlatform)
 add_test(NAME AppxPackageStateDetector COMMAND AppxPackageStateDetectorTest)
+
+add_executable(FeatureStateDetectorTest detection/FeatureStateDetectorTest.cpp)
+target_link_libraries(FeatureStateDetectorTest PRIVATE Qt6::Test TweakopediaDetection TweakopediaPlatform)
+add_test(NAME FeatureStateDetector COMMAND FeatureStateDetectorTest)
 
 add_executable(WindowsRegistryBackendTest
     platform/WindowsRegistryBackendTest.cpp
@@ -316,6 +324,10 @@ add_executable(AppxPackageExecutorTest
 )
 target_link_libraries(AppxPackageExecutorTest PRIVATE Qt6::Test TweakopediaExecution TweakopediaPlatform)
 add_test(NAME AppxPackageExecutor COMMAND AppxPackageExecutorTest)
+
+add_executable(FeatureStateExecutorTest execution/FeatureStateExecutorTest.cpp)
+target_link_libraries(FeatureStateExecutorTest PRIVATE Qt6::Test TweakopediaExecution TweakopediaPlatform)
+add_test(NAME FeatureStateExecutor COMMAND FeatureStateExecutorTest)
 
 add_executable(TransactionRunnerTest
     execution/TransactionRunnerTest.cpp

@@ -31,7 +31,18 @@ struct PlannedAppxRemoval {
     domain::RestartRequirement restart{domain::RestartRequirement::None};
 };
 
-using PlannedOperation = std::variant<PlannedRegistryDwordChange, PlannedAppxRemoval>;
+struct PlannedFeatureStateChange {
+    domain::TweakId tweakId;
+    QString targetState;
+    domain::SetFeatureStateOperation change;
+    QByteArray beforeFingerprint;
+    domain::RestartRequirement restart{domain::RestartRequirement::None};
+};
+
+using PlannedOperation = std::variant<
+    PlannedRegistryDwordChange,
+    PlannedFeatureStateChange,
+    PlannedAppxRemoval>;
 
 struct ExecutionPlan {
     int schemaVersion{executionPlanSchemaVersion};

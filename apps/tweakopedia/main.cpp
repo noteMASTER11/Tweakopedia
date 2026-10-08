@@ -4,6 +4,7 @@
 #include "content/CategoryCatalogLoader.h"
 #include "detection/RegistryDwordStateDetector.h"
 #include "detection/AppxPackageStateDetector.h"
+#include "detection/FeatureStateDetector.h"
 #include "execution/ExecutionProtocol.h"
 #include "execution/ExecutorLauncher.h"
 #include "execution/ExecutorServer.h"
@@ -13,6 +14,7 @@
 #include "persistence/TransactionRepository.h"
 #include "platform/WindowsRegistryBackend.h"
 #include "platform/WindowsAppxPackageProvider.h"
+#include "platform/WindowsFeatureStoreBackend.h"
 #include "platform/WindowsSystemProfileProvider.h"
 #include "platform/WindowsSystemOverviewProvider.h"
 #include "UiFontLoader.h"
@@ -158,6 +160,9 @@ public:
         if (tweak.appxDetection) {
             return detection::AppxPackageStateDetector{}.detect(
                 tweak, appxInventory_.packages, profile);
+        }
+        if (tweak.featureDetection) {
+            return detection::FeatureStateDetector{}.detect(tweak, features_, profile);
         }
         return detection::RegistryDwordStateDetector{}.detect(tweak, registry_, profile);
     }
@@ -344,6 +349,7 @@ private:
     platform::WindowsSystemProfileProvider profile_;
     mutable platform::WindowsRegistryBackend registry_;
     platform::WindowsAppxPackageProvider appx_;
+    platform::WindowsFeatureStoreBackend features_;
     platform::AppxPackageQueryResult appxInventory_;
 };
 

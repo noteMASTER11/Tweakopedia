@@ -107,6 +107,11 @@ categories:
         title: Биометрические устройства
       - id: camera
         title: Камера
+  - id: experimental
+    title: Экспериментальные функции
+    subcategories:
+      - id: feature-store
+        title: Windows Feature Store
   - id: gaming
     title: Игры и запись экрана
     subcategories:

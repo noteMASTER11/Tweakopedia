@@ -5,6 +5,7 @@
 #include "planning/ExecutionPlan.h"
 #include "platform/IRegistryBackend.h"
 #include "platform/WindowsAppxPackageProvider.h"
+#include "platform/IFeatureStoreBackend.h"
 
 namespace tweakopedia::execution {
 
@@ -22,13 +23,15 @@ public:
         platform::IRegistryBackend& backend,
         persistence::TransactionFiles& files,
         persistence::TransactionRepository& repository,
-        platform::IAppxPackageBackend* appxBackend = nullptr);
+        platform::IAppxPackageBackend* appxBackend = nullptr,
+        platform::IFeatureStoreBackend* featureBackend = nullptr);
 
     [[nodiscard]] TransactionRunResult run(const planning::ExecutionPlan& plan);
 
 private:
     platform::IRegistryBackend* backend_{};
     platform::IAppxPackageBackend* appxBackend_{};
+    platform::IFeatureStoreBackend* featureBackend_{};
     persistence::TransactionFiles* files_{};
     persistence::TransactionRepository* repository_{};
 };

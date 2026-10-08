@@ -109,8 +109,11 @@ QVariantList AppController::previewOperations() const
             if constexpr (std::is_same_v<std::decay_t<decltype(operation)>,
                                          planning::PlannedRegistryDwordChange>) {
                 object = registryObject(operation.change.location);
-            } else {
+            } else if constexpr (std::is_same_v<std::decay_t<decltype(operation)>,
+                                                planning::PlannedAppxRemoval>) {
                 object = u"AppX: "_s + operation.change.packageName;
+            } else {
+                object = u"Feature ID: "_s + QString::number(operation.change.featureId);
             }
             result.append(QVariantMap{
                 {u"title"_s, tweak ? tweak->title : operation.tweakId.toString()},
@@ -228,6 +231,8 @@ QVariantMap AppController::openExplanation(const QString& id) const
             + location.key + u"\\"_s + location.valueName;
     } else if (tweak->appxDetection) {
         registryObject = u"AppX: "_s + tweak->appxDetection->packageName;
+    } else if (tweak->featureDetection) {
+        registryObject = u"Feature ID: "_s + QString::number(tweak->featureDetection->featureId);
     }
     return {
         {u"title"_s, tweak->title},
@@ -240,7 +245,9 @@ QVariantMap AppController::openExplanation(const QString& id) const
         {u"registryObject"_s, registryObject},
         {u"rollback"_s, tweak->appxDetection
             ? u"Автоматический возврат удалённого пакета не выполняется; потребуется повторная установка приложения."_s
-            : u"При возврате восстанавливаются точный исходный тип и байты значения; если значения не было, оно удаляется."_s},
+            : tweak->featureDetection
+                ? u"При возврате восстанавливается исходное пользовательское переопределение Feature Store либо оно удаляется, если его не было."_s
+                : u"При возврате восстанавливаются точный исходный тип и байты значения; если значения не было, оно удаляется."_s},
     };
 }
 

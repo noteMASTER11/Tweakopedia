@@ -1,0 +1,48 @@
+id: experimental.create-archive-wizard
+title: Мастер создания архивов Проводника
+category: experimental
+subcategory: feature-store
+kind: setting
+summary: Управляет расширенным мастером создания архивов ZIP, 7z и TAR в Проводнике.
+explanation:
+  purpose: Позволяет выбрать формат, метод и уровень сжатия при создании архива штатными средствами Windows.
+  mechanism: Функция CreateArchiveWizard включает расширенную оболочку архиватора, встроенного в новые сборки Проводника.
+  effect: В поддерживаемой сборке становятся доступны дополнительные форматы и параметры создания архива.
+  tradeoffs: Функция отсутствует в старых сборках; состав форматов и параметров определяется установленной версией Windows.
+  recommendation: Оставить штатное состояние на стабильной Windows 11 24H2 и новее; переключать для проверки доступной, но скрытой реализации.
+  technical_details: Feature ID 46194700 (CreateArchiveWizard). Создаётся пользовательское переопределение Runtime Feature Store.
+compatibility:
+  architectures: [x64]
+  os: [windows11]
+  min_build: 26100
+states:
+  default:
+    title: По умолчанию Windows
+    operations:
+      - type: feature.reset
+        feature_id: 46194700
+  disabled:
+    title: Выключено
+    operations:
+      - type: feature.set_state
+        feature_id: 46194700
+        state: disabled
+  enabled:
+    title: Включено
+    operations:
+      - type: feature.set_state
+        feature_id: 46194700
+        state: enabled
+windows_defaults:
+  - os: windows11
+    builds: [26100, 4294967295]
+    state: default
+detect:
+  type: feature.state
+  feature_id: 46194700
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false

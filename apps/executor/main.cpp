@@ -3,6 +3,7 @@
 #include "execution/PlanValidator.h"
 #include "execution/RegistryDwordExecutor.h"
 #include "execution/RegistrySnapshot.h"
+#include "execution/FeatureStateExecutor.h"
 #include "execution/TransactionRunner.h"
 #include "persistence/AppPaths.h"
 #include "persistence/Database.h"
@@ -11,6 +12,7 @@
 #include "persistence/TransactionRepository.h"
 #include "platform/WindowsRegistryBackend.h"
 #include "platform/WindowsAppxPackageProvider.h"
+#include "platform/WindowsFeatureStoreBackend.h"
 #include "platform/WindowsSystemProfileProvider.h"
 
 #include <QCommandLineParser>
@@ -217,7 +219,9 @@ int main(int argc, char* argv[])
             }
             platform::WindowsRegistryBackend backend;
             platform::WindowsAppxPackageProvider appxBackend;
-            execution::TransactionRunner runner(backend, files, repository, &appxBackend);
+            platform::WindowsFeatureStoreBackend featureBackend;
+            execution::TransactionRunner runner(
+                backend, files, repository, &appxBackend, &featureBackend);
             (void)client.sendProgress(10, u"Снимок исходных значений"_s);
             const auto result = runner.run(*decoded.plan);
             (void)client.sendProgress(100, result.success ? u"Изменения применены"_s : u"Операция завершилась ошибкой"_s);
@@ -265,6 +269,8 @@ int main(int argc, char* argv[])
             auto backend = std::make_unique<platform::WindowsRegistryBackend>();
 #endif
             execution::RegistryDwordExecutor executor(*backend);
+            platform::WindowsFeatureStoreBackend featureBackend;
+            execution::FeatureStateExecutor featureExecutor(featureBackend);
             const auto operations = before->value(u"operations"_s).toArray();
             if (operations.isEmpty()) {
                 sendAndQuit(client, errorResult(u"rollback.snapshot_incomplete"_s, u"Снимок не содержит операций."_s), 15);
@@ -272,19 +278,38 @@ int main(int argc, char* argv[])
             }
             (void)client.sendProgress(10, u"Чтение снимка"_s);
             for (qsizetype index = operations.size() - 1; index >= 0; --index) {
-                const auto snapshot = execution::RegistrySnapshot::fromJson(operations.at(index).toObject());
-                if (!snapshot) {
+                const auto object = operations.at(index).toObject();
+                bool restoredSuccessfully = false;
+                QString restoreCode;
+                QString restoreMessage;
+                if (object.value(u"type"_s).toString() == u"feature.configuration"_s) {
+                    const auto snapshot = execution::FeatureSnapshot::fromJson(object);
+                    if (snapshot) {
+                        const auto restored = featureExecutor.restore(*snapshot);
+                        restoredSuccessfully = restored.success;
+                        restoreCode = restored.code;
+                        restoreMessage = restored.message;
+                    }
+                } else {
+                    const auto snapshot = execution::RegistrySnapshot::fromJson(object);
+                    if (snapshot) {
+                        const auto restored = executor.restore(*snapshot);
+                        restoredSuccessfully = restored.success;
+                        restoreCode = restored.code;
+                        restoreMessage = restored.message;
+                    }
+                }
+                if (!restoredSuccessfully && restoreCode.isEmpty()) {
                     (void)repository.updateStatus(
                         transactionId, persistence::TransactionStatus::Failed,
                         u"Снимок содержит некорректную операцию."_s);
                     sendAndQuit(client, errorResult(u"rollback.snapshot_invalid"_s, u"Снимок содержит некорректную операцию."_s), 15);
                     return;
                 }
-                const auto restored = executor.restore(*snapshot);
-                if (!restored.success) {
+                if (!restoredSuccessfully) {
                     (void)repository.updateStatus(
-                        transactionId, persistence::TransactionStatus::Failed, restored.message);
-                    sendAndQuit(client, errorResult(restored.code, restored.message), 16);
+                        transactionId, persistence::TransactionStatus::Failed, restoreMessage);
+                    sendAndQuit(client, errorResult(restoreCode, restoreMessage), 16);
                     return;
                 }
                 (void)client.sendProgress(

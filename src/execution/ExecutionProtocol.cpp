@@ -19,11 +19,14 @@ using domain::RegistryView;
 using domain::RestartRequirement;
 using domain::RemoveAppxPackageOperation;
 using domain::SetRegistryDwordOperation;
+using domain::SetFeatureStateOperation;
+using domain::FeatureEnabledState;
 using domain::SystemProfile;
 using domain::TweakId;
 using domain::WindowsFamily;
 using planning::ExecutionPlan;
 using planning::PlannedAppxRemoval;
+using planning::PlannedFeatureStateChange;
 using planning::PlannedOperation;
 using planning::PlannedRegistryDwordChange;
 
@@ -118,6 +121,19 @@ QJsonObject operationObject(const PlannedAppxRemoval& operation)
         {u"target_state"_s, operation.targetState},
         {u"tweak_id"_s, operation.tweakId.toString()},
         {u"type"_s, u"appx.remove"_s},
+    };
+}
+
+QJsonObject operationObject(const PlannedFeatureStateChange& operation)
+{
+    return {
+        {u"before_fingerprint"_s, QString::fromLatin1(operation.beforeFingerprint)},
+        {u"feature_id"_s, static_cast<qint64>(operation.change.featureId)},
+        {u"restart"_s, restartName(operation.restart)},
+        {u"state"_s, static_cast<qint64>(operation.change.state)},
+        {u"target_state"_s, operation.targetState},
+        {u"tweak_id"_s, operation.tweakId.toString()},
+        {u"type"_s, u"feature.set_state"_s},
     };
 }
 
@@ -217,7 +233,8 @@ std::optional<PlannedOperation> parseOperation(ProtocolDecodeResult& result, con
     }
     const auto object = value.toObject();
     const auto type = object.value(u"type"_s).toString();
-    if (type != u"registry.set_dword" && type != u"appx.remove") {
+    if (type != u"registry.set_dword" && type != u"appx.remove"
+        && type != u"feature.set_state") {
         addError(result, u"operation.unknown"_s, u"Тип операции не входит в whitelist."_s);
         return std::nullopt;
     }
@@ -248,6 +265,30 @@ std::optional<PlannedOperation> parseOperation(ProtocolDecodeResult& result, con
             .tweakId = *id,
             .targetState = targetState,
             .change = RemoveAppxPackageOperation{.packageName = packageName},
+            .beforeFingerprint = object.value(u"before_fingerprint"_s).toString().toLatin1(),
+            .restart = *restart,
+        };
+    }
+
+    if (type == u"feature.set_state") {
+        validateKeys(result, object, {
+            u"before_fingerprint"_s, u"feature_id"_s, u"restart"_s, u"state"_s,
+            u"target_state"_s, u"tweak_id"_s, u"type"_s,
+        });
+        const auto featureId = object.value(u"feature_id"_s).toInteger();
+        const auto state = object.value(u"state"_s).toInteger(-1);
+        if (featureId <= 0 || featureId > std::numeric_limits<quint32>::max()
+            || state < 0 || state > 2) {
+            addError(result, u"feature.invalid"_s, u"Feature ID или состояние недопустимы."_s);
+            return std::nullopt;
+        }
+        return PlannedFeatureStateChange{
+            .tweakId = *id,
+            .targetState = targetState,
+            .change = SetFeatureStateOperation{
+                .featureId = static_cast<quint32>(featureId),
+                .state = static_cast<FeatureEnabledState>(state),
+            },
             .beforeFingerprint = object.value(u"before_fingerprint"_s).toString().toLatin1(),
             .restart = *restart,
         };

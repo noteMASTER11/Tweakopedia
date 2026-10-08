@@ -2,6 +2,7 @@
 
 #include "execution/AppxPackageExecutor.h"
 #include "execution/RegistryDwordExecutor.h"
+#include "execution/FeatureStateExecutor.h"
 
 #include <QJsonArray>
 
@@ -10,7 +11,7 @@ using namespace Qt::StringLiterals;
 namespace tweakopedia::execution {
 namespace {
 
-using CapturedSnapshot = std::variant<RegistrySnapshot, AppxPackageSnapshot>;
+using CapturedSnapshot = std::variant<RegistrySnapshot, FeatureSnapshot, AppxPackageSnapshot>;
 
 QJsonObject beforeDocument(const QVector<CapturedSnapshot>& snapshots)
 {
@@ -37,8 +38,10 @@ TransactionRunner::TransactionRunner(
     platform::IRegistryBackend& backend,
     persistence::TransactionFiles& files,
     persistence::TransactionRepository& repository,
-    platform::IAppxPackageBackend* appxBackend)
-    : backend_(&backend), appxBackend_(appxBackend), files_(&files), repository_(&repository)
+    platform::IAppxPackageBackend* appxBackend,
+    platform::IFeatureStoreBackend* featureBackend)
+    : backend_(&backend), appxBackend_(appxBackend), featureBackend_(featureBackend),
+      files_(&files), repository_(&repository)
 {
 }
 
@@ -47,6 +50,8 @@ TransactionRunResult TransactionRunner::run(const planning::ExecutionPlan& plan)
     RegistryDwordExecutor executor(*backend_);
     std::optional<AppxPackageExecutor> appxExecutor;
     if (appxBackend_) appxExecutor.emplace(*appxBackend_);
+    std::optional<FeatureStateExecutor> featureExecutor;
+    if (featureBackend_) featureExecutor.emplace(*featureBackend_);
     QVector<CapturedSnapshot> snapshots;
     bool runningMarked = false;
     bool appxAttempted = false;
@@ -58,6 +63,9 @@ TransactionRunResult TransactionRunner::run(const planning::ExecutionPlan& plan)
             if (const auto* registry = std::get_if<RegistrySnapshot>(&snapshots[index])) {
                 restoredAny = true;
                 if (!executor.restore(*registry).success) restored = false;
+            } else if (const auto* feature = std::get_if<FeatureSnapshot>(&snapshots[index])) {
+                restoredAny = true;
+                if (!featureExecutor || !featureExecutor->restore(*feature).success) restored = false;
             }
         }
         TransactionRunResult result{
@@ -100,6 +108,27 @@ TransactionRunResult TransactionRunner::run(const planning::ExecutionPlan& plan)
             if (const auto failed = markRunning()) return *failed;
 
             const auto applied = executor.apply(registry->change);
+            if (!applied.success) return finishFailure(applied.code, applied.message);
+            continue;
+        }
+        if (const auto* feature = std::get_if<planning::PlannedFeatureStateChange>(&operation)) {
+            if (!featureExecutor) {
+                return finishFailure(u"operation.unsupported"_s,
+                                     u"Исполнитель Feature Store недоступен."_s);
+            }
+            const auto captured = featureExecutor->capture(feature->change.featureId);
+            if (!captured.success) return finishFailure(captured.code, captured.message);
+            const auto compared = featureExecutor->compareBefore(
+                captured.snapshot, feature->beforeFingerprint);
+            if (!compared.success) return finishFailure(compared.code, compared.message);
+            snapshots.append(captured.snapshot);
+            if (!files_->writeBefore(plan.transactionId, beforeDocument(snapshots))) {
+                snapshots.removeLast();
+                return finishFailure(u"transaction.snapshot_persist_failed"_s,
+                                     u"Не удалось записать снимок транзакции."_s);
+            }
+            if (const auto failed = markRunning()) return *failed;
+            const auto applied = featureExecutor->apply(feature->change);
             if (!applied.success) return finishFailure(applied.code, applied.message);
             continue;
         }

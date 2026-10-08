@@ -145,6 +145,14 @@ PlanBuildResult PlanBuilder::build(
                     .beforeFingerprint = current.fingerprint,
                     .restart = tweak->restart,
                 });
+            } else if (const auto* feature = std::get_if<domain::SetFeatureStateOperation>(&operation)) {
+                plan.operations.append(PlannedFeatureStateChange{
+                    .tweakId = item.tweakId,
+                    .targetState = item.targetState,
+                    .change = *feature,
+                    .beforeFingerprint = current.fingerprint,
+                    .restart = tweak->restart,
+                });
             }
         }
         if (restartRank(tweak->restart) > restartRank(plan.restart)) {
