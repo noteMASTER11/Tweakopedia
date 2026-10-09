@@ -40,6 +40,18 @@ private slots:
         }));
     }
 
+    void ignoresLateMessagesFromEarlierStartupStages()
+    {
+        bootstrap::StartupWindowModel model;
+        model.advance(startup::StartupStage::DataStore);
+        const auto current = model.visibleStages();
+
+        model.advance(startup::StartupStage::AppLaunch);
+
+        QCOMPARE(model.visibleStages(), current);
+        QCOMPARE(model.visibleStages().front(), startup::StartupStage::DataStore);
+    }
+
     void ignoresUnknownAndStopsOnlyOnReady()
     {
         bootstrap::StartupWindowModel model;

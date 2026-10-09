@@ -47,7 +47,10 @@ void StartupWindowModel::advance(startup::StartupStage stage)
             pipeline_.begin(), pipeline_.end(), startup::StartupStage::RuntimeCache);
         pipeline_.insert(cache == pipeline_.end() ? pipeline_.begin() : cache + 1, stage);
     }
-    if (std::find(pipeline_.begin(), pipeline_.end(), stage) == pipeline_.end()) return;
+    const auto next = std::find(pipeline_.begin(), pipeline_.end(), stage);
+    if (next == pipeline_.end()) return;
+    const auto current = std::find(pipeline_.begin(), pipeline_.end(), current_);
+    if (started_ && current != pipeline_.end() && next < current) return;
     current_ = stage;
     started_ = true;
 }
@@ -301,7 +304,7 @@ bool StartupWindow::create(HINSTANCE instance)
         impl_->window, captionAttribute, &caption, sizeof(caption));
     (void)DwmSetWindowAttribute(
         impl_->window, captionTextAttribute, &captionText, sizeof(captionText));
-    SetTimer(impl_->window, animationTimer, 16, nullptr);
+    SetTimer(impl_->window, animationTimer, 33, nullptr);
     return true;
 }
 

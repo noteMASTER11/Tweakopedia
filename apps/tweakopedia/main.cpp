@@ -89,6 +89,20 @@ void applyLightTitleBar(QWindow*)
 }
 #endif
 
+void showStartupFailure(const QString& code)
+{
+#ifdef Q_OS_WIN
+    const auto details = code.isEmpty()
+        ? std::wstring{}
+        : L"\n\nКод: " + code.toStdWString();
+    const auto message = std::wstring(L"Не удалось завершить запуск приложения.") + details;
+    MessageBoxW(nullptr, message.c_str(), L"Tweakopedia",
+                MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+#else
+    qCritical().noquote() << "Application startup failed:" << code;
+#endif
+}
+
 class DesktopServices final : public app::IAppServices
 {
 public:
@@ -568,6 +582,7 @@ int main(int argc, char* argv[])
     qInfo().noquote() << "Application startup completed:" << started;
     if (!started && !selfCheck) {
         if (startupClient) (void)startupClient->ready();
+        showStartupFailure(controller.lastErrorCode());
         return 3;
     }
 
