@@ -80,6 +80,18 @@ target_link_libraries(BootstrapProgressClientTest PRIVATE
 )
 add_test(NAME BootstrapProgressClient COMMAND BootstrapProgressClientTest)
 
+add_executable(TweakopediaStartupPreview WIN32
+    visual/StartupWindowPreviewMain.cpp
+    ${PROJECT_SOURCE_DIR}/assets/branding/tweakopedia.rc
+)
+set_target_properties(TweakopediaStartupPreview PROPERTIES
+    OUTPUT_NAME "Tweakopedia.StartupPreview"
+)
+target_link_libraries(TweakopediaStartupPreview PRIVATE TweakopediaBootstrapCore)
+if(MINGW)
+    target_link_options(TweakopediaStartupPreview PRIVATE -municode)
+endif()
+
 add_executable(PackagerCliTest package/PackagerCliTest.cpp)
 target_compile_definitions(PackagerCliTest PRIVATE
     TWEAKOPEDIA_TEST_PACKAGER="$<TARGET_FILE:TweakopediaPackager>"

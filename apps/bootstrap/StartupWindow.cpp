@@ -110,16 +110,19 @@ struct StartupWindow::Impl {
     {
         PAINTSTRUCT paint{};
         const auto dc = BeginPaint(window, &paint);
-        Gdiplus::Graphics graphics(dc);
+        RECT client{};
+        GetClientRect(window, &client);
+        const auto pixelWidth = std::max<LONG>(1, client.right - client.left);
+        const auto pixelHeight = std::max<LONG>(1, client.bottom - client.top);
+        Gdiplus::Bitmap surface(pixelWidth, pixelHeight, PixelFormat32bppPARGB);
+        Gdiplus::Graphics graphics(&surface);
         graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
         graphics.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
         graphics.SetTextRenderingHint(Gdiplus::TextRenderingHintClearTypeGridFit);
         graphics.Clear(Gdiplus::Color(255, 247, 248, 252));
 
-        RECT client{};
-        GetClientRect(window, &client);
-        const auto width = static_cast<float>(client.right);
-        const auto height = static_cast<float>(client.bottom);
+        const auto width = static_cast<float>(pixelWidth);
+        const auto height = static_cast<float>(pixelHeight);
         const auto scale = dpiScale(window);
         const auto compact = height < 680.0F * scale;
         const auto logoWidth = std::min(width * 0.55F, (compact ? 470.0F : 560.0F) * scale);
@@ -165,7 +168,12 @@ struct StartupWindow::Impl {
         const auto listWidth = std::min(width - 80.0F * scale, 560.0F * scale);
         const auto listX = (width - listWidth) / 2.0F;
         const auto rowHeight = (compact ? 32.0F : 38.0F) * scale;
-        const auto listY = spinnerRect.GetBottom() + 28.0F * scale;
+        const auto desiredListY = spinnerRect.GetBottom() + 28.0F * scale;
+        const auto listHeight = rowHeight * static_cast<float>(stages.size());
+        const auto listY = std::min(
+            desiredListY,
+            std::max(spinnerRect.GetBottom() + 8.0F * scale,
+                height - listHeight - 12.0F * scale));
         for (std::size_t index = 0; index < stages.size(); ++index) {
             const auto y = listY + static_cast<float>(index) * rowHeight;
             const auto dotSize = (index == 0 ? 10.0F : 9.0F) * scale;
@@ -180,6 +188,8 @@ struct StartupWindow::Impl {
             graphics.DrawString(label.data(), static_cast<INT>(label.size()), &status,
                 textRect, &format, index == 0 ? &currentBrush : &pendingBrush);
         }
+        Gdiplus::Graphics destination(dc);
+        destination.DrawImage(&surface, 0, 0, pixelWidth, pixelHeight);
         EndPaint(window, &paint);
     }
 
