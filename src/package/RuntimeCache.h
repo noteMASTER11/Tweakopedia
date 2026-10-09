@@ -4,12 +4,15 @@
 #include "package/RuntimeLease.h"
 
 #include <filesystem>
+#include <functional>
 #include <string_view>
 #include <vector>
 
 namespace tweakopedia::package {
 
 enum class RuntimeCacheFault { None, CreateStaging, WriteMarker, Publish };
+enum class RuntimeCacheEvent { ValidationStarted, ExtractionStarted };
+using RuntimeCacheProgress = std::function<void(RuntimeCacheEvent)>;
 
 struct PreparedRuntime {
     std::filesystem::path root;
@@ -35,7 +38,8 @@ public:
 
     Result<PreparedRuntime> prepare(
         const std::filesystem::path& container,
-        const PackageInfo& packageInfo);
+        const PackageInfo& packageInfo,
+        RuntimeCacheProgress progress = {});
     CleanupReport cleanupOld(std::string_view currentDigest);
 
     [[nodiscard]] const std::filesystem::path& root() const { return runtimeRoot_; }

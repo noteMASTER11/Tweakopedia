@@ -160,7 +160,8 @@ RuntimeCache::ValidationResult RuntimeCache::validateRuntime(
 
 Result<PreparedRuntime> RuntimeCache::prepare(
     const std::filesystem::path& container,
-    const PackageInfo& packageInfo)
+    const PackageInfo& packageInfo,
+    RuntimeCacheProgress progress)
 {
     const auto digest = digestToHex(packageInfo.footer.payloadDigest);
     const auto mutexName = L"Local\\Tweakopedia.Runtime."
@@ -182,6 +183,7 @@ Result<PreparedRuntime> RuntimeCache::prepare(
     }
 
     const auto finalRoot = runtimeRoot_ / std::filesystem::path(digest);
+    if (progress) progress(RuntimeCacheEvent::ValidationStarted);
     auto validation = validateRuntime(finalRoot, digest);
     constexpr int maximumValidationAttempts = 21;
     for (int attempt = 1;
@@ -211,6 +213,7 @@ Result<PreparedRuntime> RuntimeCache::prepare(
         return cacheFailure("Simulated staging creation failure");
     }
     const auto staging = uniquePath(runtimeRoot_, L".staging-");
+    if (progress) progress(RuntimeCacheEvent::ExtractionStarted);
     const auto extracted = ZipPayload::extract(container, packageInfo, staging);
     if (!extracted.ok()) return cacheFailure(extracted.error.message);
 

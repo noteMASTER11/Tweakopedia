@@ -91,6 +91,45 @@ class RuntimeCacheTest final : public QObject
     Q_OBJECT
 
 private slots:
+    void reportsActualPreparationEvents()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const auto base = std::filesystem::path(directory.path().toStdWString());
+        const auto container = createContainer(base);
+        const auto info = package::inspectContainer(container);
+        QVERIFY(info.ok());
+        const auto runtimeRoot = base / "Runtime";
+        package::RuntimeCache cache(runtimeRoot);
+        std::vector<package::RuntimeCacheEvent> events;
+
+        auto first = cache.prepare(container, *info.value,
+            [&](auto event) { events.push_back(event); });
+        QVERIFY(first.ok());
+        QCOMPARE(events, std::vector({
+            package::RuntimeCacheEvent::ValidationStarted,
+            package::RuntimeCacheEvent::ExtractionStarted,
+        }));
+
+        events.clear();
+        auto second = cache.prepare(container, *info.value,
+            [&](auto event) { events.push_back(event); });
+        QVERIFY(second.ok());
+        QCOMPARE(events, std::vector({package::RuntimeCacheEvent::ValidationStarted}));
+
+        first.value.reset();
+        second.value.reset();
+        QTemporaryDir failedDirectory;
+        QVERIFY(failedDirectory.isValid());
+        package::RuntimeCache failing(
+            std::filesystem::path(failedDirectory.path().toStdWString()) / "Runtime",
+            package::RuntimeCacheFault::CreateStaging);
+        events.clear();
+        QVERIFY(!failing.prepare(container, *info.value,
+            [&](auto event) { events.push_back(event); }).ok());
+        QCOMPARE(events, std::vector({package::RuntimeCacheEvent::ValidationStarted}));
+    }
+
     void preparesReusesAndRecoversRuntime()
     {
         QTemporaryDir directory;
