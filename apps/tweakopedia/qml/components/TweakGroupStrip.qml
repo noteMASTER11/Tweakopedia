@@ -10,6 +10,7 @@ Item {
     property var model
     property string currentGroup: ""
     readonly property int currentIndex: groupList.currentIndex
+    readonly property bool hasGroups: groupList.count > 0
     signal groupSelected(string groupId)
     signal stepRequested(int delta)
 

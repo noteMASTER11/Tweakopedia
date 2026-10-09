@@ -8,6 +8,7 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 $tempRoot = 'D:\ChatGPT\Temp\Tweakopedia\visual'
 $outputRoot = 'D:\ChatGPT\Projects\Tweakopedia\artifacts\fluent-ui'
+$captureHiddenStrip = $false
 
 . (Join-Path $PSScriptRoot 'enter-build-env.ps1')
 & (Join-Path $PSScriptRoot 'build.ps1') -Preset mingw-debug
@@ -15,7 +16,11 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 $runner = Join-Path $projectRoot 'build\mingw-debug\tests\TweakopediaVisualCapture.exe'
 if ([string]::IsNullOrWhiteSpace($InputQml)) {
-    $inputQml = Join-Path $projectRoot 'tests\visual\FluentCatalogPreview.qml'
+    $inputQml = Join-Path $projectRoot 'tests\visual\TweaksCatalogPreview.qml'
+    $captureHiddenStrip = $true
+    if ([string]::IsNullOrWhiteSpace($OutputName)) {
+        $OutputName = 'tweaks-catalog'
+    }
 }
 elseif ([System.IO.Path]::IsPathRooted($InputQml)) {
     $inputQml = [System.IO.Path]::GetFullPath($InputQml)
@@ -58,13 +63,21 @@ try {
         $directory = Join-Path $outputRoot $capture.Name
         New-Item -ItemType Directory -Force $directory | Out-Null
         foreach ($size in @(
-            @{ Name = 'wide'; Width = 1280; Height = 800 },
+            @{ Name = 'wide'; Width = 1484; Height = 999 },
             @{ Name = 'narrow'; Width = 960; Height = 700 }
         )) {
             $output = Join-Path $directory ($size.Name + '.png')
             & $runner --input $inputQml --output $output --width $size.Width --height $size.Height
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         }
+    }
+
+    if ($captureHiddenStrip) {
+        $env:QT_SCALE_FACTOR = '1'
+        $hiddenInput = Join-Path $projectRoot 'tests\visual\TweaksCatalogHiddenPreview.qml'
+        $hiddenOutput = Join-Path (Join-Path $outputRoot '100') 'hidden-strip.png'
+        & $runner --input $hiddenInput --output $hiddenOutput --width 1484 --height 999
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
 }
 finally {

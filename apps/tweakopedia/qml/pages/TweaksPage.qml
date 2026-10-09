@@ -18,6 +18,13 @@ Page {
         infoPane.show(controller.openExplanation(tweakId), trigger)
     }
 
+    function resetTweakListPosition() {
+        Qt.callLater(function() {
+            tweakList.positionViewAtBeginning()
+            tweakList.currentIndex = -1
+        })
+    }
+
     function openTweak(tweakId) {
         const row = controller.revealTweak(tweakId)
         if (row < 0)
@@ -87,6 +94,29 @@ Page {
         currentCategory: root.selectedCategory
         onCategorySelected: categoryId => {
             root.controller.setTweakCategory(categoryId)
+            root.resetTweakListPosition()
+        }
+    }
+
+    TweakGroupStrip {
+        id: tweakGroupStrip
+        anchors.left: tweakList.left
+        anchors.right: tweakList.right
+        anchors.top: root.wideLayout ? categoryRail.top : categoryRail.bottom
+        anchors.topMargin: root.wideLayout ? 0 : 8
+        model: root.controller.tweakGroups
+        currentGroup: root.controller.tweakGroups.selectedId || ""
+        visible: root.selectedCategory !== ""
+            && !root.appRemovalPromptVisible
+            && hasGroups
+        height: visible ? implicitHeight : 0
+        onGroupSelected: groupId => {
+            root.controller.setTweakSubcategory(groupId)
+            root.resetTweakListPosition()
+        }
+        onStepRequested: delta => {
+            root.controller.stepTweakSubcategory(delta)
+            root.resetTweakListPosition()
         }
     }
 
@@ -97,8 +127,10 @@ Page {
         anchors.leftMargin: root.wideLayout ? 260 : 24
         anchors.right: parent.right
         anchors.rightMargin: 24 + (infoPane.opened && infoPane.docked ? infoPane.width : 0)
-        anchors.top: root.wideLayout ? searchField.bottom : categoryRail.bottom
-        anchors.topMargin: 14
+        anchors.top: root.wideLayout
+            ? (tweakGroupStrip.visible ? tweakGroupStrip.bottom : categoryRail.top)
+            : (tweakGroupStrip.visible ? tweakGroupStrip.bottom : categoryRail.bottom)
+        anchors.topMargin: tweakGroupStrip.visible ? 8 : (root.wideLayout ? 0 : 14)
         anchors.bottom: queueBar.visible ? queueBar.top : parent.bottom
         anchors.bottomMargin: queueBar.visible ? 10 : 24
         clip: true

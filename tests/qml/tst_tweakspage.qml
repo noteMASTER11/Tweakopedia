@@ -15,6 +15,10 @@ TestCase {
         property string categoryId: ""
     }
     ListModel { id: categoriesModel }
+    ListModel {
+        id: tweakGroupsModel
+        property string selectedId: ""
+    }
     QtObject {
         id: queueModel
         property int count: 2
@@ -24,9 +28,12 @@ TestCase {
         id: fakeController
         property var filteredTweaks: tweaksModel
         property var categories: categoriesModel
+        property var tweakGroups: tweakGroupsModel
         property var queue: queueModel
         property string lastSearch: ""
         property string lastCategory: ""
+        property string lastSubcategory: ""
+        property int lastStep: 0
         property string lastTarget: ""
         property string appRemovalScanStatus: "idle"
         property string appRemovalScanError: ""
@@ -36,6 +43,23 @@ TestCase {
         function setTweakCategory(category) {
             lastCategory = category
             tweaksModel.categoryId = category
+            tweakGroupsModel.selectedId = ""
+        }
+        function setTweakSubcategory(subcategory) {
+            lastSubcategory = subcategory
+            tweakGroupsModel.selectedId = subcategory
+        }
+        function stepTweakSubcategory(delta) {
+            lastStep = delta
+            let current = 0
+            for (let index = 0; index < tweakGroupsModel.count; ++index) {
+                if (tweakGroupsModel.get(index).id === tweakGroupsModel.selectedId) {
+                    current = index
+                    break
+                }
+            }
+            current = Math.max(0, Math.min(tweakGroupsModel.count - 1, current + delta))
+            setTweakSubcategory(tweakGroupsModel.get(current).id)
         }
         function selectTarget(id, state) { lastTarget = id + ":" + state; return true }
         function openExplanation(id) {
@@ -69,6 +93,10 @@ TestCase {
     function initTestCase() {
         categoriesModel.append({id: "", title: "Все категории", subcategories: []})
         categoriesModel.append({id: "filesystem", title: "Файловая система", subcategories: []})
+        tweakGroupsModel.append({id: "", title: "Все", count: 7, enabled: true})
+        tweakGroupsModel.append({id: "paths", title: "Пути и имена файлов", count: 2, enabled: true})
+        tweakGroupsModel.append({id: "ntfs", title: "Параметры NTFS", count: 2, enabled: true})
+        tweakGroupsModel.append({id: "storage", title: "Накопители и обслуживание", count: 3, enabled: true})
         tweaksModel.append({
             id: "filesystem.win32-long-paths", title: "Поддержка длинных путей Win32",
             summary: "Работа с длинными путями", currentState: "disabled",
@@ -82,12 +110,15 @@ TestCase {
     function init() {
         fakeController.lastSearch = ""
         fakeController.lastCategory = ""
+        fakeController.lastSubcategory = ""
+        fakeController.lastStep = 0
         fakeController.lastTarget = ""
         fakeController.appRemovalScanStatus = "idle"
         fakeController.appRemovalScanError = ""
         fakeController.scanCalls = 0
         fakeController.lastRevealedTweak = ""
         tweaksModel.categoryId = ""
+        tweakGroupsModel.selectedId = ""
         queueModel.count = 2
     }
 
@@ -136,6 +167,68 @@ TestCase {
         const spy = signalSpy.createObject(page, {target: page, signalName: "reviewRequested"})
         findChild(bar, "reviewQueueButton").clicked()
         compare(spy.count, 1)
+    }
+
+    function test_wideGroupStripSharesTopBandAndCardWidth() {
+        const page = createTemporaryObject(pageComponent, this)
+        mouseClick(findChild(page, "categoryButton_filesystem"))
+
+        const strip = findChild(page, "tweakGroupStrip")
+        const list = findChild(page, "tweakList")
+        const allCategory = findChild(page, "categoryButton_")
+        const filesystemCategory = findChild(page, "categoryButton_filesystem")
+        verify(strip.visible)
+        compare(strip.x, list.x)
+        compare(strip.width, list.width)
+        compare(strip.mapToItem(page, 0, 0).y, allCategory.mapToItem(page, 0, 0).y)
+        compare(filesystemCategory.y, allCategory.y + allCategory.height + 4)
+        compare(list.y, strip.y + strip.height + 8)
+    }
+
+    function test_narrowGroupStripStaysSingleRowAndStepsSelection() {
+        const page = createTemporaryObject(pageComponent, this)
+        page.width = 760
+        mouseClick(findChild(page, "categoryButton_filesystem"))
+
+        const strip = findChild(page, "tweakGroupStrip")
+        const list = findChild(page, "tweakList")
+        const categories = findChild(page, "categoryRail")
+        verify(strip.visible)
+        compare(strip.height, strip.implicitHeight)
+        compare(strip.x, list.x)
+        compare(strip.width, list.width)
+        compare(strip.y, categories.y + categories.height + 8)
+
+        findChild(strip, "groupNextButton").clicked()
+        compare(fakeController.lastStep, 1)
+        compare(tweakGroupsModel.selectedId, "paths")
+        compare(strip.currentGroup, "paths")
+    }
+
+    function test_groupStripVisibilityDoesNotReserveBlankSpace() {
+        const page = createTemporaryObject(pageComponent, this)
+        const strip = findChild(page, "tweakGroupStrip")
+        const list = findChild(page, "tweakList")
+        const categories = findChild(page, "categoryRail")
+
+        compare(strip.visible, false)
+        compare(strip.height, 0)
+        compare(list.y, categories.y)
+
+        mouseClick(findChild(page, "categoryButton_filesystem"))
+        tryCompare(strip, "visible", true)
+        compare(strip.height, strip.implicitHeight)
+
+        categoriesModel.append({id: "app-removal", title: "Удаление приложений", subcategories: []})
+        let appRemovalButton = null
+        tryVerify(function() {
+            appRemovalButton = findChild(page, "categoryButton_app-removal")
+            return appRemovalButton !== null
+        })
+        mouseClick(appRemovalButton)
+        tryCompare(strip, "visible", false)
+        compare(strip.height, 0)
+        categoriesModel.remove(categoriesModel.count - 1)
     }
 
     function test_infoPaneDockOverlayReplacementAndEscapeFocus() {
