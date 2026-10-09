@@ -41,13 +41,13 @@ git diff --check
 
 - CTest: **70 из 70**, ошибок нет.
 - Чистая Release-сборка: выполнена.
-- Проверка single-file layout и версии 0.9.2: пройдена.
+- Проверка single-file layout и версии 0.9.3: пройдена.
 - Изолированный запуск проверки одного EXE: пройден.
-- Размер `Tweakopedia.exe`: **54 558 551 байт** (52,03 МиБ).
+- Размер `Tweakopedia.exe`: **54 558 556 байт** (52,03 МиБ).
 - SHA-256 контейнера:
-  `d102c867f816fdd15df2c4d2e4e7844d35f96eabc25df3b639107f6892aeb0d2`.
+  `f6cdeebbcf889bbc675448c8b9b087aed28ebf5290a0d0f2723af38695cc298b`.
 - SHA-256 payload:
-  `639e22ff7f962b6c4b8a7ec31cea615f999d5d2a9d48ed40718f93844bed883e`.
+  `e7b99368eede4cee08272bb11dd0f86870cadc11b2d69ad288a9f1812512a19c`.
 
 ## Границы импорта
 
