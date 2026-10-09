@@ -23,6 +23,8 @@ add_library(TweakopediaApp STATIC
     TweakListModel.h
     TweakFilterProxyModel.cpp
     TweakFilterProxyModel.h
+    TweakGroupListModel.cpp
+    TweakGroupListModel.h
 )
 
 target_include_directories(TweakopediaApp PUBLIC ${PROJECT_SOURCE_DIR}/src)

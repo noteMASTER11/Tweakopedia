@@ -509,6 +509,12 @@ target_compile_definitions(TweakFilterProxyModelTest PRIVATE
 target_link_libraries(TweakFilterProxyModelTest PRIVATE Qt6::Test TweakopediaApp TweakopediaContent)
 add_test(NAME TweakFilterProxyModel COMMAND TweakFilterProxyModelTest)
 
+add_executable(TweakGroupListModelTest app/TweakGroupListModelTest.cpp)
+target_link_libraries(TweakGroupListModelTest PRIVATE
+    Qt6::Test TweakopediaApp TweakopediaContent
+)
+add_test(NAME TweakGroupListModel COMMAND TweakGroupListModelTest)
+
 add_executable(EncyclopediaTreeModelTest app/EncyclopediaTreeModelTest.cpp)
 target_link_libraries(EncyclopediaTreeModelTest PRIVATE Qt6::Test TweakopediaApp)
 add_test(NAME EncyclopediaTreeModel COMMAND EncyclopediaTreeModelTest)
