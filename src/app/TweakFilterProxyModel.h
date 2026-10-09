@@ -9,6 +9,7 @@ class TweakFilterProxyModel final : public QSortFilterProxyModel
     Q_OBJECT
     Q_PROPERTY(QString query READ query WRITE setQuery NOTIFY queryChanged)
     Q_PROPERTY(QString categoryId READ categoryId WRITE setCategoryId NOTIFY categoryIdChanged)
+    Q_PROPERTY(QString subcategoryId READ subcategoryId WRITE setSubcategoryId NOTIFY subcategoryIdChanged)
     Q_PROPERTY(bool hideUnsupported READ hideUnsupported WRITE setHideUnsupported NOTIFY hideUnsupportedChanged)
 
 public:
@@ -16,16 +17,19 @@ public:
 
     [[nodiscard]] QString query() const;
     [[nodiscard]] QString categoryId() const;
+    [[nodiscard]] QString subcategoryId() const;
     [[nodiscard]] bool hideUnsupported() const noexcept;
 
 public slots:
     void setQuery(QString query);
     void setCategoryId(QString categoryId);
+    void setSubcategoryId(QString subcategoryId);
     void setHideUnsupported(bool hideUnsupported);
 
 signals:
     void queryChanged();
     void categoryIdChanged();
+    void subcategoryIdChanged();
     void hideUnsupportedChanged();
 
 protected:
@@ -36,6 +40,7 @@ protected:
 private:
     QString query_;
     QString categoryId_;
+    QString subcategoryId_;
     bool hideUnsupported_{};
 };
 

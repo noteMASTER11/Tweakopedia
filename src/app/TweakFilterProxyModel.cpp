@@ -20,6 +20,11 @@ QString TweakFilterProxyModel::categoryId() const
     return categoryId_;
 }
 
+QString TweakFilterProxyModel::subcategoryId() const
+{
+    return subcategoryId_;
+}
+
 bool TweakFilterProxyModel::hideUnsupported() const noexcept
 {
     return hideUnsupported_;
@@ -43,6 +48,15 @@ void TweakFilterProxyModel::setCategoryId(QString categoryId)
     emit categoryIdChanged();
 }
 
+void TweakFilterProxyModel::setSubcategoryId(QString subcategoryId)
+{
+    subcategoryId = subcategoryId.trimmed();
+    if (subcategoryId_ == subcategoryId) return;
+    subcategoryId_ = std::move(subcategoryId);
+    invalidateRowsFilter();
+    emit subcategoryIdChanged();
+}
+
 void TweakFilterProxyModel::setHideUnsupported(bool hideUnsupported)
 {
     if (hideUnsupported_ == hideUnsupported) return;
@@ -63,6 +77,11 @@ bool TweakFilterProxyModel::filterAcceptsRow(
     }
     if (!categoryId_.isEmpty()
         && sourceModel()->data(index, TweakListModel::CategoryRole).toString() != categoryId_) {
+        return false;
+    }
+    if (!categoryId_.isEmpty() && !subcategoryId_.isEmpty()
+        && sourceModel()->data(index, TweakListModel::SubcategoryRole).toString()
+            != subcategoryId_) {
         return false;
     }
     if (query_.isEmpty()) return true;

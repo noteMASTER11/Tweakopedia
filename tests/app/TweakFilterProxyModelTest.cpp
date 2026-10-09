@@ -27,10 +27,12 @@ private:
         second.title = u"Диагностические данные"_s;
         second.summary = u"Управляет отправкой сведений"_s;
         second.category = u"privacy"_s;
+        second.subcategory = u"diagnostics"_s;
         auto third = first;
         third.id = *domain::TweakId::parse(u"filesystem.trim"_s);
         third.title = u"Оптимизация накопителей"_s;
         third.summary = u"Управляет командой TRIM"_s;
+        third.subcategory = u"maintenance"_s;
         return content::TweakCatalog({first, second, third});
     }
 
@@ -120,6 +122,98 @@ private slots:
         proxy.setHideUnsupported(false);
         QCOMPARE(changed.count(), 2);
         QCOMPARE(proxy.rowCount(), 3);
+    }
+
+    void filtersByCategoryAndSubcategoryTogether()
+    {
+        app::TweakListModel source;
+        populate(source);
+        app::TweakFilterProxyModel proxy;
+        proxy.setSourceModel(&source);
+
+        proxy.setCategoryId(u"filesystem"_s);
+        proxy.setSubcategoryId(u" paths "_s);
+
+        QCOMPARE(proxy.categoryId(), u"filesystem"_s);
+        QCOMPARE(proxy.subcategoryId(), u"paths"_s);
+        QCOMPARE(proxy.rowCount(), 1);
+        QCOMPARE(proxy.data(proxy.index(0, 0), app::TweakListModel::IdRole).toString(),
+                 u"filesystem.win32-long-paths"_s);
+    }
+
+    void emptySubcategoryMeansAllGroups()
+    {
+        app::TweakListModel source;
+        populate(source);
+        app::TweakFilterProxyModel proxy;
+        proxy.setSourceModel(&source);
+        proxy.setCategoryId(u"filesystem"_s);
+        proxy.setSubcategoryId(u"maintenance"_s);
+        QCOMPARE(proxy.rowCount(), 1);
+
+        QSignalSpy changed(&proxy, &app::TweakFilterProxyModel::subcategoryIdChanged);
+        proxy.setSubcategoryId({});
+
+        QCOMPARE(changed.count(), 1);
+        QCOMPARE(proxy.rowCount(), 2);
+    }
+
+    void searchDoesNotChangeSubcategory()
+    {
+        app::TweakListModel source;
+        populate(source);
+        app::TweakFilterProxyModel proxy;
+        proxy.setSourceModel(&source);
+        proxy.setCategoryId(u"filesystem"_s);
+        proxy.setSubcategoryId(u"maintenance"_s);
+
+        proxy.setQuery(u"TRIM"_s);
+        QCOMPARE(proxy.rowCount(), 1);
+        QCOMPARE(proxy.subcategoryId(), u"maintenance"_s);
+
+        proxy.setQuery(u"длинных"_s);
+        QCOMPARE(proxy.rowCount(), 0);
+        QCOMPARE(proxy.subcategoryId(), u"maintenance"_s);
+    }
+
+    void subcategoryWithoutConcreteCategoryLeavesAllRowsVisible()
+    {
+        app::TweakListModel source;
+        populate(source);
+        app::TweakFilterProxyModel proxy;
+        proxy.setSourceModel(&source);
+
+        proxy.setSubcategoryId(u"paths"_s);
+
+        QCOMPARE(proxy.rowCount(), 3);
+    }
+
+    void duplicateSubcategoryIdsRemainCategoryScoped()
+    {
+        auto duplicateCatalog = catalog();
+        auto definitions = duplicateCatalog.tweaks();
+        definitions[1].subcategory = u"paths"_s;
+        duplicateCatalog = content::TweakCatalog(std::move(definitions));
+        QHash<domain::TweakId, domain::DetectedState> states;
+        QHash<domain::TweakId, bool> supported;
+        for (const auto& tweak : duplicateCatalog.tweaks()) {
+            states.insert(tweak.id, {
+                .status = domain::DetectionStatus::Named,
+                .stateId = u"disabled"_s,
+            });
+            supported.insert(tweak.id, true);
+        }
+        app::TweakListModel source;
+        source.reset(duplicateCatalog, states, supported);
+        app::TweakFilterProxyModel proxy;
+        proxy.setSourceModel(&source);
+
+        proxy.setCategoryId(u"filesystem"_s);
+        proxy.setSubcategoryId(u"paths"_s);
+
+        QCOMPARE(proxy.rowCount(), 1);
+        QCOMPARE(proxy.data(proxy.index(0, 0), app::TweakListModel::IdRole).toString(),
+                 u"filesystem.win32-long-paths"_s);
     }
 };
 
