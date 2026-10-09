@@ -33,7 +33,7 @@ Rectangle {
         anchors.rightMargin: 18
         spacing: 12
 
-        Text {
+        FluentText {
             objectName: "queueCountLabel"
             Layout.fillWidth: true
             text: root.countText()
@@ -52,7 +52,7 @@ Rectangle {
             Layout.minimumWidth: 210
             onClicked: root.reviewRequested()
 
-            contentItem: Text {
+            contentItem: FluentText {
                 text: reviewButton.text
                 color: "white"
                 horizontalAlignment: Text.AlignHCenter

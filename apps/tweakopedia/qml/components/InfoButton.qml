@@ -13,7 +13,7 @@ Button {
     ToolTip.visible: hovered
     ToolTip.text: Accessible.name
 
-    contentItem: Text {
+    contentItem: FluentText {
         text: root.text
         color: root.enabled ? FluentTheme.accent : FluentTheme.disabledText
         font.family: FluentTheme.fontFamily

@@ -76,7 +76,7 @@ Item {
                     font.pixelSize: 16
                 }
 
-                Text {
+                FluentText {
                     Layout.fillWidth: true
                     text: categoryButton.text
                     color: FluentTheme.textPrimary

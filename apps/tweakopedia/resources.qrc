@@ -23,6 +23,7 @@
     <file alias="qml/components/FluentNavigation.qml">qml/components/FluentNavigation.qml</file>
     <file alias="qml/components/FluentNavigationItem.qml">qml/components/FluentNavigationItem.qml</file>
     <file alias="qml/components/CategoryRail.qml">qml/components/CategoryRail.qml</file>
+    <file alias="qml/components/FluentText.qml">qml/components/FluentText.qml</file>
     <file alias="qml/components/TweakGroupStrip.qml">qml/components/TweakGroupStrip.qml</file>
     <file alias="qml/components/FluentSearchField.qml">qml/components/FluentSearchField.qml</file>
     <file alias="qml/components/InfoPane.qml">qml/components/InfoPane.qml</file>

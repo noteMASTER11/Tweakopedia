@@ -51,7 +51,8 @@ try {
     foreach ($capture in @(
         @{ Name = '100'; Scale = '1' },
         @{ Name = '125'; Scale = '1.25' },
-        @{ Name = '150'; Scale = '1.5' }
+        @{ Name = '150'; Scale = '1.5' },
+        @{ Name = '200'; Scale = '2' }
     )) {
         $env:QT_SCALE_FACTOR = $capture.Scale
         $directory = Join-Path $outputRoot $capture.Name

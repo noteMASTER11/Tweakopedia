@@ -527,23 +527,30 @@ add_executable(EncyclopediaControllerTest app/EncyclopediaControllerTest.cpp)
 target_link_libraries(EncyclopediaControllerTest PRIVATE Qt6::Test TweakopediaApp)
 add_test(NAME EncyclopediaController COMMAND EncyclopediaControllerTest)
 
-add_executable(QmlComponentTests qml/QmlTestMain.cpp)
+add_executable(QmlComponentTests
+    qml/QmlTestMain.cpp
+    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiTypography.cpp
+    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiTypography.h
+)
+target_include_directories(QmlComponentTests PRIVATE ${PROJECT_SOURCE_DIR}/apps/tweakopedia)
 target_link_libraries(QmlComponentTests PRIVATE Qt6::QuickTest Qt6::QuickControls2)
 add_test(NAME QmlPlanPreviewHistory COMMAND QmlComponentTests -input ${PROJECT_SOURCE_DIR}/tests/qml)
 set_tests_properties(QmlPlanPreviewHistory PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QML_DISABLE_DISK_CACHE=1;QT_QUICK_CONTROLS_STYLE=Basic"
 )
 
-add_executable(UiFontLoaderTest
-    ui/UiFontLoaderTest.cpp
-    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiFontLoader.cpp
-    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiFontLoader.h
-    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/fonts.qrc
+add_executable(UiTypographyTest
+    ui/UiTypographyTest.cpp
+    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiTypography.cpp
+    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiTypography.h
 )
-target_include_directories(UiFontLoaderTest PRIVATE ${PROJECT_SOURCE_DIR}/apps/tweakopedia)
-target_link_libraries(UiFontLoaderTest PRIVATE Qt6::Gui Qt6::Test)
-add_test(NAME UiFontLoader COMMAND UiFontLoaderTest)
-set_tests_properties(UiFontLoader PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+target_include_directories(UiTypographyTest PRIVATE ${PROJECT_SOURCE_DIR}/apps/tweakopedia)
+target_compile_definitions(UiTypographyTest PRIVATE
+    TWEAKOPEDIA_TEST_QML_ROOT="${PROJECT_SOURCE_DIR}/apps/tweakopedia/qml"
+)
+target_link_libraries(UiTypographyTest PRIVATE Qt6::Gui Qt6::Test)
+add_test(NAME UiTypography COMMAND UiTypographyTest)
+set_tests_properties(UiTypography PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 add_executable(BrandingAssetsTest
     ui/BrandingAssetsTest.cpp
@@ -561,9 +568,8 @@ set_tests_properties(BrandingAssets PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offs
 
 add_executable(TweakopediaVisualCapture
     visual/VisualCaptureMain.cpp
-    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiFontLoader.cpp
-    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiFontLoader.h
-    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/fonts.qrc
+    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiTypography.cpp
+    ${PROJECT_SOURCE_DIR}/apps/tweakopedia/UiTypography.h
     ${PROJECT_SOURCE_DIR}/apps/tweakopedia/resources.qrc
 )
 target_include_directories(TweakopediaVisualCapture PRIVATE ${PROJECT_SOURCE_DIR}/apps/tweakopedia)

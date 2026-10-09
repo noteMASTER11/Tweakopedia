@@ -36,7 +36,7 @@ Page {
 
     background: Rectangle { color: FluentTheme.canvas }
 
-    Text {
+    FluentText {
         id: pageTitle
         anchors.left: parent.left
         anchors.leftMargin: 24
@@ -49,7 +49,7 @@ Page {
         font.weight: Font.DemiBold
     }
 
-    Text {
+    FluentText {
         id: pageDescription
         anchors.left: pageTitle.left
         anchors.top: pageTitle.bottom
@@ -152,7 +152,7 @@ Page {
             width: Math.min(parent.width - 48, 560)
             spacing: 16
 
-            Text {
+            FluentText {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: "⌕"
                 color: FluentTheme.accent
@@ -160,7 +160,7 @@ Page {
                 font.pixelSize: 72
             }
 
-            Text {
+            FluentText {
                 width: parent.width
                 text: "Нажмите на поиск, чтобы автоматически определить установленные приложения"
                 color: FluentTheme.textPrimary
@@ -171,7 +171,7 @@ Page {
                 font.weight: Font.DemiBold
             }
 
-            Text {
+            FluentText {
                 width: parent.width
                 visible: root.controller.appRemovalScanStatus === "failed"
                 text: root.controller.appRemovalScanError
@@ -208,7 +208,7 @@ Page {
                     bottomPadding: 9
                     onClicked: root.controller.scanInstalledApps()
 
-                    contentItem: Text {
+                    contentItem: FluentText {
                         text: appRemovalSearchButton.text
                         color: appRemovalSearchButton.enabled ? "white" : FluentTheme.disabledText
                         horizontalAlignment: Text.AlignHCenter

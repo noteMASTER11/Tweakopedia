@@ -13,7 +13,7 @@ Rectangle {
     radius: 11
     color: fill
 
-    Text {
+    FluentText {
         id: label
         anchors.centerIn: parent
         text: root.text

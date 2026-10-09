@@ -23,7 +23,7 @@ Rectangle {
         anchors.margins: 14
         spacing: 4
 
-        Text {
+        FluentText {
             Layout.fillWidth: true
             text: "Содержание статьи"
             color: FluentTheme.textPrimary
@@ -51,7 +51,7 @@ Rectangle {
                 Accessible.description: current ? "Текущий раздел" : ""
                 onClicked: root.sectionRequested(modelData.id)
 
-                contentItem: Text {
+                contentItem: FluentText {
                     text: modelData.title
                     color: contentsButton.current || contentsButton.hovered
                         ? FluentTheme.accent : FluentTheme.textSecondary

@@ -54,7 +54,7 @@ Item {
                 implicitWidth: 38
                 implicitHeight: 34
                 onClicked: root.confirm()
-                contentItem: Text {
+                contentItem: FluentText {
                     text: confirmButton.text
                     color: "white"
                     horizontalAlignment: Text.AlignHCenter
@@ -65,7 +65,7 @@ Item {
                 background: Rectangle { radius: 5; color: FluentTheme.accent }
             }
         }
-        Text {
+        FluentText {
             objectName: "integerInputError"
             Layout.fillWidth: true
             visible: root.errorText.length > 0

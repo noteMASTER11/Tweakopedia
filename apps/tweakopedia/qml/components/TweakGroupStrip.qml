@@ -123,7 +123,7 @@ Item {
                 Accessible.name: groupTitle
                 onClicked: root.groupSelected(groupId)
 
-                contentItem: Text {
+                contentItem: FluentText {
                     id: label
                     objectName: "groupTabLabel_" + tab.groupId
                     text: tab.text

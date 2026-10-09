@@ -156,7 +156,7 @@ Item {
             Layout.fillWidth: true
             spacing: 5
 
-            Text {
+            FluentText {
                 objectName: "titleLabel"
                 Layout.fillWidth: true
                 text: root.title
@@ -167,7 +167,7 @@ Item {
                 font.weight: Font.DemiBold
             }
 
-            Text {
+            FluentText {
                 Layout.fillWidth: true
                 text: root.summary
                 color: FluentTheme.textSecondary
@@ -186,7 +186,7 @@ Item {
                     : (root.pending ? root.targetStateTitle : root.currentStateTitle)
             }
 
-            Text {
+            FluentText {
                 objectName: "supportDetailsLabel"
                 visible: text.length > 0
                     && (!root.supported
@@ -231,7 +231,7 @@ Item {
             hoverEnabled: true
             onClicked: root.chooseTarget("remove")
 
-            contentItem: Text {
+            contentItem: FluentText {
                 text: actionButton.text
                 color: actionButton.enabled ? "white" : FluentTheme.disabledText
                 horizontalAlignment: Text.AlignHCenter

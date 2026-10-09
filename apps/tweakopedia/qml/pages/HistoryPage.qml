@@ -15,7 +15,7 @@ Page {
         anchors.fill: parent
         spacing: 8
 
-        Text {
+        FluentText {
             text: "История"
             color: FluentTheme.textPrimary
             font.family: FluentTheme.fontFamily
@@ -23,7 +23,7 @@ Page {
             font.weight: Font.DemiBold
         }
 
-        Text {
+        FluentText {
             objectName: "historyDescription"
             Layout.fillWidth: true
             text: "Здесь сохраняются применённые пакеты Windows. Чтобы увидеть конкретные значения, раскройте пакет; кнопка «Вернуть исходное» восстановит зафиксированное состояние."
@@ -38,7 +38,7 @@ Page {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.topMargin: 8
-            Text {
+            FluentText {
                 objectName: "historyEmptyState"
                 anchors.centerIn: parent
                 visible: historyList.count === 0

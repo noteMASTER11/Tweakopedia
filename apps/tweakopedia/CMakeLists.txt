@@ -1,8 +1,7 @@
 qt_add_executable(Tweakopedia WIN32
     main.cpp
-    UiFontLoader.cpp
-    UiFontLoader.h
-    fonts.qrc
+    UiTypography.cpp
+    UiTypography.h
     resources.qrc
     ${PROJECT_SOURCE_DIR}/assets/branding/tweakopedia.rc
 )

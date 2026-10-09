@@ -37,7 +37,7 @@ AbstractButton {
                 verticalAlignment: Text.AlignVCenter
             }
 
-            Text {
+            FluentText {
                 visible: !root.compact
                 text: root.title
                 color: FluentTheme.textPrimary

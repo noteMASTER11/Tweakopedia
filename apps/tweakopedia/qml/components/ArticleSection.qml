@@ -57,7 +57,7 @@ Rectangle {
                     radius: 15
                     color: "#EAF3FF"
 
-                    Text {
+                    FluentText {
                         objectName: "articleSectionGlyph_" + root.section.id
                         anchors.centerIn: parent
                         text: root.sectionIcon
@@ -68,7 +68,7 @@ Rectangle {
                     }
                 }
 
-                Text {
+                FluentText {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignTop
                     text: root.section.title
@@ -95,7 +95,7 @@ Rectangle {
             }
         }
 
-        Text {
+        FluentText {
             Layout.fillWidth: true
             visible: root.expanded
             text: root.section.text || ""

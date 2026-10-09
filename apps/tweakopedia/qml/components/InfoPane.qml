@@ -60,7 +60,7 @@ FocusScope {
 
             RowLayout {
                 Layout.fillWidth: true
-                Text {
+                FluentText {
                     id: titleLabel
                     objectName: "infoTitle"
                     Layout.fillWidth: true
@@ -78,16 +78,16 @@ FocusScope {
                 }
             }
 
-            Text { text: "Назначение"; color: FluentTheme.textPrimary; font.weight: Font.DemiBold; font.family: FluentTheme.fontFamily }
-            Text { objectName: "purposeText"; text: root.explanation.purpose || ""; color: FluentTheme.textSecondary; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.family: FluentTheme.fontFamily }
-            Text { text: "Механизм"; color: FluentTheme.textPrimary; font.weight: Font.DemiBold; font.family: FluentTheme.fontFamily }
-            Text { objectName: "mechanismText"; text: root.explanation.mechanism || ""; color: FluentTheme.textSecondary; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.family: FluentTheme.fontFamily }
-            Text { text: "Эффект"; color: FluentTheme.textPrimary; font.weight: Font.DemiBold; font.family: FluentTheme.fontFamily }
-            Text { objectName: "effectText"; text: root.explanation.effect || ""; color: FluentTheme.textSecondary; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.family: FluentTheme.fontFamily }
-            Text { text: "Ограничения"; color: FluentTheme.textPrimary; font.weight: Font.DemiBold; font.family: FluentTheme.fontFamily }
-            Text { objectName: "tradeoffsText"; text: root.explanation.tradeoffs || ""; color: FluentTheme.textSecondary; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.family: FluentTheme.fontFamily }
-            Text { text: "Рекомендация"; color: FluentTheme.textPrimary; font.weight: Font.DemiBold; font.family: FluentTheme.fontFamily }
-            Text { objectName: "recommendationText"; text: root.explanation.recommendation || ""; color: FluentTheme.textSecondary; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.family: FluentTheme.fontFamily }
+            FluentText { text: "Назначение"; color: FluentTheme.textPrimary; font.weight: Font.DemiBold; font.family: FluentTheme.fontFamily }
+            FluentText { objectName: "purposeText"; text: root.explanation.purpose || ""; color: FluentTheme.textSecondary; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.family: FluentTheme.fontFamily }
+            FluentText { text: "Механизм"; color: FluentTheme.textPrimary; font.weight: Font.DemiBold; font.family: FluentTheme.fontFamily }
+            FluentText { objectName: "mechanismText"; text: root.explanation.mechanism || ""; color: FluentTheme.textSecondary; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.family: FluentTheme.fontFamily }
+            FluentText { text: "Эффект"; color: FluentTheme.textPrimary; font.weight: Font.DemiBold; font.family: FluentTheme.fontFamily }
+            FluentText { objectName: "effectText"; text: root.explanation.effect || ""; color: FluentTheme.textSecondary; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.family: FluentTheme.fontFamily }
+            FluentText { text: "Ограничения"; color: FluentTheme.textPrimary; font.weight: Font.DemiBold; font.family: FluentTheme.fontFamily }
+            FluentText { objectName: "tradeoffsText"; text: root.explanation.tradeoffs || ""; color: FluentTheme.textSecondary; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.family: FluentTheme.fontFamily }
+            FluentText { text: "Рекомендация"; color: FluentTheme.textPrimary; font.weight: Font.DemiBold; font.family: FluentTheme.fontFamily }
+            FluentText { objectName: "recommendationText"; text: root.explanation.recommendation || ""; color: FluentTheme.textSecondary; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.family: FluentTheme.fontFamily }
 
             Button {
                 id: technicalButton
@@ -95,7 +95,7 @@ FocusScope {
                 Layout.fillWidth: true
                 text: (root.technicalExpanded ? "▾ " : "▸ ") + "Технические сведения"
                 onClicked: root.technicalExpanded = !root.technicalExpanded
-                contentItem: Text {
+                contentItem: FluentText {
                     text: technicalButton.text
                     color: FluentTheme.textPrimary
                     font.family: FluentTheme.fontFamily
@@ -103,7 +103,7 @@ FocusScope {
                 }
                 background: Rectangle { color: FluentTheme.surfaceInset; radius: 4 }
             }
-            Text {
+            FluentText {
                 objectName: "technicalDetailsText"
                 visible: root.technicalExpanded
                 text: root.explanation.technicalDetails || ""
@@ -112,10 +112,10 @@ FocusScope {
                 Layout.fillWidth: true
                 font.family: FluentTheme.fontFamily
             }
-            Text { text: "Объект реестра"; color: FluentTheme.textPrimary; font.weight: Font.DemiBold; font.family: FluentTheme.fontFamily }
+            FluentText { text: "Объект реестра"; color: FluentTheme.textPrimary; font.weight: Font.DemiBold; font.family: FluentTheme.fontFamily }
             Text { objectName: "registryObjectText"; text: root.explanation.registryObject || ""; color: FluentTheme.textSecondary; wrapMode: Text.WrapAnywhere; Layout.fillWidth: true; font.family: "Consolas" }
-            Text { text: "Возврат"; color: FluentTheme.textPrimary; font.weight: Font.DemiBold; font.family: FluentTheme.fontFamily }
-            Text { objectName: "rollbackText"; text: root.explanation.rollback || ""; color: FluentTheme.textSecondary; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.family: FluentTheme.fontFamily }
+            FluentText { text: "Возврат"; color: FluentTheme.textPrimary; font.weight: Font.DemiBold; font.family: FluentTheme.fontFamily }
+            FluentText { objectName: "rollbackText"; text: root.explanation.rollback || ""; color: FluentTheme.textSecondary; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.family: FluentTheme.fontFamily }
             Item { Layout.fillHeight: true; implicitHeight: 8 }
         }
     }

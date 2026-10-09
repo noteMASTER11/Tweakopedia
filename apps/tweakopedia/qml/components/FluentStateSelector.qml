@@ -44,7 +44,7 @@ ComboBox {
     onActivated: index => chooseState(index)
     Component.onCompleted: syncSelection()
 
-    contentItem: Text {
+    contentItem: FluentText {
         leftPadding: 0
         rightPadding: 0
         text: root.currentIndex >= 0
@@ -105,7 +105,7 @@ ComboBox {
         hoverEnabled: true
         Accessible.name: modelData.title
 
-        contentItem: Text {
+        contentItem: FluentText {
             text: option.modelData.title
             color: option.enabled ? FluentTheme.textPrimary : FluentTheme.disabledText
             elide: Text.ElideRight

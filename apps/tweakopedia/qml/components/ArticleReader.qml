@@ -76,7 +76,7 @@ Item {
                 width: articleScroll.availableWidth
                 spacing: 14
 
-                Text {
+                FluentText {
                     Layout.fillWidth: true
                     text: (root.articleData.breadcrumbs || []).join("  ›  ")
                     color: FluentTheme.accent
@@ -89,7 +89,7 @@ Item {
                     Layout.fillWidth: true
                     spacing: 12
 
-                    Text {
+                    FluentText {
                         id: articleTitle
                         objectName: "articleTitle"
                         Layout.fillWidth: true
@@ -115,7 +115,7 @@ Item {
                         contentItem: RowLayout {
                             spacing: 7
 
-                            Text {
+                            FluentText {
                                 text: "Перейти к твику"
                                 color: "white"
                                 font.family: FluentTheme.fontFamily
@@ -172,7 +172,7 @@ Item {
                     }
                 }
 
-                Text {
+                FluentText {
                     Layout.fillWidth: true
                     text: root.articleData.summary || ""
                     color: FluentTheme.textSecondary
@@ -189,7 +189,7 @@ Item {
                     radius: 8
                     color: "#EAF3FF"
 
-                    Text {
+                    FluentText {
                         id: purposeText
                         anchors.fill: parent
                         anchors.margins: 14
@@ -212,7 +212,7 @@ Item {
                         color: FluentTheme.surface
                         border.width: 1
                         border.color: FluentTheme.stroke
-                        Text {
+                        FluentText {
                             anchors.centerIn: parent
                             text: (root.compatibilityData.operatingSystems || []).join(" · ")
                             color: FluentTheme.textSecondary
@@ -227,7 +227,7 @@ Item {
                         color: FluentTheme.surface
                         border.width: 1
                         border.color: FluentTheme.stroke
-                        Text {
+                        FluentText {
                             anchors.centerIn: parent
                             text: "Перезапуск: " + (root.restartData.title || "Не требуется")
                             color: FluentTheme.textSecondary
@@ -260,7 +260,7 @@ Item {
                     }
                 }
 
-                Text {
+                FluentText {
                     Layout.fillWidth: true
                     visible: relatedRepeater.count > 0
                     text: "Связанные статьи"

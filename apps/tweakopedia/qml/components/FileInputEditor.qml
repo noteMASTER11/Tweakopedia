@@ -21,7 +21,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         spacing: 8
-        Text {
+        FluentText {
             Layout.fillWidth: true
             text: root.value.length > 0 ? root.value : (root.definition.label || "Файл не выбран")
             color: root.value.length > 0 ? FluentTheme.textPrimary : FluentTheme.textSecondary
@@ -35,7 +35,7 @@ Item {
             text: "Выбрать"
             implicitHeight: 34
             onClicked: dialog.open()
-            contentItem: Text {
+            contentItem: FluentText {
                 text: chooseButton.text
                 color: FluentTheme.textPrimary
                 horizontalAlignment: Text.AlignHCenter

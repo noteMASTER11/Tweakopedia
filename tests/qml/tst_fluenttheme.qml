@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtTest
 import "../../apps/tweakopedia/qml/style"
 
@@ -24,7 +25,7 @@ TestCase {
     }
 
     function test_typographyAndAdaptiveGeometry() {
-        compare(FluentTheme.fontFamily, "SF Pro")
+        compare(FluentTheme.fontFamily, Application.font.family)
         compare(FluentTheme.navigationExpandedWidth, 220)
         compare(FluentTheme.navigationCompactWidth, 64)
         compare(FluentTheme.compactBreakpoint, 1100)

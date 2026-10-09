@@ -31,7 +31,7 @@ Page {
         spacing: 12
         visible: !root.showSuccess
 
-        Text {
+        FluentText {
             text: "Очередь"
             color: FluentTheme.textPrimary
             font.family: FluentTheme.fontFamily
@@ -39,7 +39,7 @@ Page {
             font.weight: Font.DemiBold
         }
 
-        Text {
+        FluentText {
             text: "Проверьте выбранные изменения и примените их одним пакетом."
             color: FluentTheme.textSecondary
             font.family: FluentTheme.fontFamily
@@ -50,7 +50,7 @@ Page {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            Text {
+            FluentText {
                 objectName: "queueEmptyState"
                 anchors.centerIn: parent
                 visible: queueList.count === 0
@@ -123,7 +123,7 @@ Page {
                             Layout.fillWidth: true
                             spacing: 3
 
-                            Text {
+                            FluentText {
                                 Layout.fillWidth: true
                                 text: model.title + "   " + model.currentState + " → " + model.targetState
                                 color: FluentTheme.textPrimary
@@ -133,7 +133,7 @@ Page {
 
                             Repeater {
                                 model: queueItemCard.inputItems
-                                delegate: Text {
+                                delegate: FluentText {
                                     required property var modelData
                                     objectName: "queueInputSummary"
                                     Layout.fillWidth: true
@@ -155,7 +155,7 @@ Page {
                             Layout.preferredWidth: 112
                             onClicked: root.controller.removeFromQueue(model.id)
 
-                            contentItem: Text {
+                            contentItem: FluentText {
                                 text: cancelButton.text
                                 color: "white"
                                 horizontalAlignment: Text.AlignHCenter
@@ -176,7 +176,7 @@ Page {
             }
         }
 
-        Text {
+        FluentText {
             objectName: "applyErrorMessage"
             Layout.fillWidth: true
             visible: root.controller.applyStatus === "failed"
@@ -216,7 +216,7 @@ Page {
                 Layout.preferredWidth: 140
                 onClicked: root.controller.applyQueue(root.generatedPackageName())
 
-                contentItem: Text {
+                contentItem: FluentText {
                     text: applyButton.text
                     color: applyButton.enabled ? "white" : FluentTheme.disabledText
                     horizontalAlignment: Text.AlignHCenter
@@ -246,7 +246,7 @@ Page {
             width: Math.min(parent.width - 48, 620)
             spacing: 14
 
-            Text {
+            FluentText {
                 objectName: "applySuccessCheck"
                 Layout.alignment: Qt.AlignHCenter
                 text: "✓"
@@ -256,7 +256,7 @@ Page {
                 font.weight: Font.DemiBold
             }
 
-            Text {
+            FluentText {
                 objectName: "applySuccessTitle"
                 Layout.alignment: Qt.AlignHCenter
                 text: "Настройки применены"
@@ -267,7 +267,7 @@ Page {
                 font.weight: Font.DemiBold
             }
 
-            Text {
+            FluentText {
                 objectName: "rebootRequirementText"
                 Layout.fillWidth: true
                 visible: root.controller.rebootRequired
@@ -292,7 +292,7 @@ Page {
                     Layout.preferredWidth: 190
                     onClicked: root.returnToTweaksRequested()
 
-                    contentItem: Text {
+                    contentItem: FluentText {
                         text: returnButton.text
                         color: FluentTheme.textPrimary
                         horizontalAlignment: Text.AlignHCenter
@@ -320,7 +320,7 @@ Page {
                     Layout.preferredWidth: visible ? 160 : 0
                     onClicked: root.controller.restartComputer()
 
-                    contentItem: Text {
+                    contentItem: FluentText {
                         text: restartButton.text
                         color: "white"
                         horizontalAlignment: Text.AlignHCenter

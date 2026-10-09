@@ -129,7 +129,7 @@ Rectangle {
                         Layout.fillWidth: true
                         spacing: 3
 
-                        Text {
+                        FluentText {
                             objectName: "transactionPackageTitle"
                             Layout.fillWidth: true
                             text: root.displayPackageName
@@ -143,7 +143,7 @@ Rectangle {
                         RowLayout {
                             spacing: 8
 
-                            Text {
+                            FluentText {
                                 text: root.dateTitle(root.updatedAt)
                                 visible: text.length > 0
                                 color: FluentTheme.textSecondary
@@ -151,14 +151,14 @@ Rectangle {
                                 font.pixelSize: 12
                             }
 
-                            Text {
+                            FluentText {
                                 visible: root.operations.length > 0
                                 text: "·"
                                 color: FluentTheme.textSecondary
                                 font.family: FluentTheme.fontFamily
                             }
 
-                            Text {
+                            FluentText {
                                 visible: root.operations.length > 0
                                 text: root.operationCountTitle(root.operations.length)
                                 color: FluentTheme.textSecondary
@@ -174,7 +174,7 @@ Rectangle {
                         radius: 13
                         color: root.statusSurface
 
-                        Text {
+                        FluentText {
                             id: statusText
                             objectName: "transactionStatusText"
                             anchors.centerIn: parent
@@ -232,7 +232,7 @@ Rectangle {
                         font.pixelSize: 13
                     }
 
-                    Text {
+                    FluentText {
                         text: "Вернуть исходное"
                         color: rollbackButton.enabled
                             ? FluentTheme.accent : FluentTheme.disabledText
@@ -279,7 +279,7 @@ Rectangle {
                     font.pixelSize: 14
                 }
 
-                Text {
+                FluentText {
                     objectName: "transactionError"
                     Layout.fillWidth: true
                     text: root.error
@@ -303,7 +303,7 @@ Rectangle {
             visible: root.expanded
             spacing: 8
 
-            Text {
+            FluentText {
                 Layout.fillWidth: true
                 visible: !root.detailsAvailable
                 text: "Подробности этой транзакции отсутствуют в локальном журнале."
@@ -313,7 +313,7 @@ Rectangle {
                 font.pixelSize: 13
             }
 
-            Text {
+            FluentText {
                 Layout.fillWidth: true
                 visible: root.detailsAvailable && root.operations.length === 0
                 text: "В пакете не зарегистрировано отдельных изменений."
@@ -351,7 +351,7 @@ Rectangle {
                             Layout.fillWidth: true
                             spacing: 8
 
-                            Text {
+                            FluentText {
                                 objectName: "transactionOperationTitle_" + operationCard.index
                                 Layout.fillWidth: true
                                 text: operationCard.modelData.title || "Изменение Windows"
@@ -368,7 +368,7 @@ Rectangle {
                                 radius: 11
                                 color: "#EAF3FF"
 
-                                Text {
+                                FluentText {
                                     id: kindText
                                     anchors.centerIn: parent
                                     text: operationCard.modelData.kind || "Операция"
@@ -379,7 +379,7 @@ Rectangle {
                             }
                         }
 
-                        Text {
+                        FluentText {
                             objectName: "transactionOperationTransition_" + operationCard.index
                             Layout.fillWidth: true
                             text: (operationCard.modelData.before || "Неизвестно")
@@ -401,7 +401,7 @@ Rectangle {
                             font.pixelSize: 11
                         }
 
-                        Text {
+                        FluentText {
                             Layout.fillWidth: true
                             text: "Перезапуск: " + (operationCard.modelData.restart || "Не требуется")
                             color: FluentTheme.textSecondary

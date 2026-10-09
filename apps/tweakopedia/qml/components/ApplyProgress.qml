@@ -19,7 +19,7 @@ Rectangle {
         anchors.fill: parent
         anchors.margins: 14
         spacing: 8
-        Text { text: "Выполнение"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.weight: Font.DemiBold }
+        FluentText { text: "Выполнение"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.weight: Font.DemiBold }
         ProgressBar {
             objectName: "progressBar"
             from: 0
@@ -27,7 +27,7 @@ Rectangle {
             value: Math.max(0, Math.min(100, root.progress)) / 100
             Layout.fillWidth: true
         }
-        Text {
+        FluentText {
             objectName: "statusText"
             text: root.status
             color: root.status === "succeeded" || root.status === "rolled_back"
@@ -37,6 +37,6 @@ Rectangle {
             font.family: FluentTheme.fontFamily
             font.weight: Font.DemiBold
         }
-        Text { text: root.message; color: FluentTheme.textSecondary; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.family: FluentTheme.fontFamily }
+        FluentText { text: root.message; color: FluentTheme.textSecondary; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.family: FluentTheme.fontFamily }
     }
 }

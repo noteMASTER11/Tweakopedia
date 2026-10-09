@@ -1,6 +1,7 @@
 pragma Singleton
 
 import QtQuick
+import QtQuick.Controls
 
 QtObject {
     readonly property color canvas: "#F7F8FC"
@@ -22,7 +23,7 @@ QtObject {
     readonly property color danger: "#C42B1C"
     readonly property color dangerHover: "#A4262C"
 
-    readonly property string fontFamily: "SF Pro"
+    readonly property string fontFamily: Application.font.family
     readonly property int navigationExpandedWidth: 220
     readonly property int navigationCompactWidth: 64
     readonly property int compactBreakpoint: 1100

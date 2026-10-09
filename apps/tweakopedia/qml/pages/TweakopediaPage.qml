@@ -26,7 +26,7 @@ Page {
         anchors.bottomMargin: 18
         spacing: 12
 
-        Text {
+        FluentText {
             id: pageTitle
             objectName: "tweakopediaTitle"
             Layout.fillWidth: true
@@ -176,14 +176,14 @@ Page {
                         && root.encyclopedia.tree.articleCount > 0
                         && !root.encyclopedia.article.hasArticle
 
-                    Text {
+                    FluentText {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "▤"
                         color: FluentTheme.accent
                         font.family: FluentTheme.fontFamily
                         font.pixelSize: 56
                     }
-                    Text {
+                    FluentText {
                         width: parent.width
                         text: "Выберите статью или воспользуйтесь поиском"
                         color: FluentTheme.textPrimary
@@ -193,7 +193,7 @@ Page {
                         font.pixelSize: 20
                         font.weight: Font.DemiBold
                     }
-                    Text {
+                    FluentText {
                         width: parent.width
                         text: "Материалы собраны из локального каталога Tweakopedia и доступны без подключения к интернету."
                         color: FluentTheme.textSecondary
@@ -215,7 +215,7 @@ Page {
                         && root.encyclopedia.tree.articleCount === 0
                         && root.encyclopedia.query.length > 0
 
-                    Text {
+                    FluentText {
                         width: parent.width
                         text: "Статьи не найдены"
                         color: FluentTheme.textPrimary
@@ -224,7 +224,7 @@ Page {
                         font.pixelSize: 20
                         font.weight: Font.DemiBold
                     }
-                    Text {
+                    FluentText {
                         width: parent.width
                         text: "Попробуйте изменить запрос или очистить поиск."
                         color: FluentTheme.textSecondary

@@ -10,7 +10,7 @@ Row {
 
     spacing: 4
 
-    Text {
+    FluentText {
         objectName: "statePrefixLabel"
         text: root.prefix
         color: FluentTheme.textSecondary
@@ -18,7 +18,7 @@ Row {
         font.pixelSize: 13
     }
 
-    Text {
+    FluentText {
         objectName: "stateValueLabel"
         text: root.stateTitle
         color: root.stateId === "enabled"

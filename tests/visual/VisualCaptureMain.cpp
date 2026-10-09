@@ -9,7 +9,7 @@
 #include <QTimer>
 #include <QUrl>
 
-#include "UiFontLoader.h"
+#include "UiTypography.h"
 
 using namespace Qt::StringLiterals;
 
@@ -35,7 +35,8 @@ int main(int argc, char* argv[])
 {
     QQuickStyle::setStyle(u"Basic"_s);
     QGuiApplication application(argc, argv);
-    if (tweakopedia::ui::loadBundledUiFont().isEmpty()) return 5;
+    application.setFont(tweakopedia::ui::UiTypography::applicationFont());
+    QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
     loadWindowsSymbolFonts();
 
     QCommandLineParser parser;

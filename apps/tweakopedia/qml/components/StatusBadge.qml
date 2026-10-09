@@ -9,7 +9,7 @@ Rectangle {
     implicitHeight: 26
     radius: 13
     color: positive ? "#DFF6DD" : "#FFF4CE"
-    Text {
+    FluentText {
         id: label
         anchors.centerIn: parent
         color: root.positive ? FluentTheme.stateOn : "#7A5412"

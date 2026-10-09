@@ -83,7 +83,7 @@ FocusScope {
                 rightPadding: 0
                 spacing: 2
 
-                Text {
+                FluentText {
                     id: titleText
                     objectName: "encyclopediaNodeTitle_" + (treeDelegate.model.id || treeDelegate.row)
                     width: parent.width
@@ -97,7 +97,7 @@ FocusScope {
                         ? Font.Normal : Font.DemiBold
                 }
 
-                Text {
+                FluentText {
                     width: parent.width
                     visible: treeDelegate.model.nodeType === "article"
                         && (treeDelegate.model.summary || "").length > 0

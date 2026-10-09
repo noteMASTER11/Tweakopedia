@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
+import "../components"
 import "../style"
 
 Page {
@@ -53,7 +54,7 @@ Page {
 
                 ColumnLayout {
                     spacing: 3
-                    Text {
+                    FluentText {
                         objectName: "overviewGreeting"
                         text: root.overview.greetingName
                               ? "Здравствуйте, " + root.overview.greetingName + "!"
@@ -63,7 +64,7 @@ Page {
                         font.pixelSize: 28
                         font.weight: Font.DemiBold
                     }
-                    Text {
+                    FluentText {
                         text: "Паспорт компьютера"
                         color: FluentTheme.textSecondary
                         font.family: FluentTheme.fontFamily
@@ -80,7 +81,7 @@ Page {
                     enabled: !root.controller.systemOverviewLoading
                     font.family: FluentTheme.fontFamily
                     onClicked: root.controller.refreshSystemOverview()
-                    contentItem: Text {
+                    contentItem: FluentText {
                         text: refreshButton.text
                         color: refreshButton.enabled ? FluentTheme.accent : FluentTheme.disabledText
                         font: refreshButton.font
@@ -114,7 +115,7 @@ Page {
                         implicitWidth: 22
                         implicitHeight: 22
                     }
-                    Text {
+                    FluentText {
                         Layout.fillWidth: true
                         text: root.controller.systemOverviewError !== ""
                               ? root.controller.systemOverviewError
@@ -169,7 +170,7 @@ Page {
                             }
                         }
 
-                        Text {
+                        FluentText {
                             objectName: "overviewComputerName"
                             Layout.fillWidth: true
                             text: root.value("computerName", "Этот компьютер")
@@ -180,7 +181,7 @@ Page {
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
                         }
-                        Text {
+                        FluentText {
                             Layout.fillWidth: true
                             text: root.value("osCaption", "Windows")
                             color: FluentTheme.textSecondary
@@ -202,18 +203,18 @@ Page {
                             rowSpacing: 13
                             columnSpacing: 12
 
-                            Text { text: "Производитель"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
-                            Text { Layout.fillWidth: true; text: root.value("manufacturer", "Нет данных"); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 13; horizontalAlignment: Text.AlignRight; elide: Text.ElideRight }
-                            Text { text: "Модель"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
-                            Text { Layout.fillWidth: true; text: root.value("model", "Нет данных"); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 13; horizontalAlignment: Text.AlignRight; elide: Text.ElideRight }
-                            Text { text: "Материнская плата"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
-                            Text { Layout.fillWidth: true; text: root.value("baseboard", "Нет данных"); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 13; horizontalAlignment: Text.AlignRight; elide: Text.ElideRight }
-                            Text { text: "Версия BIOS"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
-                            Text { Layout.fillWidth: true; text: root.value("biosSummary", "Нет данных"); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 13; horizontalAlignment: Text.AlignRight; elide: Text.ElideRight }
-                            Text { text: "Режим BIOS"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
-                            Text { Layout.fillWidth: true; text: root.value("biosMode", "Нет данных"); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 13; horizontalAlignment: Text.AlignRight }
-                            Text { text: "Время работы"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
-                            Text { Layout.fillWidth: true; text: root.value("uptime", "Нет данных"); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 13; horizontalAlignment: Text.AlignRight }
+                            FluentText { text: "Производитель"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
+                            FluentText { Layout.fillWidth: true; text: root.value("manufacturer", "Нет данных"); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 13; horizontalAlignment: Text.AlignRight; elide: Text.ElideRight }
+                            FluentText { text: "Модель"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
+                            FluentText { Layout.fillWidth: true; text: root.value("model", "Нет данных"); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 13; horizontalAlignment: Text.AlignRight; elide: Text.ElideRight }
+                            FluentText { text: "Материнская плата"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
+                            FluentText { Layout.fillWidth: true; text: root.value("baseboard", "Нет данных"); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 13; horizontalAlignment: Text.AlignRight; elide: Text.ElideRight }
+                            FluentText { text: "Версия BIOS"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
+                            FluentText { Layout.fillWidth: true; text: root.value("biosSummary", "Нет данных"); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 13; horizontalAlignment: Text.AlignRight; elide: Text.ElideRight }
+                            FluentText { text: "Режим BIOS"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
+                            FluentText { Layout.fillWidth: true; text: root.value("biosMode", "Нет данных"); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 13; horizontalAlignment: Text.AlignRight }
+                            FluentText { text: "Время работы"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
+                            FluentText { Layout.fillWidth: true; text: root.value("uptime", "Нет данных"); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 13; horizontalAlignment: Text.AlignRight }
                         }
 
                         Item { Layout.fillHeight: true }
@@ -237,8 +238,8 @@ Page {
                             anchors.fill: parent
                             anchors.margins: 18
                             spacing: 5
-                            Text { text: "Процессор"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 17; font.weight: Font.DemiBold }
-                            Text {
+                            FluentText { text: "Процессор"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 17; font.weight: Font.DemiBold }
+                            FluentText {
                                 objectName: "overviewProcessorName"
                                 Layout.fillWidth: true
                                 text: root.overview.processor ? root.overview.processor.title : "Нет данных"
@@ -248,7 +249,7 @@ Page {
                                 font.weight: Font.DemiBold
                                 elide: Text.ElideRight
                             }
-                            Text { text: root.overview.processor ? root.overview.processor.details : ""; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 13 }
+                            FluentText { text: root.overview.processor ? root.overview.processor.details : ""; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 13 }
                         }
                     }
 
@@ -264,11 +265,11 @@ Page {
                             spacing: 5
                             RowLayout {
                                 Layout.fillWidth: true
-                                Text { text: "Оперативная память"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 17; font.weight: Font.DemiBold }
+                                FluentText { text: "Оперативная память"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 17; font.weight: Font.DemiBold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: root.overview.memory ? root.overview.memory.usedPercent + "% используется" : ""; color: FluentTheme.stateOn; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
+                                FluentText { text: root.overview.memory ? root.overview.memory.usedPercent + "% используется" : ""; color: FluentTheme.stateOn; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
                             }
-                            Text {
+                            FluentText {
                                 objectName: "overviewMemoryTitle"
                                 text: root.overview.memory ? root.overview.memory.title : "Нет данных"
                                 color: FluentTheme.textPrimary
@@ -276,7 +277,7 @@ Page {
                                 font.pixelSize: 21
                                 font.weight: Font.DemiBold
                             }
-                            Text { Layout.fillWidth: true; text: root.overview.memory ? root.overview.memory.details : ""; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 13; elide: Text.ElideRight }
+                            FluentText { Layout.fillWidth: true; text: root.overview.memory ? root.overview.memory.details : ""; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 13; elide: Text.ElideRight }
                             Rectangle {
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 6
@@ -304,9 +305,9 @@ Page {
                             spacing: 5
                             RowLayout {
                                 Layout.fillWidth: true
-                                Text { text: "Видеокарты"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 17; font.weight: Font.DemiBold }
+                                FluentText { text: "Видеокарты"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 17; font.weight: Font.DemiBold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: graphicsRepeater.count + " адапт."; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
+                                FluentText { text: graphicsRepeater.count + " адапт."; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
                             }
                             Repeater {
                                 id: graphicsRepeater
@@ -315,9 +316,9 @@ Page {
                                     required property var modelData
                                     Layout.fillWidth: true
                                     spacing: 1
-                                    Text { Layout.fillWidth: true; text: modelData.name; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 15; font.weight: Font.DemiBold; elide: Text.ElideRight }
-                                    Text { Layout.fillWidth: true; text: modelData.details; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12; elide: Text.ElideRight }
-                                    Text { Layout.fillWidth: true; visible: modelData.technical !== ""; text: modelData.technical; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 11; elide: Text.ElideRight }
+                                    FluentText { Layout.fillWidth: true; text: modelData.name; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 15; font.weight: Font.DemiBold; elide: Text.ElideRight }
+                                    FluentText { Layout.fillWidth: true; text: modelData.details; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12; elide: Text.ElideRight }
+                                    FluentText { Layout.fillWidth: true; visible: modelData.technical !== ""; text: modelData.technical; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 11; elide: Text.ElideRight }
                                 }
                             }
                         }
@@ -336,9 +337,9 @@ Page {
                             spacing: 5
                             RowLayout {
                                 Layout.fillWidth: true
-                                Text { text: "Накопители"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 17; font.weight: Font.DemiBold }
+                                FluentText { text: "Накопители"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 17; font.weight: Font.DemiBold }
                                 Item { Layout.fillWidth: true }
-                                Text { text: diskRepeater.count + " устройств"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
+                                FluentText { text: diskRepeater.count + " устройств"; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
                             }
                             Repeater {
                                 id: diskRepeater
@@ -352,15 +353,15 @@ Page {
                                     ColumnLayout {
                                         Layout.fillWidth: true
                                         spacing: 1
-                                        Text { Layout.fillWidth: true; text: modelData.name; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 14; font.weight: Font.DemiBold; elide: Text.ElideRight }
-                                        Text { text: modelData.details; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
+                                        FluentText { Layout.fillWidth: true; text: modelData.name; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 14; font.weight: Font.DemiBold; elide: Text.ElideRight }
+                                        FluentText { text: modelData.details; color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 12 }
                                     }
                                     Rectangle {
                                         implicitWidth: healthLabel.implicitWidth + 20
                                         implicitHeight: 28
                                         radius: 14
                                         color: Qt.alpha(root.healthColor(modelData.healthTone), 0.10)
-                                        Text {
+                                        FluentText {
                                             id: healthLabel
                                             anchors.centerIn: parent
                                             text: modelData.healthText
@@ -393,8 +394,8 @@ Page {
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 4
-                            Text { text: root.value("osCaption", "Windows"); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 18; font.weight: Font.DemiBold }
-                            Text { text: root.value("osSummary", "Сведения отсутствуют"); color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 13 }
+                            FluentText { text: root.value("osCaption", "Windows"); color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 18; font.weight: Font.DemiBold }
+                            FluentText { text: root.value("osSummary", "Сведения отсутствуют"); color: FluentTheme.textSecondary; font.family: FluentTheme.fontFamily; font.pixelSize: 13 }
                         }
                     }
                 }

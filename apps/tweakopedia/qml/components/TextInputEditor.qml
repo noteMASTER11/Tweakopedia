@@ -37,7 +37,7 @@ Item {
             implicitHeight: 34
             Accessible.name: "Подтвердить поле «" + (root.definition.label || "") + "»"
             onClicked: root.confirmed(field.text.trim())
-            contentItem: Text {
+            contentItem: FluentText {
                 text: confirmButton.text
                 color: confirmButton.enabled ? "white" : FluentTheme.disabledText
                 horizontalAlignment: Text.AlignHCenter

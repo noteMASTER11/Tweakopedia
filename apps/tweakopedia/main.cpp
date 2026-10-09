@@ -31,7 +31,7 @@
 #include "platform/WindowsComponentBackend.h"
 #include "platform/WindowsSystemProfileProvider.h"
 #include "platform/WindowsSystemOverviewProvider.h"
-#include "UiFontLoader.h"
+#include "UiTypography.h"
 
 #include <QDir>
 #include <QCommandLineParser>
@@ -47,6 +47,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
+#include <QQuickWindow>
 #include <QTimer>
 #include <QTemporaryDir>
 #include <QSysInfo>
@@ -505,9 +506,8 @@ int main(int argc, char* argv[])
     QCoreApplication::setApplicationName(u"Tweakopedia"_s);
     QCoreApplication::setOrganizationName(u"Tweakopedia"_s);
     app.setWindowIcon(QIcon(u":/images/tweakopedia-icon.png"_s));
-    const auto uiFontFamily = ui::loadBundledUiFont();
-    if (uiFontFamily.isEmpty()) return 4;
-    app.setFont(QFont(uiFontFamily));
+    app.setFont(ui::UiTypography::applicationFont());
+    QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
 
     QCommandLineParser parser;
     parser.addHelpOption();

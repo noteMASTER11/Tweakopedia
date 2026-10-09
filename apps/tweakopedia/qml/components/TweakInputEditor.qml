@@ -53,7 +53,7 @@ Item {
         id: choiceEditor
         RowLayout {
             implicitHeight: selector.implicitHeight
-            Text {
+            FluentText {
                 Layout.fillWidth: true
                 text: root.definition.label || "Вариант"
                 color: FluentTheme.textSecondary
@@ -75,7 +75,7 @@ Item {
         id: booleanEditor
         RowLayout {
             implicitHeight: toggle.implicitHeight
-            Text {
+            FluentText {
                 Layout.fillWidth: true
                 text: root.definition.label || "Параметр"
                 color: FluentTheme.textSecondary

@@ -23,7 +23,7 @@ Page {
         anchors.bottomMargin: 24
         spacing: 8
 
-        Text {
+        FluentText {
             objectName: "settingsTitle"
             Layout.fillWidth: true
             text: "Настройки"
@@ -33,7 +33,7 @@ Page {
             font.weight: Font.DemiBold
         }
 
-        Text {
+        FluentText {
             Layout.fillWidth: true
             text: "Параметры приложения и средства диагностики."
             color: FluentTheme.textSecondary
@@ -71,7 +71,7 @@ Page {
                     Layout.fillWidth: true
                     spacing: 5
 
-                    Text {
+                    FluentText {
                         objectName: "debugLoggingTitle"
                         Layout.fillWidth: true
                         text: "Включить режим отладки"
@@ -81,7 +81,7 @@ Page {
                         font.weight: Font.DemiBold
                     }
 
-                    Text {
+                    FluentText {
                         Layout.fillWidth: true
                         text: "Записывает подробные сообщения уровня DEBUG и выше в отдельный файл текущего сеанса."
                         color: FluentTheme.textSecondary
@@ -101,7 +101,7 @@ Page {
                     font.pixelSize: 13
                     onClicked: root.controller.openLogsDirectory()
 
-                    contentItem: Text {
+                    contentItem: FluentText {
                         text: openLogsButton.text
                         color: FluentTheme.textPrimary
                         font: openLogsButton.font
@@ -132,7 +132,7 @@ Page {
             }
         }
 
-        Text {
+        FluentText {
             Layout.fillWidth: true
             Layout.topMargin: 4
             text: "Файлы сохраняются в локальном каталоге данных Tweakopedia. Имя содержит дату и время запуска сеанса."

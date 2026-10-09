@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
+import "../components"
 import "../style"
 
 Page {
@@ -26,7 +27,7 @@ Page {
 
             Item { Layout.preferredHeight: 12 }
 
-            Text {
+            FluentText {
                 objectName: "aboutTitle"
                 Layout.fillWidth: true
                 Layout.leftMargin: 28
@@ -78,7 +79,7 @@ Page {
                         Layout.alignment: Qt.AlignVCenter
                         spacing: 8
 
-                        Text {
+                        FluentText {
                             objectName: "aboutProductName"
                             Layout.fillWidth: true
                             text: "Tweakopedia"
@@ -96,7 +97,7 @@ Page {
                             radius: 15
                             color: FluentTheme.selected
 
-                            Text {
+                            FluentText {
                                 id: versionLabel
                                 objectName: "aboutVersion"
                                 anchors.centerIn: parent
@@ -108,7 +109,7 @@ Page {
                             }
                         }
 
-                        Text {
+                        FluentText {
                             objectName: "aboutDescription"
                             Layout.fillWidth: true
                             text: "Tweakopedia — офлайн-энциклопедия и твикер для Windows 10 и 11. Программа объясняет назначение системных параметров, собирает выбранные изменения в очередь, показывает итоговый план, сохраняет фактические исходные значения и позволяет вернуть их из истории."
@@ -123,7 +124,7 @@ Page {
                 }
             }
 
-            Text {
+            FluentText {
                 Layout.fillWidth: true
                 Layout.leftMargin: 28
                 Layout.rightMargin: 28
@@ -157,9 +158,9 @@ Page {
                         RowLayout {
                             spacing: 9
                             Text { text: "\uE943"; color: FluentTheme.accent; font.family: "Segoe MDL2 Assets"; font.pixelSize: 20 }
-                            Text { text: "Интерфейс и ядро"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 16; font.weight: Font.DemiBold }
+                            FluentText { text: "Интерфейс и ядро"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 16; font.weight: Font.DemiBold }
                         }
-                        Text {
+                        FluentText {
                             Layout.fillWidth: true
                             text: "C++20 · Qt 6.8.3\nQt Quick и QML"
                             color: FluentTheme.textSecondary
@@ -186,9 +187,9 @@ Page {
                         RowLayout {
                             spacing: 9
                             Text { text: "\uE7F8"; color: FluentTheme.accent; font.family: "Segoe MDL2 Assets"; font.pixelSize: 20 }
-                            Text { text: "Формат выпуска"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 16; font.weight: Font.DemiBold }
+                            FluentText { text: "Формат выпуска"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 16; font.weight: Font.DemiBold }
                         }
-                        Text {
+                        FluentText {
                             Layout.fillWidth: true
                             text: "Один EXE-контейнер\nЛокальный кэш Qt-runtime"
                             color: FluentTheme.textSecondary
@@ -215,9 +216,9 @@ Page {
                         RowLayout {
                             spacing: 9
                             Text { text: "\uE950"; color: FluentTheme.accent; font.family: "Segoe MDL2 Assets"; font.pixelSize: 20 }
-                            Text { text: "Инструменты"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 16; font.weight: Font.DemiBold }
+                            FluentText { text: "Инструменты"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 16; font.weight: Font.DemiBold }
                         }
-                        Text {
+                        FluentText {
                             Layout.fillWidth: true
                             text: "MinGW 13.1.0 · CMake 3.30.5\nNinja 1.12.1"
                             color: FluentTheme.textSecondary
@@ -251,10 +252,10 @@ Page {
                     RowLayout {
                         spacing: 9
                         Text { text: "\uE74C"; color: FluentTheme.accent; font.family: "Segoe MDL2 Assets"; font.pixelSize: 20 }
-                        Text { text: "Библиотеки и компоненты"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 18; font.weight: Font.DemiBold }
+                        FluentText { text: "Библиотеки и компоненты"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 18; font.weight: Font.DemiBold }
                     }
 
-                    Text {
+                    FluentText {
                         objectName: "aboutLibraries"
                         Layout.fillWidth: true
                         text: "Qt 6.8.3: Core, GUI, QML, Quick, Quick Controls 2, Concurrent, Network и SQL\nyaml-cpp 0.8.0 · nlohmann/json 3.12.0 · miniz 3.1.2 · SQLite через Qt SQL/QSQLITE\nSF Pro — встроенный шрифт интерфейса\nWin32 API: Registry/Advapi32, DXGI, DWM, COM/WMI, Secur32, CNG/Bcrypt, Shell32 и NTDLL Feature Store; AppX и PowerShell"
@@ -287,10 +288,10 @@ Page {
                     RowLayout {
                         spacing: 9
                         Text { text: "\uE734"; color: FluentTheme.accent; font.family: "Segoe MDL2 Assets"; font.pixelSize: 20 }
-                        Text { text: "Благодарности"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 18; font.weight: Font.DemiBold }
+                        FluentText { text: "Благодарности"; color: FluentTheme.textPrimary; font.family: FluentTheme.fontFamily; font.pixelSize: 18; font.weight: Font.DemiBold }
                     }
 
-                    Text {
+                    FluentText {
                         objectName: "aboutCredits"
                         Layout.fillWidth: true
                         text: "Спасибо авторам проектов, чьи исследования, документация и скрипты помогли сформировать каталог Tweakopedia:\n\nRaphire — Win11Debloat\nPlínio Larrubia / LeDragoX — Win-Debloat-Tools\nthebookisclosed — ViVe и ViVeTool\nSergey Tkachenko — Winaero Tweaker\n\nТакже спасибо W4RH4WK, Chris Titus Tech, Sycnex, kalaspuffar и matthewjberger — авторам работ, на которые опирался Win-Debloat-Tools."
@@ -312,7 +313,7 @@ Page {
                 color: "#EEF6FF"
                 border.color: "#C8DCF4"
 
-                Text {
+                FluentText {
                     id: independenceText
                     anchors.left: parent.left
                     anchors.right: parent.right

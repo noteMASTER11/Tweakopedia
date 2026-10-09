@@ -24,7 +24,7 @@ AbstractButton {
     contentItem: ColumnLayout {
         spacing: 5
 
-        Text {
+        FluentText {
             Layout.fillWidth: true
             text: root.article.title
             color: FluentTheme.textPrimary
@@ -36,7 +36,7 @@ AbstractButton {
             font.weight: Font.DemiBold
         }
 
-        Text {
+        FluentText {
             Layout.fillWidth: true
             text: root.article.summary || root.article.path || ""
             color: FluentTheme.textSecondary
@@ -52,7 +52,7 @@ AbstractButton {
         RowLayout {
             spacing: 5
 
-            Text {
+            FluentText {
                 text: "Открыть"
                 color: FluentTheme.accent
                 font.family: FluentTheme.fontFamily

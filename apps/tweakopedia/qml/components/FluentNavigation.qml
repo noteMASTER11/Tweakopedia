@@ -137,7 +137,7 @@ Rectangle {
                     ? FluentTheme.accent
                     : FluentTheme.textSecondary
 
-                Text {
+                FluentText {
                     anchors.centerIn: parent
                     visible: root.hideUnsupportedTweaks
                     text: "✓"
@@ -148,7 +148,7 @@ Rectangle {
                 }
             }
 
-            Text {
+            FluentText {
                 width: parent.width - 28
                 anchors.verticalCenter: parent.verticalCenter
                 text: "Скрыть неподдерживаемые твики"
