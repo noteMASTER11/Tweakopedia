@@ -12,6 +12,7 @@
 #include "content/TweakCatalogLoader.h"
 #include "planning/ExecutionPlan.h"
 #include "domain/SystemOverview.h"
+#include "startup/StartupStage.h"
 
 #include <QFutureWatcher>
 #include <QObject>
@@ -33,6 +34,7 @@ struct AppOperationResult {
 };
 
 using ProgressCallback = std::function<void(int, const QString&)>;
+using StartupProgress = std::function<void(startup::StartupStage)>;
 
 class IAppServices
 {
@@ -107,6 +109,7 @@ public:
     [[nodiscard]] QString appRemovalScanError() const;
 
     Q_INVOKABLE bool startup();
+    [[nodiscard]] bool startup(const StartupProgress& progress);
     Q_INVOKABLE void setTweakSearch(const QString& query);
     Q_INVOKABLE void setTweakCategory(const QString& categoryId);
     Q_INVOKABLE void setTweakSubcategory(const QString& subcategoryId);

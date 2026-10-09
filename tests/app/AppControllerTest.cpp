@@ -1,5 +1,6 @@
 #include "app/AppController.h"
 #include "content/TweakCatalogLoader.h"
+#include "startup/StartupStage.h"
 
 #include <QDir>
 #include <QFile>
@@ -41,6 +42,7 @@ public:
     int applyCalls{};
     int rollbackCalls{};
     int restartCalls{};
+    bool catalogFails{};
 
     bool restartComputer() override
     {
@@ -48,7 +50,14 @@ public:
         return true;
     }
 
-    content::CatalogLoadResult loadCatalog() override { return {.catalog = catalog}; }
+    content::CatalogLoadResult loadCatalog() override
+    {
+        if (catalogFails) {
+            return {.errors = {{.code = u"catalog.test_failure"_s,
+                                .message = u"Ошибка тестового каталога"_s}}};
+        }
+        return {.catalog = catalog};
+    }
     content::CatalogLoadResult loadAppRemovalCatalog() override
     {
         ++appRemovalScans;
@@ -132,6 +141,41 @@ class AppControllerTest final : public QObject
     Q_OBJECT
 
 private slots:
+    void reportsActualStartupStagesInOrder()
+    {
+        auto backend = services();
+        app::AppController controller(backend);
+        QVector<startup::StartupStage> stages;
+
+        QVERIFY(controller.startup([&stages](startup::StartupStage stage) {
+            stages.append(stage);
+        }));
+
+        const QVector expected{
+            startup::StartupStage::CatalogLoad,
+            startup::StartupStage::CatalogValidate,
+            startup::StartupStage::WindowsProfile,
+            startup::StartupStage::StateDetection,
+            startup::StartupStage::Models,
+        };
+        QVERIFY(stages == expected);
+    }
+
+    void stopsReportingStartupStagesAfterCatalogFailure()
+    {
+        auto backend = services();
+        backend.catalogFails = true;
+        app::AppController controller(backend);
+        QVector<startup::StartupStage> stages;
+
+        QVERIFY(!controller.startup([&stages](startup::StartupStage stage) {
+            stages.append(stage);
+        }));
+
+        const QVector expected{startup::StartupStage::CatalogLoad};
+        QVERIFY(stages == expected);
+    }
+
     void startupExposesCategoriesAndFilteredTweaks()
     {
         auto backend = services();

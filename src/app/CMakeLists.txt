@@ -36,4 +36,5 @@ target_link_libraries(TweakopediaApp PUBLIC
     TweakopediaDetection
     TweakopediaPersistence
     TweakopediaPlanning
+    TweakopediaStartup
 )

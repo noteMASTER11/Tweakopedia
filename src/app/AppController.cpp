@@ -202,6 +202,16 @@ QString AppController::appRemovalScanError() const { return appRemovalScanError_
 
 bool AppController::startup()
 {
+    return startup({});
+}
+
+bool AppController::startup(const StartupProgress& progress)
+{
+    const auto report = [&progress](startup::StartupStage stage) {
+        if (progress) progress(stage);
+    };
+
+    report(startup::StartupStage::CatalogLoad);
     qDebug() << "Loading tweak and category catalogs";
     const auto loaded = services_->loadCatalog();
     if (!loaded.catalog) {
@@ -217,14 +227,18 @@ bool AppController::startup()
         return false;
     }
     categoryCatalog_ = *loadedCategories.catalog;
+    report(startup::StartupStage::CatalogValidate);
     const auto membershipErrors = content::CategoryMembershipValidator{}.validate(
         categoryCatalog_, catalog_);
     if (!membershipErrors.isEmpty()) {
         setError(membershipErrors.first().code, membershipErrors.first().message);
         return false;
     }
+    report(startup::StartupStage::WindowsProfile);
     profile_ = services_->currentProfile();
+    report(startup::StartupStage::StateDetection);
     refreshDetectedStates();
+    report(startup::StartupStage::Models);
     refreshModels();
     refreshCategories();
     refreshTweakGroups();
