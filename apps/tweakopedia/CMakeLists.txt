@@ -1,3 +1,13 @@
+add_library(TweakopediaBootstrapProgress STATIC
+    BootstrapProgressClient.cpp
+    BootstrapProgressClient.h
+)
+target_include_directories(TweakopediaBootstrapProgress PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(TweakopediaBootstrapProgress PUBLIC Qt6::Core TweakopediaStartup)
+if(WIN32)
+    target_link_libraries(TweakopediaBootstrapProgress PRIVATE user32)
+endif()
+
 qt_add_executable(Tweakopedia WIN32
     main.cpp
     UiTypography.cpp
@@ -25,6 +35,7 @@ target_link_libraries(Tweakopedia PRIVATE
     TweakopediaExecution
     TweakopediaPersistence
     TweakopediaPlatform
+    TweakopediaBootstrapProgress
 )
 
 if(WIN32)

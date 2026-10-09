@@ -72,6 +72,14 @@ target_link_libraries(StartupWindowModelTest PRIVATE
 )
 add_test(NAME StartupWindowModel COMMAND StartupWindowModelTest)
 
+add_executable(BootstrapProgressClientTest
+    app/BootstrapProgressClientTest.cpp
+)
+target_link_libraries(BootstrapProgressClientTest PRIVATE
+    Qt6::Test TweakopediaBootstrapProgress
+)
+add_test(NAME BootstrapProgressClient COMMAND BootstrapProgressClientTest)
+
 add_executable(PackagerCliTest package/PackagerCliTest.cpp)
 target_compile_definitions(PackagerCliTest PRIVATE
     TWEAKOPEDIA_TEST_PACKAGER="$<TARGET_FILE:TweakopediaPackager>"

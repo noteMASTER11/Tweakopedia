@@ -12,7 +12,7 @@ ApplicationWindow {
     height: 760
     minimumWidth: 900
     minimumHeight: 620
-    visible: true
+    visible: !startupManaged
     title: "Tweakopedia"
     color: FluentTheme.canvas
 

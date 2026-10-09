@@ -1,6 +1,7 @@
 #include "app/AppController.h"
 #include "app/SessionLogger.h"
 #include "app/SettingsController.h"
+#include "BootstrapProgressClient.h"
 #include "content/AppRemovalCatalogLoader.h"
 #include "content/TweakCatalogLoader.h"
 #include "content/CategoryCatalogLoader.h"
@@ -515,6 +516,7 @@ int main(int argc, char* argv[])
     parser.addOption({u"no-elevation"_s, u"Не запускать операции с повышением прав."_s});
     parser.addOption({u"runtime-root"_s, u"Каталог извлечённого runtime."_s, u"path"_s});
     parser.addOption({u"container-path"_s, u"Путь к исходному EXE-контейнеру."_s, u"path"_s});
+    parser.addOption({u"startup-window"_s, u"Дескриптор окна запуска."_s, u"handle"_s});
     parser.process(app);
 
     const auto applicationRoot = QDir::cleanPath(QCoreApplication::applicationDirPath());
@@ -535,6 +537,14 @@ int main(int argc, char* argv[])
     }
 
     const auto selfCheck = parser.isSet(u"self-check"_s);
+    std::optional<app::BootstrapProgressClient> startupClient;
+    if (!selfCheck && parser.isSet(u"startup-window"_s)) {
+        startupClient = app::BootstrapProgressClient::fromArgument(
+            parser.value(u"startup-window"_s));
+    }
+    const auto reportStartup = [&startupClient](startup::StartupStage stage) {
+        if (startupClient) (void)startupClient->report(stage);
+    };
     std::unique_ptr<QTemporaryDir> selfCheckData;
     if (selfCheck) {
         selfCheckData = std::make_unique<QTemporaryDir>(
@@ -544,6 +554,7 @@ int main(int argc, char* argv[])
 
     const auto dataRootOverride = selfCheckData ? selfCheckData->path() : QString{};
     const persistence::AppPaths applicationPaths(runtimeRoot, dataRootOverride);
+    reportStartup(startup::StartupStage::DataStore);
     DesktopSettingsServices settingsServices(
         applicationPaths.settingsPath(),
         applicationPaths.logsRoot(),
@@ -553,15 +564,36 @@ int main(int argc, char* argv[])
 
     DesktopServices services(runtimeRoot, dataRootOverride);
     app::AppController controller(services);
-    const auto started = controller.startup();
+    const auto started = controller.startup(reportStartup);
     qInfo().noquote() << "Application startup completed:" << started;
+    if (!started && !selfCheck) {
+        if (startupClient) (void)startupClient->ready();
+        return 3;
+    }
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty(u"appController"_s, &controller);
     engine.rootContext()->setContextProperty(u"settingsController"_s, &settingsController);
+    engine.rootContext()->setContextProperty(u"startupManaged"_s, startupClient.has_value());
+    reportStartup(startup::StartupStage::Interface);
     engine.load(QUrl(u"qrc:/qml/Main.qml"_s));
-    if (engine.rootObjects().isEmpty()) return 1;
-    applyLightTitleBar(qobject_cast<QWindow*>(engine.rootObjects().constFirst()));
+    if (engine.rootObjects().isEmpty()) {
+        if (startupClient) (void)startupClient->ready();
+        return 1;
+    }
+    auto* window = qobject_cast<QQuickWindow*>(engine.rootObjects().constFirst());
+    applyLightTitleBar(window);
+    if (startupClient && window) {
+        if (const auto bounds = startupClient->splashGeometry()) {
+            window->setGeometry(*bounds);
+        }
+        auto* client = &*startupClient;
+        QObject::connect(window, &QQuickWindow::frameSwapped, window, [client] {
+            (void)client->ready();
+        }, Qt::SingleShotConnection);
+        window->show();
+        window->requestUpdate();
+    }
     if (selfCheck) {
         const auto profile = services.currentProfile();
         const auto loaded = services.loadCatalog();
