@@ -6,7 +6,10 @@ add_library(TweakopediaBootstrapCore STATIC
     WindowsBootstrapPlatform.h
 )
 target_include_directories(TweakopediaBootstrapCore PUBLIC ${PROJECT_SOURCE_DIR}/apps)
-target_link_libraries(TweakopediaBootstrapCore PUBLIC TweakopediaPackage PRIVATE shell32)
+target_link_libraries(TweakopediaBootstrapCore
+    PUBLIC TweakopediaPackage TweakopediaStartup
+    PRIVATE shell32
+)
 
 add_executable(TweakopediaBootstrap WIN32
     main.cpp

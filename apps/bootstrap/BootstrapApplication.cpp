@@ -35,20 +35,29 @@ int BootstrapApplication::fail(int exitCode, std::string_view message)
 
 int BootstrapApplication::run(
     const std::filesystem::path& self,
-    std::span<const std::wstring> arguments)
+    std::span<const std::wstring> arguments,
+    StartupProgress progress,
+    std::optional<std::uintptr_t> startupWindowHandle)
 {
+    if (progress) progress(startup::StartupStage::ContainerIntegrity);
     const auto packageInfo = package::inspectContainer(self);
     if (!packageInfo.ok()) return fail(inspectFailure, packageInfo.error.message);
 
     const auto productRoot = platform_.localAppDataPath() / "Tweakopedia";
     const auto dataRoot = productRoot / "Data";
+    if (progress) progress(startup::StartupStage::LocalData);
     const auto migration = package::LegacyDataMigrator::migrate(productRoot, dataRoot);
     if (!migration.complete) {
         return fail(migrationFailure, "Cannot migrate the existing Tweakopedia data layout");
     }
 
     package::RuntimeCache cache(productRoot / "Runtime");
-    auto prepared = cache.prepare(self, *packageInfo.value);
+    auto prepared = cache.prepare(self, *packageInfo.value, [&](package::RuntimeCacheEvent event) {
+        if (!progress) return;
+        progress(event == package::RuntimeCacheEvent::ValidationStarted
+            ? startup::StartupStage::RuntimeCache
+            : startup::StartupStage::RuntimeExtract);
+    });
     if (!prepared.ok()) return fail(prepareFailure, prepared.error.message);
 
     std::vector<std::wstring> childArguments(arguments.begin(), arguments.end());
@@ -56,7 +65,12 @@ int BootstrapApplication::run(
     childArguments.push_back(prepared.value->root.wstring());
     childArguments.emplace_back(L"--container-path");
     childArguments.push_back(self.wstring());
+    if (startupWindowHandle) {
+        childArguments.emplace_back(L"--startup-window");
+        childArguments.push_back(std::to_wstring(*startupWindowHandle));
+    }
 
+    if (progress) progress(startup::StartupStage::AppLaunch);
     const auto result = platform_.launchAndWait(
         prepared.value->root / "Tweakopedia.App.exe",
         childArguments,

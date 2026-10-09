@@ -8,6 +8,8 @@
 #include <QTemporaryDir>
 #include <QTest>
 
+#include <algorithm>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 
@@ -103,7 +105,10 @@ private slots:
         platform.localAppData = root / "Local";
 
         bootstrap::BootstrapApplication app(platform);
-        QCOMPARE(app.run(invalid, {}), bootstrap::BootstrapApplication::inspectFailure);
+        std::vector<startup::StartupStage> stages;
+        QCOMPARE(app.run(invalid, {}, [&](auto stage) { stages.push_back(stage); }),
+                 bootstrap::BootstrapApplication::inspectFailure);
+        QCOMPARE(stages, std::vector({startup::StartupStage::ContainerIntegrity}));
         QCOMPARE(platform.errorCount, 1);
         QCOMPARE(platform.launchCount, 0);
     }
@@ -157,14 +162,37 @@ private slots:
         const std::vector<std::wstring> incoming{L"--name", L"значение с \"кавычкой\""};
 
         bootstrap::BootstrapApplication app(platform);
-        QCOMPARE(app.run(container, incoming), 37);
+        std::vector<startup::StartupStage> stages;
+        QCOMPARE(app.run(container, incoming,
+                     [&](auto stage) { stages.push_back(stage); },
+                     std::uintptr_t{424242}),
+                 37);
         QCOMPARE(platform.launchCount, 1);
         QVERIFY(platform.executable == platform.workingDirectory / "Tweakopedia.App.exe");
         const std::vector<std::wstring> expected{
             incoming[0], incoming[1], L"--runtime-root", platform.workingDirectory.wstring(),
-            L"--container-path", container.wstring()};
+            L"--container-path", container.wstring(), L"--startup-window", L"424242"};
         QVERIFY(platform.arguments == expected);
+        QCOMPARE(stages, std::vector({
+            startup::StartupStage::ContainerIntegrity,
+            startup::StartupStage::LocalData,
+            startup::StartupStage::RuntimeCache,
+            startup::StartupStage::RuntimeExtract,
+            startup::StartupStage::AppLaunch,
+        }));
         QVERIFY(!std::filesystem::exists(oldRuntime));
+
+        stages.clear();
+        platform.arguments.clear();
+        QCOMPARE(app.run(container, {}, [&](auto stage) { stages.push_back(stage); }), 37);
+        QCOMPARE(stages, std::vector({
+            startup::StartupStage::ContainerIntegrity,
+            startup::StartupStage::LocalData,
+            startup::StartupStage::RuntimeCache,
+            startup::StartupStage::AppLaunch,
+        }));
+        QVERIFY(std::find(platform.arguments.begin(), platform.arguments.end(),
+                          std::wstring(L"--startup-window")) == platform.arguments.end());
     }
 
     void doesNotCleanWhenProcessCreationFails()

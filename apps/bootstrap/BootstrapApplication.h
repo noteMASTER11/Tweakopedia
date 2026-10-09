@@ -1,12 +1,18 @@
 #pragma once
 
 #include "bootstrap/IBootstrapPlatform.h"
+#include "startup/StartupStage.h"
 
+#include <cstdint>
 #include <filesystem>
+#include <functional>
+#include <optional>
 #include <span>
 #include <string>
 
 namespace tweakopedia::bootstrap {
+
+using StartupProgress = std::function<void(startup::StartupStage)>;
 
 class BootstrapApplication final
 {
@@ -23,7 +29,9 @@ public:
 
     int run(
         const std::filesystem::path& self,
-        std::span<const std::wstring> arguments);
+        std::span<const std::wstring> arguments,
+        StartupProgress progress = {},
+        std::optional<std::uintptr_t> startupWindowHandle = std::nullopt);
 
 private:
     int fail(int exitCode, std::string_view message);
