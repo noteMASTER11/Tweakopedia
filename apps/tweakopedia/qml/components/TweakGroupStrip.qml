@@ -49,6 +49,17 @@ Item {
         groupList.currentIndex = -1
     }
 
+    function scrollBy(delta) {
+        const maximum = Math.max(0, groupList.contentWidth - groupList.width)
+        groupList.contentX = Math.max(0, Math.min(maximum, groupList.contentX - delta))
+    }
+
+    function handleWheel(pixelX, pixelY, angleX, angleY) {
+        const horizontalDelta = pixelX !== 0 ? pixelX : angleX / 2
+        const verticalDelta = pixelY !== 0 ? pixelY : angleY / 2
+        scrollBy(horizontalDelta !== 0 ? horizontalDelta : verticalDelta)
+    }
+
     onCurrentGroupChanged: synchronizeCurrentIndex()
     onModelChanged: Qt.callLater(synchronizeCurrentIndex)
 
@@ -155,12 +166,24 @@ Item {
                 parent: root
                 target: null
                 acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                orientation: Qt.Vertical
                 onWheel: function(event) {
-                    const rawDelta = event.pixelDelta.y !== 0
-                        ? event.pixelDelta.y : event.angleDelta.y / 2
-                    const maximum = Math.max(0, groupList.contentWidth - groupList.width)
-                    groupList.contentX = Math.max(
-                        0, Math.min(maximum, groupList.contentX - rawDelta))
+                    root.handleWheel(
+                        event.pixelDelta.x, event.pixelDelta.y,
+                        event.angleDelta.x, event.angleDelta.y)
+                    event.accepted = true
+                }
+            }
+
+            WheelHandler {
+                parent: root
+                target: null
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                orientation: Qt.Horizontal
+                onWheel: function(event) {
+                    root.handleWheel(
+                        event.pixelDelta.x, event.pixelDelta.y,
+                        event.angleDelta.x, event.angleDelta.y)
                     event.accepted = true
                 }
             }

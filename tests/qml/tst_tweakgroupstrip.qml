@@ -114,6 +114,15 @@ TestCase {
         compare(vertical.contentY, oldVertical)
     }
 
+    function test_horizontalTouchpadGestureScrollsTheStrip() {
+        const host = createTemporaryObject(wheelHostComponent, this)
+        const strip = findChild(host, "wheelStrip")
+        const list = findChild(strip, "groupHorizontalList")
+        tryVerify(function() { return list.contentWidth > list.width })
+        strip.handleWheel(-120, 0, 0, 0)
+        tryVerify(function() { return list.contentX > 0 })
+    }
+
     Component {
         id: wheelHostComponent
         Flickable {
