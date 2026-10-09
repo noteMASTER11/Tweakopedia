@@ -57,16 +57,13 @@ AppController::AppController(IAppServices& services, QObject* parent)
     , services_(&services)
     , tweaksModel_(this)
     , filteredTweaksModel_(this)
+    , tweakGroupsModel_(this)
     , categoriesModel_(this)
     , queueModel_(this)
     , historyModel_(this)
     , encyclopediaController_(this)
 {
     filteredTweaksModel_.setSourceModel(&tweaksModel_);
-    connect(&filteredTweaksModel_,
-            &TweakFilterProxyModel::hideUnsupportedChanged,
-            this,
-            &AppController::refreshCategories);
     connect(&systemOverviewWatcher_,
             &QFutureWatcher<domain::SystemOverviewSnapshot>::finished,
             this,
@@ -106,6 +103,7 @@ AppController::AppController(IAppServices& services, QObject* parent)
                 refreshDetectedStates();
                 refreshModels();
                 refreshCategories();
+                refreshTweakGroups();
                 encyclopediaController_.reset(catalog_, categoryCatalog_);
                 appRemovalScanStatus_ = u"succeeded"_s;
                 appRemovalScanError_.clear();
@@ -127,6 +125,7 @@ AppController::~AppController()
 
 TweakListModel* AppController::tweaks() noexcept { return &tweaksModel_; }
 TweakFilterProxyModel* AppController::filteredTweaks() noexcept { return &filteredTweaksModel_; }
+TweakGroupListModel* AppController::tweakGroups() noexcept { return &tweakGroupsModel_; }
 CategoryListModel* AppController::categories() noexcept { return &categoriesModel_; }
 QueueListModel* AppController::queue() noexcept { return &queueModel_; }
 HistoryListModel* AppController::history() noexcept { return &historyModel_; }
@@ -228,6 +227,7 @@ bool AppController::startup()
     refreshDetectedStates();
     refreshModels();
     refreshCategories();
+    refreshTweakGroups();
     encyclopediaController_.reset(catalog_, categoryCatalog_);
     historyModel_.reset(services_->history(), catalog_);
     refreshSystemOverview();
@@ -247,11 +247,26 @@ void AppController::setTweakSearch(const QString& query)
 void AppController::setTweakCategory(const QString& categoryId)
 {
     filteredTweaksModel_.setCategoryId(categoryId);
+    refreshTweakGroups();
+}
+
+void AppController::setTweakSubcategory(const QString& subcategoryId)
+{
+    if (!tweakGroupsModel_.select(subcategoryId)) return;
+    filteredTweaksModel_.setSubcategoryId(tweakGroupsModel_.selectedId());
+}
+
+void AppController::stepTweakSubcategory(int delta)
+{
+    if (delta == 0) return;
+    setTweakSubcategory(tweakGroupsModel_.adjacentId(delta));
 }
 
 void AppController::setHideUnsupportedTweaks(bool hide)
 {
     filteredTweaksModel_.setHideUnsupported(hide);
+    refreshCategories();
+    refreshTweakGroups();
 }
 
 int AppController::revealTweak(const QString& id)
@@ -266,6 +281,9 @@ int AppController::revealTweak(const QString& id)
     filteredTweaksModel_.setQuery({});
     filteredTweaksModel_.setHideUnsupported(false);
     filteredTweaksModel_.setCategoryId(tweak->category);
+    refreshCategories();
+    refreshTweakGroups();
+    setTweakSubcategory(tweak->subcategory);
 
     for (int row = 0; row < filteredTweaksModel_.rowCount(); ++row) {
         const auto index = filteredTweaksModel_.index(row, 0);
@@ -457,6 +475,8 @@ bool AppController::applyQueue(const QString& packageName)
     }
     refreshDetectedStates();
     refreshModels();
+    refreshCategories();
+    refreshTweakGroups();
     encyclopediaController_.reset(catalog_, categoryCatalog_);
     historyModel_.reset(services_->history(), catalog_);
     emit previewChanged();
@@ -585,6 +605,14 @@ void AppController::refreshCategories()
         filteredTweaksModel_.setCategoryId({});
     }
     categoriesModel_.reset(content::CategoryCatalog(std::move(visibleCategories)));
+}
+
+void AppController::refreshTweakGroups()
+{
+    tweakGroupsModel_.reset(
+        categoryCatalog_, catalog_, supported_, filteredTweaksModel_.categoryId(),
+        filteredTweaksModel_.hideUnsupported());
+    filteredTweaksModel_.setSubcategoryId(tweakGroupsModel_.selectedId());
 }
 
 void AppController::resetOperationState()

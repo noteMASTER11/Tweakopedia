@@ -6,6 +6,7 @@
 #include "app/QueueListModel.h"
 #include "app/TweakListModel.h"
 #include "app/TweakFilterProxyModel.h"
+#include "app/TweakGroupListModel.h"
 #include "content/CatalogError.h"
 #include "content/CategoryCatalogLoader.h"
 #include "content/TweakCatalogLoader.h"
@@ -61,6 +62,7 @@ class AppController final : public QObject
     Q_OBJECT
     Q_PROPERTY(TweakListModel* tweaks READ tweaks CONSTANT)
     Q_PROPERTY(TweakFilterProxyModel* filteredTweaks READ filteredTweaks CONSTANT)
+    Q_PROPERTY(TweakGroupListModel* tweakGroups READ tweakGroups CONSTANT)
     Q_PROPERTY(CategoryListModel* categories READ categories CONSTANT)
     Q_PROPERTY(QueueListModel* queue READ queue CONSTANT)
     Q_PROPERTY(HistoryListModel* history READ history CONSTANT)
@@ -85,6 +87,7 @@ public:
 
     [[nodiscard]] TweakListModel* tweaks() noexcept;
     [[nodiscard]] TweakFilterProxyModel* filteredTweaks() noexcept;
+    [[nodiscard]] TweakGroupListModel* tweakGroups() noexcept;
     [[nodiscard]] CategoryListModel* categories() noexcept;
     [[nodiscard]] QueueListModel* queue() noexcept;
     [[nodiscard]] HistoryListModel* history() noexcept;
@@ -106,6 +109,8 @@ public:
     Q_INVOKABLE bool startup();
     Q_INVOKABLE void setTweakSearch(const QString& query);
     Q_INVOKABLE void setTweakCategory(const QString& categoryId);
+    Q_INVOKABLE void setTweakSubcategory(const QString& subcategoryId);
+    Q_INVOKABLE void stepTweakSubcategory(int delta);
     Q_INVOKABLE void setHideUnsupportedTweaks(bool hide);
     Q_INVOKABLE int revealTweak(const QString& id);
     Q_INVOKABLE bool selectTarget(const QString& id, const QString& state);
@@ -131,6 +136,7 @@ private:
     void refreshDetectedStates();
     void refreshModels();
     void refreshCategories();
+    void refreshTweakGroups();
     void resetOperationState();
     void setError(QString code, QString message = {});
 
@@ -144,6 +150,7 @@ private:
     std::optional<planning::ExecutionPlan> preview_;
     TweakListModel tweaksModel_;
     TweakFilterProxyModel filteredTweaksModel_;
+    TweakGroupListModel tweakGroupsModel_;
     CategoryListModel categoriesModel_;
     QueueListModel queueModel_;
     HistoryListModel historyModel_;

@@ -1,3 +1,7 @@
+#include "app/TweakFilterProxyModel.h"
+#include "app/TweakGroupListModel.h"
+#include "app/TweakListModel.h"
+#include "content/CategoryCatalog.h"
 #include "content/TweakCatalogLoader.h"
 #include "detection/RegistryDwordStateDetector.h"
 #include "detection/RegistryValueStateDetector.h"
@@ -68,6 +72,42 @@ class VerticalSliceWorkflowTest final : public QObject
     Q_OBJECT
 
 private slots:
+    void filtersRealCatalogThroughSelectedSubcategory()
+    {
+        const auto loaded = content::TweakCatalogLoader{}.loadDirectory(
+            QStringLiteral(TWEAKOPEDIA_TEST_CONTENT_ROOT));
+        QVERIFY(loaded.catalog.has_value());
+        const auto longPathsId = *domain::TweakId::parse(u"filesystem.win32-long-paths");
+        const auto* longPaths = loaded.catalog->find(longPathsId);
+        QVERIFY(longPaths != nullptr);
+        const content::TweakCatalog catalog({*longPaths});
+        const content::CategoryCatalog categories({{
+            .id = longPaths->category,
+            .title = u"Файловая система"_s,
+            .subcategories = {{.id = longPaths->subcategory, .title = u"Пути"_s}},
+        }});
+        const QHash<domain::TweakId, domain::DetectedState> detected{
+            {longPaths->id, {.status = domain::DetectionStatus::Named,
+                             .stateId = u"disabled"_s}},
+        };
+        const QHash<domain::TweakId, bool> supported{{longPaths->id, true}};
+
+        app::TweakListModel tweaks;
+        tweaks.reset(catalog, detected, supported);
+        app::TweakFilterProxyModel filtered;
+        filtered.setSourceModel(&tweaks);
+        filtered.setCategoryId(longPaths->category);
+        app::TweakGroupListModel groups;
+        groups.reset(categories, catalog, supported, longPaths->category, false);
+
+        QVERIFY(groups.select(longPaths->subcategory));
+        filtered.setSubcategoryId(groups.selectedId());
+
+        QCOMPARE(filtered.rowCount(), 1);
+        QCOMPARE(filtered.data(filtered.index(0, 0), app::TweakListModel::IdRole).toString(),
+                 longPaths->id.toString());
+    }
+
     void appliesAndRollsBackAbsentDword()
     {
         const auto loaded = content::TweakCatalogLoader{}.loadDirectory(

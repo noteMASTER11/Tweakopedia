@@ -148,6 +148,91 @@ private slots:
         QCOMPARE(controller.filteredTweaks()->rowCount(), 1);
     }
 
+    void coordinatesCategoryAndSubcategorySelection()
+    {
+        auto backend = services();
+        auto paths = backend.catalog.tweaks().first();
+        auto caching = paths;
+        caching.id = *domain::TweakId::parse(u"filesystem.test-cache"_s);
+        caching.title = u"Кэширование"_s;
+        caching.subcategory = u"caching"_s;
+        backend.catalog = content::TweakCatalog({paths, caching});
+        backend.categoryCatalog = content::CategoryCatalog({{
+            .id = u"filesystem"_s,
+            .title = u"Файловая система"_s,
+            .subcategories = {
+                {.id = u"paths"_s, .title = u"Пути"_s},
+                {.id = u"caching"_s, .title = u"Кэширование"_s},
+            },
+        }});
+        app::AppController controller(backend);
+
+        QVERIFY(controller.startup());
+        QVERIFY(controller.tweakGroups() != nullptr);
+        QCOMPARE(controller.tweakGroups()->rowCount(), 0);
+
+        controller.setTweakCategory(u"filesystem"_s);
+        QCOMPARE(controller.tweakGroups()->rowCount(), 3);
+        QCOMPARE(controller.tweakGroups()->selectedId(), QString{});
+        QCOMPARE(controller.filteredTweaks()->rowCount(), 2);
+
+        controller.setTweakSubcategory(u"caching"_s);
+        QCOMPARE(controller.tweakGroups()->selectedId(), u"caching"_s);
+        QCOMPARE(controller.filteredTweaks()->subcategoryId(), u"caching"_s);
+        QCOMPARE(controller.filteredTweaks()->rowCount(), 1);
+
+        controller.setTweakSearch(u"Кэш"_s);
+        QCOMPARE(controller.tweakGroups()->selectedId(), u"caching"_s);
+        controller.setTweakSearch({});
+        QCOMPARE(controller.tweakGroups()->selectedId(), u"caching"_s);
+
+        controller.stepTweakSubcategory(-1);
+        QCOMPARE(controller.tweakGroups()->selectedId(), u"paths"_s);
+        controller.stepTweakSubcategory(-1);
+        QCOMPARE(controller.tweakGroups()->selectedId(), QString{});
+        controller.stepTweakSubcategory(-1);
+        QCOMPARE(controller.tweakGroups()->selectedId(), QString{});
+        controller.stepTweakSubcategory(1);
+        QCOMPARE(controller.tweakGroups()->selectedId(), u"paths"_s);
+
+        controller.setTweakCategory({});
+        QCOMPARE(controller.tweakGroups()->rowCount(), 0);
+        QCOMPARE(controller.filteredTweaks()->subcategoryId(), QString{});
+    }
+
+    void hidingUnsupportedRepairsSubcategorySelection()
+    {
+        auto backend = services();
+        auto supported = backend.catalog.tweaks().first();
+        auto unsupported = supported;
+        unsupported.id = *domain::TweakId::parse(u"filesystem.future-cache"_s);
+        unsupported.title = u"Будущее кэширование"_s;
+        unsupported.subcategory = u"caching"_s;
+        unsupported.compatibility.minimumBuild = 99999;
+        backend.catalog = content::TweakCatalog({supported, unsupported});
+        backend.categoryCatalog = content::CategoryCatalog({{
+            .id = u"filesystem"_s,
+            .title = u"Файловая система"_s,
+            .subcategories = {
+                {.id = u"paths"_s, .title = u"Пути"_s},
+                {.id = u"caching"_s, .title = u"Кэширование"_s},
+            },
+        }});
+        app::AppController controller(backend);
+
+        QVERIFY(controller.startup());
+        controller.setTweakCategory(u"filesystem"_s);
+        controller.setTweakSubcategory(u"caching"_s);
+        QCOMPARE(controller.filteredTweaks()->rowCount(), 1);
+
+        controller.setHideUnsupportedTweaks(true);
+
+        QCOMPARE(controller.tweakGroups()->rowCount(), 2);
+        QCOMPARE(controller.tweakGroups()->selectedId(), QString{});
+        QCOMPARE(controller.filteredTweaks()->subcategoryId(), QString{});
+        QCOMPARE(controller.filteredTweaks()->rowCount(), 1);
+    }
+
     void startupExposesEncyclopediaIndependentlyFromUnsupportedFilter()
     {
         auto backend = services();
@@ -243,6 +328,8 @@ private slots:
         QVERIFY(row >= 0);
         QCOMPARE(controller.filteredTweaks()->query(), QString{});
         QCOMPARE(controller.filteredTweaks()->categoryId(), u"experimental"_s);
+        QCOMPARE(controller.filteredTweaks()->subcategoryId(), u"feature-store"_s);
+        QCOMPARE(controller.tweakGroups()->selectedId(), u"feature-store"_s);
         QCOMPARE(controller.filteredTweaks()->hideUnsupported(), false);
         QCOMPARE(controller.filteredTweaks()->data(
                      controller.filteredTweaks()->index(row, 0),

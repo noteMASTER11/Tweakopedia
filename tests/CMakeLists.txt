@@ -581,7 +581,7 @@ target_compile_definitions(VerticalSliceWorkflowTest PRIVATE
     TWEAKOPEDIA_TEST_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content/tweaks"
 )
 target_link_libraries(VerticalSliceWorkflowTest PRIVATE
-    Qt6::Test TweakopediaContent TweakopediaDetection TweakopediaExecution
+    Qt6::Test TweakopediaApp TweakopediaContent TweakopediaDetection TweakopediaExecution
     TweakopediaPersistence TweakopediaPlanning TweakopediaPlatform
 )
 add_test(NAME VerticalSliceWorkflow COMMAND VerticalSliceWorkflowTest)
