@@ -34,7 +34,7 @@ public:
         std::optional<std::uintptr_t> startupWindowHandle = std::nullopt);
 
 private:
-    int fail(int exitCode, std::string_view message);
+    int fail(int exitCode, std::string_view message, const StartupProgress& progress);
 
     IBootstrapPlatform& platform_;
 };

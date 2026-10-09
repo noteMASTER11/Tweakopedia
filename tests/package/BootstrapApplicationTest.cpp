@@ -108,7 +108,10 @@ private slots:
         std::vector<startup::StartupStage> stages;
         QCOMPARE(app.run(invalid, {}, [&](auto stage) { stages.push_back(stage); }),
                  bootstrap::BootstrapApplication::inspectFailure);
-        QCOMPARE(stages, std::vector({startup::StartupStage::ContainerIntegrity}));
+        QCOMPARE(stages, std::vector({
+            startup::StartupStage::ContainerIntegrity,
+            startup::StartupStage::Ready,
+        }));
         QCOMPARE(platform.errorCount, 1);
         QCOMPARE(platform.launchCount, 0);
     }

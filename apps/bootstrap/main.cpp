@@ -1,11 +1,15 @@
 #include "bootstrap/BootstrapApplication.h"
+#include "bootstrap/StartupWindow.h"
 #include "bootstrap/WindowsBootstrapPlatform.h"
 
 #include <windows.h>
 #include <shellapi.h>
 
+#include <algorithm>
 #include <filesystem>
+#include <atomic>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace {
@@ -23,7 +27,7 @@ std::filesystem::path executablePath()
 
 }
 
-int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
+int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR, int)
 {
     int count{};
     auto rawArguments = CommandLineToArgvW(GetCommandLineW(), &count);
@@ -35,5 +39,27 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 
     tweakopedia::bootstrap::WindowsBootstrapPlatform platform;
     tweakopedia::bootstrap::BootstrapApplication application(platform);
-    return application.run(executablePath(), arguments);
+    const auto selfCheck = std::find(arguments.begin(), arguments.end(), L"--self-check")
+        != arguments.end();
+    if (selfCheck) return application.run(executablePath(), arguments);
+
+    (void)SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    tweakopedia::bootstrap::StartupWindow startupWindow;
+    if (!startupWindow.create(instance)) return application.run(executablePath(), arguments);
+    startupWindow.show();
+
+    const auto completed = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+    if (!completed) return application.run(executablePath(), arguments);
+    std::atomic<int> exitCode{9};
+    std::thread worker([&] {
+        exitCode = application.run(
+            executablePath(), arguments,
+            [&](auto stage) { startupWindow.report(stage); },
+            startupWindow.nativeHandle());
+        SetEvent(completed);
+    });
+    startupWindow.messageLoopUntil(completed);
+    worker.join();
+    CloseHandle(completed);
+    return exitCode.load();
 }

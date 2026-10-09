@@ -27,8 +27,12 @@ std::wstring widen(std::string_view text)
 
 }
 
-int BootstrapApplication::fail(int exitCode, std::string_view message)
+int BootstrapApplication::fail(
+    int exitCode,
+    std::string_view message,
+    const StartupProgress& progress)
 {
+    if (progress) progress(startup::StartupStage::Ready);
     platform_.showError(L"Tweakopedia", widen(message));
     return exitCode;
 }
@@ -41,14 +45,15 @@ int BootstrapApplication::run(
 {
     if (progress) progress(startup::StartupStage::ContainerIntegrity);
     const auto packageInfo = package::inspectContainer(self);
-    if (!packageInfo.ok()) return fail(inspectFailure, packageInfo.error.message);
+    if (!packageInfo.ok()) return fail(inspectFailure, packageInfo.error.message, progress);
 
     const auto productRoot = platform_.localAppDataPath() / "Tweakopedia";
     const auto dataRoot = productRoot / "Data";
     if (progress) progress(startup::StartupStage::LocalData);
     const auto migration = package::LegacyDataMigrator::migrate(productRoot, dataRoot);
     if (!migration.complete) {
-        return fail(migrationFailure, "Cannot migrate the existing Tweakopedia data layout");
+        return fail(migrationFailure,
+            "Cannot migrate the existing Tweakopedia data layout", progress);
     }
 
     package::RuntimeCache cache(productRoot / "Runtime");
@@ -58,7 +63,7 @@ int BootstrapApplication::run(
             ? startup::StartupStage::RuntimeCache
             : startup::StartupStage::RuntimeExtract);
     });
-    if (!prepared.ok()) return fail(prepareFailure, prepared.error.message);
+    if (!prepared.ok()) return fail(prepareFailure, prepared.error.message, progress);
 
     std::vector<std::wstring> childArguments(arguments.begin(), arguments.end());
     childArguments.emplace_back(L"--runtime-root");
@@ -75,7 +80,7 @@ int BootstrapApplication::run(
         prepared.value->root / "Tweakopedia.App.exe",
         childArguments,
         prepared.value->root);
-    if (!result.ok()) return fail(launchFailure, result.error.message);
+    if (!result.ok()) return fail(launchFailure, result.error.message, progress);
 
     cache.cleanupOld(package::digestToHex(packageInfo.value->footer.payloadDigest));
     return static_cast<int>(*result.value);

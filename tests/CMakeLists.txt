@@ -66,6 +66,12 @@ target_link_libraries(BootstrapApplicationTest PRIVATE
 add_dependencies(BootstrapApplicationTest BootstrapArgumentProbe)
 add_test(NAME BootstrapApplication COMMAND BootstrapApplicationTest)
 
+add_executable(StartupWindowModelTest package/StartupWindowModelTest.cpp)
+target_link_libraries(StartupWindowModelTest PRIVATE
+    Qt6::Test TweakopediaBootstrapCore TweakopediaStartup
+)
+add_test(NAME StartupWindowModel COMMAND StartupWindowModelTest)
+
 add_executable(PackagerCliTest package/PackagerCliTest.cpp)
 target_compile_definitions(PackagerCliTest PRIVATE
     TWEAKOPEDIA_TEST_PACKAGER="$<TARGET_FILE:TweakopediaPackager>"

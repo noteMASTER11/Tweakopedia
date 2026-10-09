@@ -2,13 +2,15 @@ add_library(TweakopediaBootstrapCore STATIC
     BootstrapApplication.cpp
     BootstrapApplication.h
     IBootstrapPlatform.h
+    StartupWindow.cpp
+    StartupWindow.h
     WindowsBootstrapPlatform.cpp
     WindowsBootstrapPlatform.h
 )
 target_include_directories(TweakopediaBootstrapCore PUBLIC ${PROJECT_SOURCE_DIR}/apps)
 target_link_libraries(TweakopediaBootstrapCore
     PUBLIC TweakopediaPackage TweakopediaStartup
-    PRIVATE shell32
+    PRIVATE shell32 dwmapi gdiplus ole32
 )
 
 add_executable(TweakopediaBootstrap WIN32
