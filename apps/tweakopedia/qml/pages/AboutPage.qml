@@ -101,7 +101,7 @@ Page {
                                 id: versionLabel
                                 objectName: "aboutVersion"
                                 anchors.centerIn: parent
-                                text: "Версия 0.9.3 · x64 · Portable"
+                                text: "Версия 0.9.4 · x64 · Portable"
                                 color: FluentTheme.accent
                                 font.family: FluentTheme.fontFamily
                                 font.pixelSize: 13

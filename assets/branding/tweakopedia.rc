@@ -21,12 +21,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Tweakopedia"
             VALUE "FileDescription", "Tweakopedia"
-            VALUE "FileVersion", "0.9.3.0"
+            VALUE "FileVersion", "0.9.4.0"
             VALUE "InternalName", "Tweakopedia"
             VALUE "LegalCopyright", "Tweakopedia contributors"
             VALUE "OriginalFilename", "Tweakopedia.exe"
             VALUE "ProductName", "Tweakopedia"
-            VALUE "ProductVersion", "0.9.3.0"
+            VALUE "ProductVersion", "0.9.4.0"
         END
     END
     BLOCK "VarFileInfo"
