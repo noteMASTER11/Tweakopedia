@@ -180,9 +180,12 @@ private slots:
         unsupported.compatibility.minimumBuild = 99999;
         backend.catalog = content::TweakCatalog({supported, unsupported});
         backend.categoryCatalog = content::CategoryCatalog({
-            {.id = u"filesystem"_s, .title = u"Файловая система"_s},
-            {.id = u"experimental"_s, .title = u"Экспериментальные функции"_s},
-            {.id = u"app-removal"_s, .title = u"Удаление приложений"_s},
+            {.id = u"filesystem"_s, .title = u"Файловая система"_s,
+             .subcategories = {{.id = u"paths"_s, .title = u"Пути"_s}}},
+            {.id = u"experimental"_s, .title = u"Экспериментальные функции"_s,
+             .subcategories = {{.id = u"feature-store"_s, .title = u"Feature Store"_s}}},
+            {.id = u"app-removal"_s, .title = u"Удаление приложений"_s,
+             .subcategories = {{.id = u"installed"_s, .title = u"Установленные"_s}}},
         });
         app::AppController controller(backend);
 
@@ -222,8 +225,10 @@ private slots:
         unsupported.compatibility.minimumBuild = 99999;
         backend.catalog = content::TweakCatalog({supported, unsupported});
         backend.categoryCatalog = content::CategoryCatalog({
-            {.id = u"filesystem"_s, .title = u"Файловая система"_s},
-            {.id = u"experimental"_s, .title = u"Экспериментальные функции"_s},
+            {.id = u"filesystem"_s, .title = u"Файловая система"_s,
+             .subcategories = {{.id = u"paths"_s, .title = u"Пути"_s}}},
+            {.id = u"experimental"_s, .title = u"Экспериментальные функции"_s,
+             .subcategories = {{.id = u"feature-store"_s, .title = u"Feature Store"_s}}},
         });
         app::AppController controller(backend);
 
@@ -413,6 +418,11 @@ private slots:
         tweak.appxDetection = domain::AppxPackageDetection{u"Clipchamp.Clipchamp"_s};
         tweak.reversibility = domain::Reversibility::Conditional;
         backend.catalog = content::TweakCatalog({tweak});
+        backend.categoryCatalog = content::CategoryCatalog({{
+            .id = u"apps"_s,
+            .title = u"Приложения"_s,
+            .subcategories = {{.id = u"removal"_s, .title = u"Удаление"_s}},
+        }});
         backend.detected = {
             .status = domain::DetectionStatus::Named,
             .stateId = u"installed"_s,
@@ -441,6 +451,11 @@ private slots:
         const auto* tweak = loaded.catalog->find(id);
         QVERIFY(tweak != nullptr);
         backend.catalog = content::TweakCatalog({*tweak});
+        backend.categoryCatalog = content::CategoryCatalog({{
+            .id = tweak->category,
+            .title = u"Загрузка"_s,
+            .subcategories = {{.id = tweak->subcategory, .title = u"Диагностика"_s}},
+        }});
         backend.nextApply = {.status = app::AppOperationStatus::Succeeded};
         app::AppController controller(backend);
 

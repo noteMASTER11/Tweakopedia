@@ -1,5 +1,6 @@
 #include "app/AppController.h"
 
+#include "content/CategoryMembershipValidator.h"
 #include "detection/CompatibilityEvaluator.h"
 #include "planning/PlanBuilder.h"
 #include "app/SystemOverviewPresenter.h"
@@ -217,6 +218,12 @@ bool AppController::startup()
         return false;
     }
     categoryCatalog_ = *loadedCategories.catalog;
+    const auto membershipErrors = content::CategoryMembershipValidator{}.validate(
+        categoryCatalog_, catalog_);
+    if (!membershipErrors.isEmpty()) {
+        setError(membershipErrors.first().code, membershipErrors.first().message);
+        return false;
+    }
     profile_ = services_->currentProfile();
     refreshDetectedStates();
     refreshModels();

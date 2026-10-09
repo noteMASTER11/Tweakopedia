@@ -6,6 +6,8 @@ add_library(TweakopediaContent STATIC
     CategoryCatalog.h
     CategoryCatalogLoader.cpp
     CategoryCatalogLoader.h
+    CategoryMembershipValidator.cpp
+    CategoryMembershipValidator.h
     TweakCatalog.cpp
     TweakCatalog.h
     TweakCatalogLoader.cpp

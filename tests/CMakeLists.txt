@@ -142,6 +142,17 @@ target_link_libraries(CategoryCatalogLoaderTest
 
 add_test(NAME CategoryCatalogLoader COMMAND CategoryCatalogLoaderTest)
 
+add_executable(CategoryMembershipValidatorTest
+    content/CategoryMembershipValidatorTest.cpp
+)
+target_compile_definitions(CategoryMembershipValidatorTest PRIVATE
+    TWEAKOPEDIA_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content"
+)
+target_link_libraries(CategoryMembershipValidatorTest PRIVATE
+    Qt6::Test TweakopediaContent
+)
+add_test(NAME CategoryMembershipValidator COMMAND CategoryMembershipValidatorTest)
+
 add_executable(CompatibilityEvaluatorTest
     detection/CompatibilityEvaluatorTest.cpp
 )
