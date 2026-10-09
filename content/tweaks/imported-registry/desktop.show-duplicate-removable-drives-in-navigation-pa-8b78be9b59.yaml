@@ -1,0 +1,54 @@
+id: desktop.show-duplicate-removable-drives-in-navigation-pa-8b78be9b59
+title: 'Show_duplicate_removable_drives_in_navigation_pane_of_File_Explorer — параметр (default)'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Управляет значением реестра (default) и показывает доступные варианты без скрытых команд.'
+explanation:
+  purpose: 'Позволяет явно выбрать сохранённое значение параметра (default) или удалить его.'
+  mechanism: 'Windows и приложения читают этот параметр из реестра; Tweakopedia записывает точный тип и содержимое значения.'
+  effect: 'Результат зависит от компонента, которому принадлежит объект. Доступные состояния повторяют однозначные значения из исходных твикеров.'
+  tradeoffs: 'Неизвестные текущей версии Windows значения отображаются как пользовательское состояние и не подменяются догадкой.'
+  recommendation: 'Перед применением сопоставьте выбранное буквальное значение с описанием и текущим состоянием параметра.'
+  technical_details: 'Объект: HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\DelegateFolders\{F5FB2C77-0E2F-4A16-A381-3E560C68BC83}\(default); представление: registry64.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  value_0:
+    title: 'Строка «Removable Drives»'
+    operations:
+      - type: registry.set_value
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\DelegateFolders\{F5FB2C77-0E2F-4A16-A381-3E560C68BC83}'
+        value_name: '(default)'
+        view: registry64
+        value_type: string
+        value: 'Removable Drives'
+  absent:
+    title: 'Значение отсутствует'
+    operations:
+      - type: registry.delete_value
+        hive: HKLM
+        key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\DelegateFolders\{F5FB2C77-0E2F-4A16-A381-3E560C68BC83}'
+        value_name: '(default)'
+        view: registry64
+windows_defaults: []
+detect:
+  type: registry.value
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\DelegateFolders\{F5FB2C77-0E2F-4A16-A381-3E560C68BC83}'
+  value_name: '(default)'
+  view: registry64
+  states:
+    value_0:
+      value_type: string
+      value: 'Removable Drives'
+  missing_state: absent
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false

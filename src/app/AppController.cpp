@@ -5,6 +5,7 @@
 #include "app/SystemOverviewPresenter.h"
 
 #include <QtConcurrentRun>
+#include <QDebug>
 #include <QSet>
 #include <algorithm>
 using namespace Qt::StringLiterals;
@@ -26,8 +27,26 @@ QString restartName(domain::RestartRequirement restart)
 
 QString registryObject(const domain::RegistryLocation& location)
 {
-    return (location.hive == domain::RegistryHive::LocalMachine ? u"HKLM\\"_s : u"HKCU\\"_s)
-        + location.key + u"\\"_s + location.valueName;
+    QString hive;
+    switch (location.hive) {
+    case domain::RegistryHive::CurrentUser: hive = u"HKCU\\"_s; break;
+    case domain::RegistryHive::LocalMachine: hive = u"HKLM\\"_s; break;
+    case domain::RegistryHive::ClassesRoot: hive = u"HKCR\\"_s; break;
+    case domain::RegistryHive::Users: hive = u"HKU\\"_s; break;
+    }
+    return hive + location.key + u"\\"_s + location.valueName;
+}
+
+QString registryObject(const domain::RegistryKeyLocation& location)
+{
+    QString hive;
+    switch (location.hive) {
+    case domain::RegistryHive::CurrentUser: hive = u"HKCU\\"_s; break;
+    case domain::RegistryHive::LocalMachine: hive = u"HKLM\\"_s; break;
+    case domain::RegistryHive::ClassesRoot: hive = u"HKCR\\"_s; break;
+    case domain::RegistryHive::Users: hive = u"HKU\\"_s; break;
+    }
+    return hive + location.key;
 }
 
 } // namespace
@@ -55,6 +74,8 @@ AppController::AppController(IAppServices& services, QObject* parent)
                 systemOverview_ = SystemOverviewPresenter::present(snapshot);
                 systemOverviewError_ = snapshot.error;
                 systemOverviewLoading_ = false;
+                qDebug().noquote() << "System overview loaded; error:"
+                                   << (snapshot.error.isEmpty() ? u"none"_s : snapshot.error);
                 emit systemOverviewChanged();
             });
     connect(&appRemovalScanWatcher_,
@@ -68,6 +89,8 @@ AppController::AppController(IAppServices& services, QObject* parent)
                         ? u"Не удалось определить установленные приложения."_s
                         : result.errors.first().message;
                     emit appRemovalScanChanged();
+                    qWarning().noquote() << "Installed application scan failed:"
+                                         << appRemovalScanError_;
                     return;
                 }
 
@@ -85,6 +108,8 @@ AppController::AppController(IAppServices& services, QObject* parent)
                 encyclopediaController_.reset(catalog_, categoryCatalog_);
                 appRemovalScanStatus_ = u"succeeded"_s;
                 appRemovalScanError_.clear();
+                qInfo().noquote() << "Installed application scan completed; tweaks:"
+                                  << result.catalog->tweaks().size();
                 emit appRemovalScanChanged();
             });
 }
@@ -119,8 +144,36 @@ QVariantList AppController::previewOperations() const
                                          planning::PlannedRegistryDwordChange>) {
                 object = registryObject(operation.change.location);
             } else if constexpr (std::is_same_v<std::decay_t<decltype(operation)>,
+                                                planning::PlannedRegistryValueChange>) {
+                object = std::visit(
+                    [](const auto& change) { return registryObject(change.location); },
+                    operation.change);
+            } else if constexpr (std::is_same_v<std::decay_t<decltype(operation)>,
+                                                planning::PlannedRegistryTreeChange>) {
+                object = std::visit(
+                    [](const auto& change) { return registryObject(change.location); },
+                    operation.change);
+            } else if constexpr (std::is_same_v<std::decay_t<decltype(operation)>,
                                                 planning::PlannedAppxRemoval>) {
                 object = u"AppX: "_s + operation.change.packageName;
+            } else if constexpr (std::is_same_v<std::decay_t<decltype(operation)>,
+                                                planning::PlannedFileChange>) {
+                object = operation.change.destination;
+            } else if constexpr (std::is_same_v<std::decay_t<decltype(operation)>,
+                                                planning::PlannedScheduledTaskChange>) {
+                object = u"Задача: "_s + operation.change.location.folder
+                    + u"\\"_s + operation.change.location.name;
+            } else if constexpr (std::is_same_v<std::decay_t<decltype(operation)>,
+                                                planning::PlannedBcdElementChange>) {
+                object = u"BCD: "_s + operation.change.spec.objectId + u" / 0x"_s
+                    + QString::number(operation.change.spec.elementType, 16);
+            } else if constexpr (std::is_same_v<std::decay_t<decltype(operation)>,
+                                                planning::PlannedPowerSettingChange>) {
+                object = u"Питание: "_s + operation.change.location.subgroup
+                    + u" / "_s + operation.change.location.setting;
+            } else if constexpr (std::is_same_v<std::decay_t<decltype(operation)>,
+                                                planning::PlannedWindowsComponentChange>) {
+                object = u"Компонент Windows: "_s + operation.change.target.name;
             } else {
                 object = u"Feature ID: "_s + QString::number(operation.change.featureId);
             }
@@ -130,6 +183,7 @@ QVariantList AppController::previewOperations() const
                 {u"targetState"_s, operation.targetState},
                 {u"registryObject"_s, object},
                 {u"restart"_s, restartName(operation.restart)},
+                {u"inputs"_s, domain::inputMapToVariantMap(operation.inputs)},
             });
         }, variant);
     }
@@ -148,6 +202,7 @@ QString AppController::appRemovalScanError() const { return appRemovalScanError_
 
 bool AppController::startup()
 {
+    qDebug() << "Loading tweak and category catalogs";
     const auto loaded = services_->loadCatalog();
     if (!loaded.catalog) {
         setError(u"catalog.load_failed"_s,
@@ -170,6 +225,10 @@ bool AppController::startup()
     historyModel_.reset(services_->history(), catalog_);
     refreshSystemOverview();
     setError({});
+    qInfo().noquote() << "Application catalog initialized; tweaks:"
+                      << catalog_.tweaks().size()
+                      << "categories:" << categoryCatalog_.categories().size()
+                      << "history records:" << historyModel_.rowCount();
     return true;
 }
 
@@ -215,6 +274,15 @@ int AppController::revealTweak(const QString& id)
 
 bool AppController::selectTarget(const QString& id, const QString& state)
 {
+    return selectParameterizedTarget(id, state, {});
+}
+
+bool AppController::selectParameterizedTarget(
+    const QString& id,
+    const QString& state,
+    const QVariantMap& inputs)
+{
+    qDebug().noquote() << "Selecting tweak target:" << id << "->" << state;
     const auto parsed = domain::TweakId::parse(id);
     const auto* tweak = parsed ? catalog_.find(*parsed) : nullptr;
     if (!tweak) {
@@ -222,7 +290,8 @@ bool AppController::selectTarget(const QString& id, const QString& state)
         return false;
     }
     const auto actual = detected_.value(*parsed);
-    if (actual.status == domain::DetectionStatus::Named && actual.stateId == state) {
+    if (actual.status == domain::DetectionStatus::Named && actual.stateId == state
+        && inputs.isEmpty()) {
         (void)queueData_.remove(*parsed);
         preview_.reset();
         (void)tweaksModel_.setTargetState(*parsed, {});
@@ -230,9 +299,11 @@ bool AppController::selectTarget(const QString& id, const QString& state)
         emit previewChanged();
         resetOperationState();
         setError({});
+        qDebug().noquote() << "Tweak target matches current state; removed from queue:"
+                           << id << "queue size:" << queueData_.items().size();
         return true;
     }
-    const auto changed = queueData_.setTarget(*tweak, state);
+    const auto changed = queueData_.setTarget(*tweak, state, inputs);
     if (!changed.accepted) {
         setError(changed.errorCode);
         return false;
@@ -243,6 +314,8 @@ bool AppController::selectTarget(const QString& id, const QString& state)
     emit previewChanged();
     resetOperationState();
     setError({});
+    qDebug().noquote() << "Tweak target queued:" << id
+                       << "queue size:" << queueData_.items().size();
     return true;
 }
 
@@ -264,15 +337,20 @@ QVariantMap AppController::openExplanation(const QString& id) const
     const auto* tweak = parsed ? catalog_.find(*parsed) : nullptr;
     if (!tweak) return {};
     const auto& explanation = tweak->explanation;
-    QString registryObject;
+    QString technicalObject;
     if (tweak->detection) {
-        const auto& location = tweak->detection->location;
-        registryObject = (location.hive == domain::RegistryHive::LocalMachine ? u"HKLM\\"_s : u"HKCU\\"_s)
-            + location.key + u"\\"_s + location.valueName;
+        technicalObject = registryObject(tweak->detection->location);
+    } else if (tweak->valueDetection) {
+        technicalObject = registryObject(tweak->valueDetection->location);
+    } else if (tweak->treeDetection) {
+        technicalObject = registryObject(tweak->treeDetection->location);
     } else if (tweak->appxDetection) {
-        registryObject = u"AppX: "_s + tweak->appxDetection->packageName;
+        technicalObject = u"AppX: "_s + tweak->appxDetection->packageName;
     } else if (tweak->featureDetection) {
-        registryObject = u"Feature ID: "_s + QString::number(tweak->featureDetection->featureId);
+        technicalObject = u"Feature ID: "_s + QString::number(tweak->featureDetection->featureId);
+    } else if (tweak->windowsComponentDetection) {
+        technicalObject = u"Компонент Windows: "_s
+            + tweak->windowsComponentDetection->target.name;
     }
     return {
         {u"title"_s, tweak->title},
@@ -282,17 +360,21 @@ QVariantMap AppController::openExplanation(const QString& id) const
         {u"tradeoffs"_s, explanation.tradeoffs},
         {u"recommendation"_s, explanation.recommendation},
         {u"technicalDetails"_s, explanation.technicalDetails},
-        {u"registryObject"_s, registryObject},
+        {u"registryObject"_s, technicalObject},
         {u"rollback"_s, tweak->appxDetection
             ? u"Автоматический возврат удалённого пакета не выполняется; потребуется повторная установка приложения."_s
             : tweak->featureDetection
                 ? u"При возврате восстанавливается исходное пользовательское переопределение Feature Store либо оно удаляется, если его не было."_s
+                : tweak->windowsComponentDetection
+                    ? u"При возврате DISM восстанавливает исходное состояние компонента Windows."_s
                 : u"При возврате восстанавливаются точный исходный тип и байты значения; если значения не было, оно удаляется."_s},
     };
 }
 
 bool AppController::buildPreview()
 {
+    qDebug().noquote() << "Building execution preview; queue size:"
+                       << queueData_.items().size();
     const auto result = planning::PlanBuilder{}.build(catalog_, queueData_, detected_, profile_);
     if (!result.plan) {
         setError(result.issues.isEmpty() ? u"plan.failed"_s : result.issues.first().code);
@@ -303,6 +385,8 @@ bool AppController::buildPreview()
     preview_ = *result.plan;
     emit previewChanged();
     setError({});
+    qDebug().noquote() << "Execution preview ready; operations:"
+                       << preview_->operations.size();
     return true;
 }
 
@@ -319,6 +403,8 @@ bool AppController::applyQueue(const QString& packageName)
     applyMessage_ = u"Запуск Executor"_s;
     rebootRequired_ = false;
     emit operationChanged();
+    qInfo().noquote() << "Applying tweak package:" << packageName.trimmed()
+                      << "operations:" << preview_->operations.size();
     const auto result = services_->apply(
         *preview_,
         packageName.trimmed(),
@@ -332,6 +418,8 @@ bool AppController::applyQueue(const QString& packageName)
         applyMessage_ = result.message;
         emit operationChanged();
         setError(result.code, result.message);
+        qWarning().noquote() << "Tweak package failed; code:" << result.code
+                             << "message:" << result.message;
         return false;
     }
     applyProgress_ = 100;
@@ -366,11 +454,13 @@ bool AppController::applyQueue(const QString& packageName)
     historyModel_.reset(services_->history(), catalog_);
     emit previewChanged();
     setError({});
+    qInfo().noquote() << "Tweak package applied; reboot required:" << rebootRequired_;
     return true;
 }
 
 bool AppController::rollback(const QString& transactionId)
 {
+    qInfo().noquote() << "Starting rollback:" << transactionId;
     const QUuid id(transactionId);
     if (id.isNull()) {
         setError(u"transaction.invalid_id"_s);
@@ -390,6 +480,8 @@ bool AppController::rollback(const QString& transactionId)
         applyMessage_ = result.message;
         emit operationChanged();
         setError(result.code, result.message);
+        qWarning().noquote() << "Rollback failed; code:" << result.code
+                             << "message:" << result.message;
         return false;
     }
     applyProgress_ = 100;
@@ -400,6 +492,7 @@ bool AppController::rollback(const QString& transactionId)
     refreshModels();
     historyModel_.reset(services_->history(), catalog_);
     setError({});
+    qInfo().noquote() << "Rollback completed:" << transactionId;
     return true;
 }
 
@@ -502,6 +595,10 @@ void AppController::resetOperationState()
 void AppController::setError(QString code, QString message)
 {
     if (lastErrorCode_ == code && lastErrorMessage_ == message) return;
+    if (!code.isEmpty()) {
+        qWarning().noquote() << "Application error; code:" << code
+                             << "message:" << message;
+    }
     lastErrorCode_ = std::move(code);
     lastErrorMessage_ = std::move(message);
     emit errorChanged();

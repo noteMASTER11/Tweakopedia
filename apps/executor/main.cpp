@@ -4,7 +4,13 @@
 #include "execution/RegistryDwordExecutor.h"
 #include "execution/RegistrySnapshot.h"
 #include "execution/FeatureStateExecutor.h"
+#include "execution/FileOperationExecutor.h"
+#include "execution/RegistryTreeExecutor.h"
 #include "execution/TransactionRunner.h"
+#include "execution/ScheduledTaskExecutor.h"
+#include "execution/BcdElementExecutor.h"
+#include "execution/PowerSettingExecutor.h"
+#include "execution/WindowsComponentExecutor.h"
 #include "persistence/AppPaths.h"
 #include "persistence/Database.h"
 #include "persistence/TransactionFiles.h"
@@ -13,6 +19,10 @@
 #include "platform/WindowsRegistryBackend.h"
 #include "platform/WindowsAppxPackageProvider.h"
 #include "platform/WindowsFeatureStoreBackend.h"
+#include "platform/WindowsScheduledTaskBackend.h"
+#include "platform/WindowsBcdBackend.h"
+#include "platform/WindowsPowerSettingBackend.h"
+#include "platform/WindowsComponentBackend.h"
 #include "platform/WindowsSystemProfileProvider.h"
 
 #include <QCommandLineParser>
@@ -78,6 +88,37 @@ private:
     }
 
     QHash<QString, platform::RegistryReadResult> values_;
+};
+
+class MemoryScheduledTaskBackend final : public platform::IScheduledTaskBackend
+{
+public:
+    platform::ScheduledTaskReadResult read(const domain::ScheduledTaskLocation& location) override
+    { return platform::ScheduledTaskReadResult::present(values_.value(key(location), true)); }
+    platform::ScheduledTaskWriteResult setEnabled(
+        const domain::ScheduledTaskLocation& location, bool enabled) override
+    { values_.insert(key(location), enabled); return {.success = true}; }
+private:
+    static QString key(const domain::ScheduledTaskLocation& location)
+    { return location.folder + u'|' + location.name; }
+    QHash<QString, bool> values_;
+};
+
+class MemoryPowerSettingBackend final : public platform::IPowerSettingBackend
+{
+public:
+    platform::PowerSettingReadResult read(
+        const domain::PowerSettingLocation& location) const override
+    { return platform::PowerSettingReadResult::present(
+          values_.value(key(location), 7), u"381b4222-f694-41f0-9685-ff5bb260df2e"_s); }
+    platform::PowerSettingMutationResult write(
+        const domain::PowerSettingLocation& location, quint32 index) override
+    { values_.insert(key(location), index); return {.success = true}; }
+private:
+    static QString key(const domain::PowerSettingLocation& location)
+    { return location.subgroup + u'|' + location.setting + u'|'
+        + QString::number(static_cast<int>(location.source)); }
+    QHash<QString, quint32> values_;
 };
 #endif
 
@@ -162,9 +203,20 @@ int main(int argc, char* argv[])
                     return;
                 }
                 MemoryRegistryBackend backend;
-                execution::TransactionRunner runner(backend, files, repository);
+                MemoryScheduledTaskBackend scheduledTasks;
+                MemoryPowerSettingBackend powerSettings;
+                execution::TransactionRunner runner(
+                    {.registry = &backend, .scheduledTasks = &scheduledTasks,
+                     .powerSettings = &powerSettings}, files, repository);
                 (void)client.sendProgress(25, u"План принят"_s);
-                const auto result = runner.run(*decoded.plan);
+                const auto result = runner.run(*decoded.plan,
+                    [&](qsizetype index, qsizetype count, const domain::TweakId& id,
+                        QStringView type) {
+                        (void)client.sendProgress(
+                            25 + static_cast<int>((index * 65) / count),
+                            u"%1 · %2 · %3/%4"_s.arg(id.toString(), type)
+                                .arg(index).arg(count));
+                    });
                 (void)client.sendProgress(100, u"Тестовая операция завершена"_s);
                 sendAndQuit(client, {
                     {u"status"_s, result.success ? u"succeeded"_s
@@ -220,10 +272,25 @@ int main(int argc, char* argv[])
             platform::WindowsRegistryBackend backend;
             platform::WindowsAppxPackageProvider appxBackend;
             platform::WindowsFeatureStoreBackend featureBackend;
+            platform::WindowsScheduledTaskBackend scheduledTaskBackend;
+            platform::WindowsBcdBackend bcdBackend;
+            platform::WindowsPowerSettingBackend powerBackend;
+            platform::WindowsComponentBackend windowsComponentBackend;
             execution::TransactionRunner runner(
-                backend, files, repository, &appxBackend, &featureBackend);
+                {.registry = &backend, .appx = &appxBackend,
+                 .featureStore = &featureBackend, .scheduledTasks = &scheduledTaskBackend,
+                 .bcd = &bcdBackend, .powerSettings = &powerBackend,
+                 .windowsComponents = &windowsComponentBackend},
+                files, repository);
             (void)client.sendProgress(10, u"Снимок исходных значений"_s);
-            const auto result = runner.run(*decoded.plan);
+            const auto result = runner.run(*decoded.plan,
+                [&](qsizetype index, qsizetype count, const domain::TweakId& id,
+                    QStringView type) {
+                    (void)client.sendProgress(
+                        10 + static_cast<int>((index * 80) / count),
+                        u"%1 · %2 · %3/%4"_s.arg(id.toString(), type)
+                            .arg(index).arg(count));
+                });
             (void)client.sendProgress(100, result.success ? u"Изменения применены"_s : u"Операция завершилась ошибкой"_s);
             sendAndQuit(client, {
                 {u"status"_s, result.success ? u"succeeded"_s
@@ -269,8 +336,18 @@ int main(int argc, char* argv[])
             auto backend = std::make_unique<platform::WindowsRegistryBackend>();
 #endif
             execution::RegistryDwordExecutor executor(*backend);
+            execution::RegistryTreeExecutor treeExecutor(*backend);
+            execution::FileOperationExecutor fileExecutor(expectedDirectory);
             platform::WindowsFeatureStoreBackend featureBackend;
             execution::FeatureStateExecutor featureExecutor(featureBackend);
+            platform::WindowsScheduledTaskBackend scheduledTaskBackend;
+            execution::ScheduledTaskExecutor scheduledTaskExecutor(scheduledTaskBackend);
+            platform::WindowsBcdBackend bcdBackend;
+            execution::BcdElementExecutor bcdExecutor(bcdBackend);
+            platform::WindowsPowerSettingBackend powerBackend;
+            execution::PowerSettingExecutor powerExecutor(powerBackend);
+            platform::WindowsComponentBackend windowsComponentBackend;
+            execution::WindowsComponentExecutor windowsComponentExecutor(windowsComponentBackend);
             const auto operations = before->value(u"operations"_s).toArray();
             if (operations.isEmpty()) {
                 sendAndQuit(client, errorResult(u"rollback.snapshot_incomplete"_s, u"Снимок не содержит операций."_s), 15);
@@ -286,6 +363,54 @@ int main(int argc, char* argv[])
                     const auto snapshot = execution::FeatureSnapshot::fromJson(object);
                     if (snapshot) {
                         const auto restored = featureExecutor.restore(*snapshot);
+                        restoredSuccessfully = restored.success;
+                        restoreCode = restored.code;
+                        restoreMessage = restored.message;
+                    }
+                } else if (object.value(u"type"_s).toString() == u"registry.tree"_s) {
+                    const auto snapshot = domain::RegistryTreeSnapshot::fromJson(object);
+                    if (snapshot) {
+                        const auto restored = treeExecutor.restore(*snapshot);
+                        restoredSuccessfully = restored.success;
+                        restoreCode = restored.code;
+                        restoreMessage = restored.message;
+                    }
+                } else if (object.value(u"type"_s).toString() == u"file"_s) {
+                    const auto snapshot = domain::FileSnapshot::fromJson(object);
+                    if (snapshot) {
+                        const auto restored = fileExecutor.restore(*snapshot);
+                        restoredSuccessfully = restored.success;
+                        restoreCode = restored.code;
+                        restoreMessage = restored.message;
+                    }
+                } else if (object.value(u"type"_s).toString() == u"scheduled_task"_s) {
+                    const auto snapshot = domain::ScheduledTaskSnapshot::fromJson(object);
+                    if (snapshot) {
+                        const auto restored = scheduledTaskExecutor.restore(*snapshot);
+                        restoredSuccessfully = restored.success;
+                        restoreCode = restored.code;
+                        restoreMessage = restored.message;
+                    }
+                } else if (object.value(u"type"_s).toString() == u"bcd.element"_s) {
+                    const auto snapshot = domain::BcdElementSnapshot::fromJson(object);
+                    if (snapshot) {
+                        const auto restored = bcdExecutor.restore(*snapshot);
+                        restoredSuccessfully = restored.success;
+                        restoreCode = restored.code;
+                        restoreMessage = restored.message;
+                    }
+                } else if (object.value(u"type"_s).toString() == u"power.setting"_s) {
+                    const auto snapshot = domain::PowerSettingSnapshot::fromJson(object);
+                    if (snapshot) {
+                        const auto restored = powerExecutor.restore(*snapshot);
+                        restoredSuccessfully = restored.success;
+                        restoreCode = restored.code;
+                        restoreMessage = restored.message;
+                    }
+                } else if (object.value(u"type"_s).toString() == u"windows_component"_s) {
+                    const auto snapshot = domain::WindowsComponentSnapshot::fromJson(object);
+                    if (snapshot) {
+                        const auto restored = windowsComponentExecutor.restore(*snapshot);
                         restoredSuccessfully = restored.success;
                         restoreCode = restored.code;
                         restoreMessage = restored.message;

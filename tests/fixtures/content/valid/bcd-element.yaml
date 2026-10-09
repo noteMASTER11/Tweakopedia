@@ -1,0 +1,54 @@
+id: boot.dynamic-tick
+title: Динамический системный таймер
+category: boot
+subcategory: timers
+kind: setting
+summary: Управляет BCD-элементом disabledynamictick текущей загрузочной записи.
+explanation:
+  purpose: Позволяет выбрать штатное или принудительно отключённое состояние динамического таймера.
+  mechanism: Изменяет типизированный boolean BCD-элемент через WMI Provider.
+  effect: Меняется политика использования динамического системного таймера при загрузке.
+  tradeoffs: Изменение вступает в силу после перезагрузки и подходит не всем конфигурациям.
+  recommendation: Оставить штатное состояние без конкретной причины для изменения.
+  technical_details: Объект {current}, element type 0x260000A5.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 19041
+states:
+  default:
+    title: По умолчанию
+    operations:
+      - type: bcd.delete_element
+        object_id: "{current}"
+        element_type: 0x260000A5
+        value_kind: boolean
+  disabled:
+    title: Выключено
+    operations:
+      - type: bcd.set_element
+        object_id: "{current}"
+        element_type: 0x260000A5
+        value_kind: boolean
+        value: true
+windows_defaults:
+  - os: windows10
+    builds: [19041, 4294967295]
+    state: default
+  - os: windows11
+    builds: [22000, 4294967295]
+    state: default
+detect:
+  type: bcd.element
+  object_id: "{current}"
+  element_type: 0x260000A5
+  value_kind: boolean
+  states:
+    disabled: true
+  missing_state: default
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

@@ -15,7 +15,13 @@ class QueueListModel final : public QAbstractListModel
     Q_PROPERTY(int count READ count NOTIFY countChanged)
 
 public:
-    enum Role { IdRole = Qt::UserRole + 1, TitleRole, CurrentStateRole, TargetStateRole };
+    enum Role {
+        IdRole = Qt::UserRole + 1,
+        TitleRole,
+        CurrentStateRole,
+        TargetStateRole,
+        InputsRole,
+    };
     Q_ENUM(Role)
 
     explicit QueueListModel(QObject* parent = nullptr);
@@ -32,7 +38,13 @@ signals:
     void countChanged();
 
 private:
-    struct Entry { domain::TweakId id; QString title; QString currentState; QString targetState; };
+    struct Entry {
+        domain::TweakId id;
+        QString title;
+        QString currentState;
+        QString targetState;
+        QVariantList inputs;
+    };
     QVector<Entry> entries_;
 };
 

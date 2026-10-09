@@ -15,8 +15,10 @@ public:
     [[nodiscard]] const QString& dataRoot() const noexcept;
     [[nodiscard]] QString runtimeRoot() const;
     [[nodiscard]] QString databasePath() const;
+    [[nodiscard]] QString settingsPath() const;
     [[nodiscard]] QString logsRoot() const;
     [[nodiscard]] QString transactionsRoot() const;
+    [[nodiscard]] QString pendingInputsRoot() const;
     [[nodiscard]] bool ensureDataDirectories() const;
 
 private:

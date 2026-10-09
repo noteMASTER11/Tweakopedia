@@ -125,7 +125,10 @@ Page {
             supportDetails: model.supportDetails
             impact: model.impact
             restart: model.restart
+            inputs: model.inputs
             onTargetSelected: state => root.controller.selectTarget(model.id, state)
+            onParameterizedTargetSelected: (state, inputs) =>
+                root.controller.selectParameterizedTarget(model.id, state, inputs)
             onExplanationRequested: root.showExplanation(model.id, tweakRowDelegate)
         }
     }

@@ -1,8 +1,10 @@
 #pragma once
 
 #include "domain/RegistryTypes.h"
+#include "domain/RegistryTree.h"
 #include "domain/SystemProfile.h"
 #include "domain/TweakId.h"
+#include "domain/TweakInput.h"
 
 #include <QString>
 #include <QStringList>
@@ -69,6 +71,8 @@ struct TweakStateDefinition {
     QVector<OperationSpec> operations;
 };
 
+[[nodiscard]] QStringList referencedInputIds(const TweakStateDefinition& state);
+
 struct WindowsDefaultRule {
     WindowsFamily operatingSystem{WindowsFamily::Unknown};
     BuildRange builds;
@@ -84,11 +88,18 @@ struct TweakDefinition {
     QString summary;
     TweakExplanation explanation;
     WindowsCompatibility compatibility;
+    QVector<TweakInputDefinition> inputs;
     QVector<TweakStateDefinition> states;
     QVector<WindowsDefaultRule> windowsDefaults;
     std::optional<RegistryDwordDetection> detection;
+    std::optional<RegistryValueDetection> valueDetection;
+    std::optional<RegistryTreeDetection> treeDetection;
     std::optional<AppxPackageDetection> appxDetection;
     std::optional<FeatureStateDetection> featureDetection;
+    std::optional<ScheduledTaskDetection> scheduledTaskDetection;
+    std::optional<BcdElementDetection> bcdDetection;
+    std::optional<PowerSettingDetection> powerDetection;
+    std::optional<WindowsComponentDetection> windowsComponentDetection;
     QVector<TweakId> dependencies;
     QVector<TweakId> conflicts;
     Impact impact{Impact::Low};

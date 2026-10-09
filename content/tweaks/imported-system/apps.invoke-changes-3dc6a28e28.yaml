@@ -1,0 +1,45 @@
+id: apps.invoke-changes-3dc6a28e28
+title: 'Песочница Windows'
+category: apps
+subcategory: optional-features
+kind: setting
+summary: 'Включает или отключает дополнительный компонент Windows Containers-DisposableClientVM.'
+explanation:
+  purpose: 'Включает или отключает дополнительный компонент Windows Containers-DisposableClientVM.'
+  mechanism: 'Приложение передаёт DISM фиксированное имя компонента без произвольной командной строки.'
+  effect: 'После включения компонент становится доступен приложениям; после отключения его функции недоступны.'
+  tradeoffs: 'Изменение состава Windows может потребовать перезагрузки и дополнительного места на диске.'
+  recommendation: 'Включайте компонент только для сценариев, которым он требуется.'
+  technical_details: 'DISM Online FeatureName Containers-DisposableClientVM.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 18362
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: windows_feature.set_state
+        name: Containers-DisposableClientVM
+        state: disabled
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: windows_feature.set_state
+        name: Containers-DisposableClientVM
+        state: enabled
+windows_defaults: []
+detect:
+  type: windows_component
+  component_kind: feature
+  name: Containers-DisposableClientVM
+  states:
+    disabled: disabled
+    absent: disabled
+    enabled: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

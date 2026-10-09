@@ -20,12 +20,24 @@ platform::RegistryWriteResult FakeRegistryBackend::writeDword(
     const domain::RegistryLocation& location,
     quint32 value)
 {
-    QByteArray bytes(sizeof(value), Qt::Uninitialized);
-    qToLittleEndian(value, bytes.data());
+    return writeValue(location, domain::RegistryValueSpec::dword(value));
+}
+
+platform::RegistryWriteResult FakeRegistryBackend::writeValue(
+    const domain::RegistryLocation& location,
+    const domain::RegistryValueSpec& value)
+{
+    auto type = platform::RegistryValueType::Unknown;
+    if (value.nativeType == 4) type = platform::RegistryValueType::Dword;
+    else if (value.nativeType == 11) type = platform::RegistryValueType::Qword;
+    else if (value.nativeType == 1) type = platform::RegistryValueType::String;
+    else if (value.nativeType == 2) type = platform::RegistryValueType::ExpandString;
+    else if (value.nativeType == 7) type = platform::RegistryValueType::MultiString;
+    else if (value.nativeType == 3) type = platform::RegistryValueType::Binary;
     values_.insert(keyFor(location), platform::RegistryReadResult::present(
-        platform::RegistryValueType::Dword,
-        bytes,
-        4));
+        type,
+        value.rawValue,
+        value.nativeType));
     return platform::RegistryWriteResult::succeeded();
 }
 
@@ -34,15 +46,10 @@ platform::RegistryWriteResult FakeRegistryBackend::writeRaw(
     quint32 nativeType,
     const QByteArray& rawValue)
 {
-    auto type = platform::RegistryValueType::Unknown;
-    if (nativeType == 4) type = platform::RegistryValueType::Dword;
-    else if (nativeType == 1 || nativeType == 2) type = platform::RegistryValueType::String;
-    else if (nativeType == 3) type = platform::RegistryValueType::Binary;
-    values_.insert(keyFor(location), platform::RegistryReadResult::present(
-        type,
-        rawValue,
-        nativeType));
-    return platform::RegistryWriteResult::succeeded();
+    return writeValue(location, domain::RegistryValueSpec{
+        .nativeType = nativeType,
+        .rawValue = rawValue,
+    });
 }
 
 platform::RegistryWriteResult FakeRegistryBackend::deleteValue(const domain::RegistryLocation& location)

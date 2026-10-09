@@ -15,6 +15,9 @@ public:
     [[nodiscard]] platform::RegistryWriteResult writeDword(
         const domain::RegistryLocation& location,
         quint32 value) override;
+    [[nodiscard]] platform::RegistryWriteResult writeValue(
+        const domain::RegistryLocation& location,
+        const domain::RegistryValueSpec& value) override;
     [[nodiscard]] platform::RegistryWriteResult writeRaw(
         const domain::RegistryLocation& location,
         quint32 nativeType,

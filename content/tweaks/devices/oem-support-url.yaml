@@ -1,0 +1,35 @@
+id: devices.oem-support-url
+title: 'Сайт поддержки OEM'
+category: devices
+subcategory: metadata
+kind: setting
+summary: 'Задаёт веб-адрес службы поддержки производителя.'
+explanation:
+  purpose: 'Позволяет указать или убрать ссылку на страницу поддержки.'
+  mechanism: 'Windows читает строку SupportURL из раздела OEMInformation.'
+  effect: 'В OEM-сведениях становится доступен указанный адрес поддержки.'
+  tradeoffs: 'Программа сохраняет адрес как текст и не проверяет доступность сайта.'
+  recommendation: 'Используйте полный адрес с https:// и проверяйте его перед применением.'
+  technical_details: 'Изменяется REG_SZ HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation\SupportURL.'
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+inputs:
+  support_url: {type: text, label: 'Адрес поддержки', required: true, min_length: 1, max_length: 2048}
+states:
+  cleared:
+    title: 'Очистить'
+    operations:
+      - {type: registry.delete_value, hive: HKLM, key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value_name: SupportURL, view: registry64}
+  configured:
+    title: 'Задать значение'
+    operations:
+      - {type: registry.set_value, hive: HKLM, key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value_name: SupportURL, view: registry64, value_type: string, value: '${input.support_url}'}
+windows_defaults:
+  - {os: windows10, builds: [10240, 19045], state: cleared}
+  - {os: windows11, builds: [22000, 26200], state: cleared}
+detect: {type: registry.value, hive: HKLM, key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value_name: SupportURL, view: registry64, states: {}, missing_state: cleared}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

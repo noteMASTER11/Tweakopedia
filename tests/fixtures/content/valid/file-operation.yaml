@@ -1,0 +1,51 @@
+id: devices.file-operation
+title: 'Файл логотипа производителя'
+category: devices
+subcategory: metadata
+kind: setting
+summary: 'Копирует выбранный логотип в фиксированный системный путь.'
+explanation:
+  purpose: 'Задаёт файл логотипа производителя.'
+  mechanism: 'Заменяет файл в фиксированном каталоге.'
+  effect: 'Система получает новый файл логотипа.'
+  tradeoffs: 'Исходный файл назначения сохраняется в транзакции.'
+  recommendation: 'Используйте BMP подходящего размера.'
+  technical_details: 'Файл копируется без выполнения командной оболочки.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+inputs:
+  logo:
+    type: file
+    label: 'Логотип'
+    required: true
+    extensions: [bmp]
+    max_size: 1048576
+states:
+  cleared:
+    title: 'Удалено'
+    operations:
+      - {type: file.delete, destination: 'C:/Windows/System32/oemlogo.bmp'}
+  configured:
+    title: 'Настроено'
+    operations:
+      - {type: file.replace, input: logo, destination: 'C:/Windows/System32/oemlogo.bmp'}
+windows_defaults:
+  - {os: windows10, builds: [10240, 19045], state: cleared}
+  - {os: windows11, builds: [22000, 26200], state: cleared}
+detect:
+  type: registry.value
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation'
+  value_name: Logo
+  view: registry64
+  states:
+    configured: {value_type: string, value: 'C:\Windows\System32\oemlogo.bmp'}
+  missing_state: cleared
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

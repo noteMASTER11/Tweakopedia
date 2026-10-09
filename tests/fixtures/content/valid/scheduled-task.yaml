@@ -1,0 +1,51 @@
+id: privacy.disable-telemetry-task
+title: Задача телеметрии Windows
+category: privacy
+subcategory: telemetry
+kind: setting
+summary: Управляет запуском фиксированной задачи планировщика Windows.
+explanation:
+  purpose: Позволяет отключить отдельную задачу сбора диагностических данных.
+  mechanism: Изменяет только свойство Enabled существующей задачи планировщика.
+  effect: Задача перестаёт запускаться по своим триггерам.
+  tradeoffs: При отсутствии задачи параметр не поддерживается текущей системой.
+  recommendation: Использовать после проверки назначения конкретной задачи.
+  technical_details: Изменяется Enabled задачи Microsoft Compatibility Appraiser.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 19041
+states:
+  enabled:
+    title: Включено
+    operations:
+      - type: scheduled_task.set_enabled
+        folder: \Microsoft\Windows\Application Experience
+        name: Microsoft Compatibility Appraiser
+        enabled: true
+  disabled:
+    title: Выключено
+    operations:
+      - type: scheduled_task.set_enabled
+        folder: \Microsoft\Windows\Application Experience
+        name: Microsoft Compatibility Appraiser
+        enabled: false
+windows_defaults:
+  - os: windows10
+    builds: [19041, 4294967295]
+    state: enabled
+  - os: windows11
+    builds: [22000, 4294967295]
+    state: enabled
+detect:
+  type: scheduled_task
+  folder: \Microsoft\Windows\Application Experience
+  name: Microsoft Compatibility Appraiser
+  enabled_state: enabled
+  disabled_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

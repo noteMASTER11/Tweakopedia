@@ -1,0 +1,50 @@
+id: boot.spectre-meltdown-59671420ec
+title: 'Политика предотвращения выполнения данных'
+category: boot
+subcategory: diagnostics
+kind: setting
+summary: 'Управляет параметром загрузчика {current}|nx.'
+explanation:
+  purpose: 'Управляет параметром загрузчика {current}|nx.'
+  mechanism: 'Значение записывается типизированно через BCD WMI Provider в текущую загрузочную запись.'
+  effect: 'Выбранная политика применяется при следующей загрузке Windows.'
+  tradeoffs: 'Некорректная политика загрузки может изменить поведение старта системы.'
+  recommendation: 'Используйте штатный вариант, если нет конкретной причины менять загрузчик.'
+  technical_details: 'Объект {current}; element type 0x25000020; kind integer.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  opt_in:
+    title: 'Только компоненты Windows'
+    operations:
+      - type: bcd.set_element
+        object_id: '{current}'
+        element_type: 0x25000020
+        value_kind: integer
+        value: 0
+  always_on:
+    title: 'Всегда включено'
+    operations:
+      - type: bcd.set_element
+        object_id: '{current}'
+        element_type: 0x25000020
+        value_kind: integer
+        value: 3
+windows_defaults: []
+detect:
+  type: bcd.element
+  object_id: '{current}'
+  element_type: 0x25000020
+  value_kind: integer
+  states:
+    opt_in: 0
+    always_on: 3
+  missing_state: opt_in
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

@@ -1,13 +1,25 @@
 add_library(TweakopediaPlatform STATIC
+    IBcdBackend.h
+    IPowerSettingBackend.h
+    IWindowsComponentBackend.h
     IRegistryBackend.h
     IFeatureStoreBackend.h
     ISystemProfileProvider.h
+    IScheduledTaskBackend.h
     WindowsAppxPackageProvider.cpp
     WindowsAppxPackageProvider.h
     WindowsFeatureStoreBackend.cpp
     WindowsFeatureStoreBackend.h
     WindowsRegistryBackend.cpp
     WindowsRegistryBackend.h
+    WindowsScheduledTaskBackend.cpp
+    WindowsScheduledTaskBackend.h
+    WindowsBcdBackend.cpp
+    WindowsBcdBackend.h
+    WindowsPowerSettingBackend.cpp
+    WindowsPowerSettingBackend.h
+    WindowsComponentBackend.cpp
+    WindowsComponentBackend.h
     WindowsSystemProfileProvider.cpp
     WindowsSystemProfileProvider.h
     WindowsSystemOverviewProvider.cpp
@@ -28,6 +40,8 @@ target_link_libraries(TweakopediaPlatform
         dxgi
         ole32
         oleaut32
+        powrprof
+        taskschd
         secur32
         wbemuuid
 )

@@ -1,0 +1,42 @@
+id: power.candidate-ff27605945
+title: 'Отключить энергосбережение — fc7372b6-ab2d-43ee-8797-15e9841f2cca (AC)'
+category: power
+subcategory: advanced-platform
+kind: setting
+summary: 'Управляет одним индексом активной схемы питания.'
+explanation:
+  purpose: 'Управляет одним индексом активной схемы питания.'
+  mechanism: 'PowrProf записывает фиксированное значение отдельно для питания от сети или батареи.'
+  effect: 'Новое значение начинает участвовать в работе активной схемы питания.'
+  tradeoffs: 'Эффект зависит от поддержки GUID прошивкой, драйвером и текущим оборудованием.'
+  recommendation: 'Если назначение GUID не отображается системой, оставьте текущее значение.'
+  technical_details: 'Активная схема; subgroup 0012ee47-9041-4b5d-9b77-535fba8b1442; setting fc7372b6-ab2d-43ee-8797-15e9841f2cca; source ac.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  index_0:
+    title: 'Индекс 0'
+    operations:
+      - type: power.set_index
+        scheme: active
+        subgroup: 0012ee47-9041-4b5d-9b77-535fba8b1442
+        setting: fc7372b6-ab2d-43ee-8797-15e9841f2cca
+        source: ac
+        index: 0
+windows_defaults: []
+detect:
+  type: power.setting
+  scheme: active
+  subgroup: 0012ee47-9041-4b5d-9b77-535fba8b1442
+  setting: fc7372b6-ab2d-43ee-8797-15e9841f2cca
+  source: ac
+  states:
+    0: index_0
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

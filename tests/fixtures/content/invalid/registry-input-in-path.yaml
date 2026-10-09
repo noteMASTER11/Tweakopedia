@@ -1,0 +1,21 @@
+id: devices.dynamic-registry-path
+title: 'Динамический путь реестра'
+category: devices
+subcategory: metadata
+kind: setting
+summary: 'Некорректный тестовый путь.'
+explanation: {purpose: 'Тест.', mechanism: 'Тест.', effect: 'Тест.', tradeoffs: 'Тест.', recommendation: 'Тест.', technical_details: 'Тест.'}
+compatibility: {architectures: [x64], os: [windows11], min_build: 22000}
+states:
+  enabled:
+    title: 'Включено'
+    operations:
+      - {type: registry.set_value, hive: HKCU, key: 'Software\${vendor}\Product', value_name: '${name}', view: registry64, value_type: string, value: fixed}
+windows_defaults: [{os: windows11, builds: [22000, 26200], state: enabled}]
+detect: {type: registry.value, hive: HKCU, key: 'Software\${vendor}\Product', value_name: '${name}', view: registry64, states: {enabled: {value_type: string, value: fixed}}, missing_state: enabled}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

@@ -12,27 +12,79 @@ namespace {
 
 QString registryLocation(const domain::RegistryLocation& location)
 {
-    const auto hive = location.hive == domain::RegistryHive::LocalMachine
-        ? u"HKLM"_s : u"HKCU"_s;
+    QString hive;
+    switch (location.hive) {
+    case domain::RegistryHive::CurrentUser: hive = u"HKCU"_s; break;
+    case domain::RegistryHive::LocalMachine: hive = u"HKLM"_s; break;
+    case domain::RegistryHive::ClassesRoot: hive = u"HKCR"_s; break;
+    case domain::RegistryHive::Users: hive = u"HKU"_s; break;
+    }
     return hive + u"\\"_s + location.key + u"\\"_s + location.valueName;
+}
+
+QString registryLocation(const domain::RegistryKeyLocation& location)
+{
+    QString hive;
+    switch (location.hive) {
+    case domain::RegistryHive::CurrentUser: hive = u"HKCU"_s; break;
+    case domain::RegistryHive::LocalMachine: hive = u"HKLM"_s; break;
+    case domain::RegistryHive::ClassesRoot: hive = u"HKCR"_s; break;
+    case domain::RegistryHive::Users: hive = u"HKU"_s; break;
+    }
+    return hive + u"\\"_s + location.key;
 }
 
 QStringList technicalObjects(const domain::TweakDefinition& tweak)
 {
     QStringList objects;
     if (tweak.detection) objects.append(registryLocation(tweak.detection->location));
+    if (tweak.valueDetection) objects.append(registryLocation(tweak.valueDetection->location));
+    if (tweak.treeDetection) objects.append(registryLocation(tweak.treeDetection->location));
     if (tweak.appxDetection) objects.append(u"AppX: "_s + tweak.appxDetection->packageName);
     if (tweak.featureDetection) {
         objects.append(u"Feature ID: "_s + QString::number(tweak.featureDetection->featureId));
+    }
+    if (tweak.scheduledTaskDetection) {
+        objects.append(u"Задача: "_s + tweak.scheduledTaskDetection->location.folder
+                       + u"\\"_s + tweak.scheduledTaskDetection->location.name);
+    }
+    if (tweak.bcdDetection) {
+        objects.append(u"BCD: "_s + tweak.bcdDetection->spec.objectId + u" / 0x"_s
+                       + QString::number(tweak.bcdDetection->spec.elementType, 16));
+    }
+    if (tweak.powerDetection) {
+        objects.append(u"Питание: "_s + tweak.powerDetection->location.subgroup
+                       + u" / "_s + tweak.powerDetection->location.setting);
+    }
+    if (tweak.windowsComponentDetection) {
+        objects.append(u"Компонент Windows: "_s
+                       + tweak.windowsComponentDetection->target.name);
     }
     for (const auto& state : tweak.states) {
         for (const auto& operation : state.operations) {
             std::visit([&](const auto& value) {
                 using T = std::decay_t<decltype(value)>;
-                if constexpr (std::is_same_v<T, domain::SetRegistryDwordOperation>) {
+                if constexpr (std::is_same_v<T, domain::SetRegistryDwordOperation>
+                              || std::is_same_v<T, domain::SetRegistryValueOperation>
+                              || std::is_same_v<T, domain::DeleteRegistryValueOperation>
+                              || std::is_same_v<T, domain::CreateRegistryKeyOperation>
+                              || std::is_same_v<T, domain::DeleteRegistryTreeOperation>) {
                     objects.append(registryLocation(value.location));
                 } else if constexpr (std::is_same_v<T, domain::RemoveAppxPackageOperation>) {
                     objects.append(u"AppX: "_s + value.packageName);
+                } else if constexpr (std::is_same_v<T, domain::FileOperationDefinition>) {
+                    objects.append(value.destination);
+                } else if constexpr (std::is_same_v<T, domain::SetScheduledTaskEnabledOperation>) {
+                    objects.append(u"Задача: "_s + value.location.folder
+                                   + u"\\"_s + value.location.name);
+                } else if constexpr (std::is_same_v<T, domain::SetBcdElementOperation>) {
+                    objects.append(u"BCD: "_s + value.spec.objectId + u" / 0x"_s
+                                   + QString::number(value.spec.elementType, 16));
+                } else if constexpr (std::is_same_v<T, domain::SetPowerSettingOperation>) {
+                    objects.append(u"Питание: "_s + value.location.subgroup
+                                   + u" / "_s + value.location.setting);
+                } else if constexpr (std::is_same_v<T, domain::SetWindowsComponentStateOperation>) {
+                    objects.append(u"Компонент Windows: "_s + value.target.name);
                 } else {
                     objects.append(u"Feature ID: "_s + QString::number(value.featureId));
                 }

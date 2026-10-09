@@ -18,6 +18,7 @@ QVariant QueueListModel::data(const QModelIndex& index, int role) const
     case TitleRole: return entry.title;
     case CurrentStateRole: return entry.currentState;
     case TargetStateRole: return entry.targetState;
+    case InputsRole: return entry.inputs;
     default: return {};
     }
 }
@@ -25,7 +26,7 @@ QVariant QueueListModel::data(const QModelIndex& index, int role) const
 QHash<int, QByteArray> QueueListModel::roleNames() const
 {
     return {{IdRole, "id"}, {TitleRole, "title"}, {CurrentStateRole, "currentState"},
-            {TargetStateRole, "targetState"}};
+            {TargetStateRole, "targetState"}, {InputsRole, "inputs"}};
 }
 
 void QueueListModel::reset(
@@ -38,7 +39,13 @@ void QueueListModel::reset(
     entries_.clear();
     for (const auto& item : queue.items()) {
         if (const auto* tweak = catalog.find(item.tweakId)) {
-            entries_.append({item.tweakId, tweak->title, states.value(item.tweakId).stateId, item.targetState});
+            entries_.append({
+                item.tweakId,
+                tweak->title,
+                states.value(item.tweakId).stateId,
+                item.targetState,
+                domain::inputSummaryToVariantList(tweak->inputs, item.inputs),
+            });
         }
     }
     endResetModel();

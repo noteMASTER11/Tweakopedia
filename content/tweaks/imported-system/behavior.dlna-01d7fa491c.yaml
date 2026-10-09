@@ -1,0 +1,45 @@
+id: behavior.dlna-01d7fa491c
+title: 'Включить потоковую передачу мультимедиа DLNA — Windows Media Sharing'
+category: behavior
+subcategory: system-components
+kind: setting
+summary: 'Управляет запуском задачи планировщика Windows Media Sharing.'
+explanation:
+  purpose: 'Управляет запуском задачи планировщика Windows Media Sharing.'
+  mechanism: 'Меняет только свойство Enabled существующей задачи через Task Scheduler API.'
+  effect: 'Выключенная задача не запускается по своим триггерам; включённая снова следует своему расписанию.'
+  tradeoffs: 'Если соответствующее приложение не установлено, параметр отображается как неподдерживаемый.'
+  recommendation: 'Изменяйте состояние только после проверки назначения задачи.'
+  technical_details: 'Задача: \Microsoft\Windows\Windows Media Sharing.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: scheduled_task.set_enabled
+        folder: '\Microsoft\Windows'
+        name: 'Windows Media Sharing'
+        enabled: true
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: scheduled_task.set_enabled
+        folder: '\Microsoft\Windows'
+        name: 'Windows Media Sharing'
+        enabled: false
+windows_defaults: []
+detect:
+  type: scheduled_task
+  folder: '\Microsoft\Windows'
+  name: 'Windows Media Sharing'
+  enabled_state: enabled
+  disabled_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -1,5 +1,8 @@
 [CmdletBinding()]
-param()
+param(
+    [string]$InputQml = '',
+    [string]$OutputName = ''
+)
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
@@ -11,7 +14,24 @@ $outputRoot = 'D:\ChatGPT\Projects\Tweakopedia\artifacts\fluent-ui'
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 $runner = Join-Path $projectRoot 'build\mingw-debug\tests\TweakopediaVisualCapture.exe'
-$inputQml = Join-Path $projectRoot 'tests\visual\FluentCatalogPreview.qml'
+if ([string]::IsNullOrWhiteSpace($InputQml)) {
+    $inputQml = Join-Path $projectRoot 'tests\visual\FluentCatalogPreview.qml'
+}
+elseif ([System.IO.Path]::IsPathRooted($InputQml)) {
+    $inputQml = [System.IO.Path]::GetFullPath($InputQml)
+}
+else {
+    $inputQml = [System.IO.Path]::GetFullPath((Join-Path $projectRoot $InputQml))
+}
+if (-not (Test-Path -LiteralPath $inputQml -PathType Leaf)) {
+    throw "QML preview not found: $inputQml"
+}
+if (-not [string]::IsNullOrWhiteSpace($OutputName)) {
+    if ($OutputName -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$') {
+        throw 'OutputName must be a simple file-system name.'
+    }
+    $outputRoot = Join-Path $outputRoot $OutputName
+}
 New-Item -ItemType Directory -Force $tempRoot, $outputRoot | Out-Null
 
 $previous = @{

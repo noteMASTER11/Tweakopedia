@@ -109,7 +109,9 @@ TestCase {
             id: "boot.verbose-logon-messages",
             title: "Подробные сообщения входа",
             currentState: "disabled",
-            targetState: "enabled"
+            targetState: "enabled",
+            inputs: [{id: "manufacturer", label: "Производитель", type: "text",
+                      value: "Tweakopedia"}]
         })
         fakeController.queue = queuedChanges
     }
@@ -136,6 +138,10 @@ TestCase {
     function test_queueUsesCancelAndApplyActions() {
         addQueuedChange()
         const page = createTemporaryObject(queueComponent, this)
+
+        const inputSummary = findChild(page, "queueInputSummary")
+        verify(inputSummary)
+        compare(inputSummary.text, "Производитель: Tweakopedia")
 
         const cancel = findChild(page, "cancelQueueItemButton")
         compare(cancel.text, "Отменить")

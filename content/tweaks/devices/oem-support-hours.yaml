@@ -1,0 +1,35 @@
+id: devices.oem-support-hours
+title: 'Часы работы поддержки OEM'
+category: devices
+subcategory: metadata
+kind: setting
+summary: 'Задаёт текст с часами работы службы поддержки производителя.'
+explanation:
+  purpose: 'Позволяет указать расписание поддержки, показываемое рядом с OEM-контактами.'
+  mechanism: 'Windows читает строку SupportHours из раздела OEMInformation.'
+  effect: 'В OEM-сведениях появляется заданный текст о времени работы поддержки.'
+  tradeoffs: 'Windows не проверяет формат и не использует значение как расписание.'
+  recommendation: 'Пишите кратко, например: Пн–Пт, 09:00–18:00.'
+  technical_details: 'Изменяется REG_SZ HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation\SupportHours.'
+compatibility: {architectures: [x64], os: [windows10, windows11], min_build: 10240}
+inputs:
+  support_hours: {type: text, label: 'Часы работы', required: true, min_length: 1, max_length: 128}
+states:
+  cleared:
+    title: 'Очистить'
+    operations:
+      - {type: registry.delete_value, hive: HKLM, key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value_name: SupportHours, view: registry64}
+  configured:
+    title: 'Задать значение'
+    operations:
+      - {type: registry.set_value, hive: HKLM, key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value_name: SupportHours, view: registry64, value_type: string, value: '${input.support_hours}'}
+windows_defaults:
+  - {os: windows10, builds: [10240, 19045], state: cleared}
+  - {os: windows11, builds: [22000, 26200], state: cleared}
+detect: {type: registry.value, hive: HKLM, key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value_name: SupportHours, view: registry64, states: {}, missing_state: cleared}
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

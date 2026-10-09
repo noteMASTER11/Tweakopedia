@@ -32,9 +32,16 @@ ComboBox {
         currentIndex = indexOfState(selectedState)
     }
 
+    function chooseState(index) {
+        if (index < 0 || index >= states.length)
+            return
+        currentIndex = index
+        stateSelected(states[index].id)
+    }
+
     onSelectedStateChanged: syncSelection()
     onStatesChanged: syncSelection()
-    onActivated: index => stateSelected(states[index].id)
+    onActivated: index => chooseState(index)
     Component.onCompleted: syncSelection()
 
     contentItem: Text {
@@ -116,9 +123,8 @@ ComboBox {
         }
 
         onClicked: {
-            root.currentIndex = index
+            root.chooseState(index)
             root.popup.close()
-            root.activated(index)
         }
     }
 

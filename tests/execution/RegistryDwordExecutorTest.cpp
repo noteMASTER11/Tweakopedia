@@ -58,7 +58,7 @@ private slots:
             << dwordBytes(1);
         QTest::newRow("wrong-type-expand-string")
             << int(platform::RegistryPresence::Present)
-            << int(platform::RegistryValueType::String)
+            << int(platform::RegistryValueType::ExpandString)
             << quint32{2}
             << QByteArray::fromHex("6f006e0065000000");
     }

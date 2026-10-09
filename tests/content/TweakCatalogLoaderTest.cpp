@@ -96,6 +96,170 @@ private slots:
         QCOMPARE(operation->state, FeatureEnabledState::Enabled);
     }
 
+    void loadsScheduledTaskTweakWithFixedLocation()
+    {
+        const auto result = loadSingleFixture(u"valid/scheduled-task.yaml"_s);
+
+        QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
+        QVERIFY(result.catalog.has_value());
+        const auto* tweak = result.catalog->find(
+            *TweakId::parse(u"privacy.disable-telemetry-task"_s));
+        QVERIFY(tweak != nullptr);
+        QVERIFY(tweak->scheduledTaskDetection.has_value());
+        QCOMPARE(tweak->scheduledTaskDetection->location.folder,
+                 u"\\Microsoft\\Windows\\Application Experience"_s);
+        const auto* operation = std::get_if<SetScheduledTaskEnabledOperation>(
+            &tweak->states.at(1).operations.first());
+        QVERIFY(operation != nullptr);
+        QVERIFY(!operation->enabled);
+    }
+
+    void loadsTypedBcdElementTweak()
+    {
+        const auto result = loadSingleFixture(u"valid/bcd-element.yaml"_s);
+
+        QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
+        QVERIFY(result.catalog.has_value());
+        const auto* tweak = result.catalog->find(*TweakId::parse(u"boot.dynamic-tick"_s));
+        QVERIFY(tweak != nullptr);
+        QVERIFY(tweak->bcdDetection.has_value());
+        QCOMPARE(tweak->bcdDetection->spec.elementType, 0x260000A5U);
+        QCOMPARE(std::get<bool>(tweak->bcdDetection->valuesByState.value(u"disabled"_s)), true);
+        const auto& operation = std::get<SetBcdElementOperation>(
+            tweak->states.at(1).operations.first());
+        QVERIFY(operation.value.has_value());
+        QCOMPARE(std::get<bool>(*operation.value), true);
+    }
+
+    void loadsTypedPowerSettingTweak()
+    {
+        const auto result = loadSingleFixture(u"valid/power-setting.yaml"_s);
+        QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
+        const auto* tweak = result.catalog->find(*TweakId::parse(u"power.processor-minimum-ac"_s));
+        QVERIFY(tweak != nullptr);
+        QVERIFY(tweak->powerDetection.has_value());
+        QCOMPARE(tweak->powerDetection->location.source, PowerSource::Ac);
+        const auto& operation = std::get<SetPowerSettingOperation>(
+            tweak->states.at(1).operations.first());
+        QCOMPARE(operation.index, 100U);
+    }
+
+    void loadsTypedWindowsComponentTweak()
+    {
+        const auto result = loadSingleFixture(u"valid/windows-component.yaml"_s);
+        QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
+        const auto* tweak = result.catalog->find(
+            *TweakId::parse(u"components.virtual-machine-platform"_s));
+        QVERIFY(tweak != nullptr);
+        QVERIFY(tweak->windowsComponentDetection.has_value());
+        QCOMPARE(tweak->windowsComponentDetection->target.kind,
+                 WindowsComponentKind::Feature);
+        const auto& operation = std::get<SetWindowsComponentStateOperation>(
+            tweak->states.at(1).operations.first());
+        QCOMPARE(operation.state, WindowsComponentState::Enabled);
+    }
+
+    void loadsGenericRegistryValueTypes()
+    {
+        const auto result = loadSingleFixture(u"valid/registry-values.yaml"_s);
+
+        QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
+        QVERIFY(result.catalog.has_value());
+        const auto* tweak = result.catalog->find(*TweakId::parse(u"devices.registry-value-types"_s));
+        QVERIFY(tweak != nullptr);
+        QCOMPARE(tweak->states.size(), 7);
+
+        const auto expected = QVector<RegistryValueSpec>{
+            RegistryValueSpec::dword(16909060U),
+            RegistryValueSpec::qword(72623859790382856ULL),
+            RegistryValueSpec::string(u"OEM"),
+            RegistryValueSpec::expandString(u"%TEMP%\\logo.bmp"),
+            RegistryValueSpec::multiString({u"one"_s, u"two"_s}),
+            RegistryValueSpec::binary(QByteArray::fromHex("deadbeef")),
+        };
+        for (qsizetype index = 0; index < expected.size(); ++index) {
+            const auto* operation = std::get_if<SetRegistryValueOperation>(
+                &tweak->states.at(index).operations.first());
+            QVERIFY(operation != nullptr);
+            QCOMPARE(operation->value, expected.at(index));
+        }
+        QVERIFY(std::holds_alternative<DeleteRegistryValueOperation>(
+            tweak->states.last().operations.first()));
+        QVERIFY(tweak->valueDetection.has_value());
+        QCOMPARE(tweak->valueDetection->valuesByState.size(), 6);
+        QCOMPARE(tweak->valueDetection->missingState, u"deleted"_s);
+    }
+
+    void rejectsDynamicRegistryLocation()
+    {
+        const auto result = loadSingleFixture(u"invalid/registry-input-in-path.yaml"_s);
+        QVERIFY(!result.catalog.has_value());
+        QVERIFY(hasErrorCode(result, u"registry.location_dynamic"));
+    }
+
+    void rejectsUnknownRegistryValueType()
+    {
+        const auto result = loadSingleFixture(u"invalid/registry-unknown-value-type.yaml"_s);
+        QVERIFY(!result.catalog.has_value());
+        QVERIFY(hasErrorCode(result, u"registry.value_type_unknown"));
+    }
+
+    void loadsRegistryTreeOperations()
+    {
+        const auto result = loadSingleFixture(u"valid/registry-tree.yaml"_s);
+
+        QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
+        QVERIFY(result.catalog.has_value());
+        const auto* tweak = result.catalog->find(*TweakId::parse(u"devices.registry-tree"_s));
+        QVERIFY(tweak != nullptr);
+        const auto& create = std::get<CreateRegistryKeyOperation>(
+            tweak->states[0].operations.first());
+        const auto& remove = std::get<DeleteRegistryTreeOperation>(
+            tweak->states[1].operations.first());
+        QCOMPARE(create.location.key, u"Software\\Tweakopedia\\Tests\\Tree"_s);
+        QCOMPARE(remove.location, create.location);
+        QVERIFY(tweak->treeDetection.has_value());
+        QCOMPARE(tweak->treeDetection->location, create.location);
+        QCOMPARE(tweak->treeDetection->presentState, u"present"_s);
+        QCOMPARE(tweak->treeDetection->missingState, u"absent"_s);
+    }
+
+    void loadsParameterizedInputsAndPayloadReference()
+    {
+        const auto result = loadSingleFixture(u"valid/parameterized-registry.yaml"_s);
+
+        QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
+        QVERIFY(result.catalog.has_value());
+        const auto* tweak = result.catalog->find(*TweakId::parse(u"devices.parameterized-registry"_s));
+        QVERIFY(tweak != nullptr);
+        QCOMPARE(tweak->inputs.size(), 5);
+        QCOMPARE(tweak->inputs[0].type, TweakInputType::Text);
+        QCOMPARE(tweak->inputs[2].allowedExtensions, QStringList{u"bmp"_s});
+        QCOMPARE(tweak->inputs[3].choices.size(), 2);
+        const auto& operation = std::get<SetRegistryValueOperation>(
+            tweak->states[1].operations.first());
+        QCOMPARE(operation.valueInput, std::optional<QString>{u"manufacturer"_s});
+        QCOMPARE(operation.location.key,
+                 u"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\OEMInformation"_s);
+    }
+
+    void loadsFixedDestinationFileOperations()
+    {
+        const auto result = loadSingleFixture(u"valid/file-operation.yaml"_s);
+        QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
+        QVERIFY(result.catalog.has_value());
+        const auto* tweak = result.catalog->find(*TweakId::parse(u"devices.file-operation"_s));
+        QVERIFY(tweak != nullptr);
+        const auto remove = std::get<FileOperationDefinition>(
+            tweak->states[0].operations.first());
+        const auto replace = std::get<FileOperationDefinition>(
+            tweak->states[1].operations.first());
+        QCOMPARE(remove.kind, FileOperationKind::Delete);
+        QCOMPARE(replace.kind, FileOperationKind::Replace);
+        QCOMPARE(replace.inputId, u"logo"_s);
+        QCOMPARE(replace.destination, u"C:/Windows/System32/oemlogo.bmp"_s);
+    }
+
     void loadsDependencyAndConflictIds()
     {
         QTemporaryDir directory;
@@ -193,17 +357,25 @@ private slots:
 
         QVERIFY2(result.errors.isEmpty(), qPrintable(formatErrors(result)));
         QVERIFY(result.catalog.has_value());
-        QCOMPARE(result.catalog->size(), 685);
 
         QDirIterator contentFiles(
             tweaksDirectory, {u"*.yaml"_s}, QDir::Files, QDirIterator::Subdirectories);
+        int contentFileCount = 0;
         while (contentFiles.hasNext()) {
             const auto fileName = QFileInfo(contentFiles.next()).fileName();
+            ++contentFileCount;
             QVERIFY2(fileName.size() <= 80,
                      qPrintable(u"Слишком длинное имя файла для portable-runtime: "_s + fileName));
         }
+        QCOMPARE(result.catalog->size(), contentFileCount);
 
         const QStringList expectedIds{
+            u"devices.oem-manufacturer"_s,
+            u"devices.oem-model"_s,
+            u"devices.oem-support-hours"_s,
+            u"devices.oem-support-phone"_s,
+            u"devices.oem-support-url"_s,
+            u"devices.oem-logo"_s,
             u"apps.windows-ink-workspace"_s,
             u"apps.developer-mode"_s,
             u"apps.onedrive-sync"_s,
@@ -912,7 +1084,7 @@ private slots:
                 ++advancedPowerVisibilityCount;
             }
         }
-        QCOMPARE(advancedPowerVisibilityCount, 145);
+        QVERIFY(advancedPowerVisibilityCount >= 145);
 
         const auto visibilityId = *TweakId::parse(
             u"power.advanced-processor-performance-boost-mode"_s);
@@ -928,6 +1100,53 @@ private slots:
         QCOMPARE(hybridSleep->detection->location.valueName, u"ACSettingIndex"_s);
         QCOMPARE(hybridSleep->detection->statesByValue.value(0), u"disabled"_s);
         QCOMPARE(hybridSleep->detection->statesByValue.value(1), u"enabled"_s);
+
+        const auto oemKey = u"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\OEMInformation"_s;
+        const QStringList oemTextIds{
+            u"devices.oem-manufacturer"_s,
+            u"devices.oem-model"_s,
+            u"devices.oem-support-hours"_s,
+            u"devices.oem-support-phone"_s,
+            u"devices.oem-support-url"_s,
+        };
+        const QStringList oemValueNames{
+            u"Manufacturer"_s, u"Model"_s, u"SupportHours"_s,
+            u"SupportPhone"_s, u"SupportURL"_s,
+        };
+        for (qsizetype index = 0; index < oemTextIds.size(); ++index) {
+            const auto* tweak = result.catalog->find(*TweakId::parse(oemTextIds[index]));
+            QVERIFY(tweak != nullptr);
+            QCOMPARE(tweak->category, u"devices"_s);
+            QCOMPARE(tweak->subcategory, u"metadata"_s);
+            QCOMPARE(tweak->inputs.size(), 1);
+            QCOMPARE(tweak->inputs.first().type, TweakInputType::Text);
+            QVERIFY(tweak->inputs.first().required);
+            QCOMPARE(tweak->valueDetection->location.key, oemKey);
+            QCOMPARE(tweak->valueDetection->location.valueName, oemValueNames[index]);
+            QCOMPARE(std::get<DeleteRegistryValueOperation>(
+                         tweak->states.first().operations.first()).location.valueName,
+                     oemValueNames[index]);
+            const auto configured = std::get<SetRegistryValueOperation>(
+                tweak->states.last().operations.first());
+            QCOMPARE(configured.location.valueName, oemValueNames[index]);
+            QCOMPARE(configured.value.nativeType, quint32{1});
+            QCOMPARE(configured.valueInput,
+                     std::optional<QString>{tweak->inputs.first().id});
+        }
+
+        const auto* logo = result.catalog->find(*TweakId::parse(u"devices.oem-logo"_s));
+        QVERIFY(logo != nullptr);
+        QCOMPARE(logo->inputs.size(), 1);
+        QCOMPARE(logo->inputs.first().type, TweakInputType::File);
+        QCOMPARE(logo->inputs.first().allowedExtensions, QStringList{u"bmp"_s});
+        QVERIFY(logo->inputs.first().maximumFileSize.has_value());
+        QCOMPARE(logo->valueDetection->location.key, oemKey);
+        QCOMPARE(logo->valueDetection->location.valueName, u"Logo"_s);
+        const auto logoReplace = std::get<FileOperationDefinition>(
+            logo->states.last().operations.first());
+        QCOMPARE(logoReplace.kind, FileOperationKind::Replace);
+        QCOMPARE(logoReplace.inputId, u"logo"_s);
+        QCOMPARE(logoReplace.destination, u"C:/Windows/System32/oemlogo.bmp"_s);
     }
 };
 

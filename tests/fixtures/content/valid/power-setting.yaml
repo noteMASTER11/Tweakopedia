@@ -1,0 +1,58 @@
+id: power.processor-minimum-ac
+title: Минимальное состояние процессора от сети
+category: power
+subcategory: processor
+kind: setting
+summary: Выбирает минимальное состояние процессора для питания от сети.
+explanation:
+  purpose: Управляет нижней границей производительности процессора.
+  mechanism: Изменяет AC-индекс параметра в активной схеме питания.
+  effect: Процессор может сильнее снижать или удерживать частоту.
+  tradeoffs: Высокое значение увеличивает энергопотребление и нагрев.
+  recommendation: Использовать штатное значение без конкретной задачи.
+  technical_details: PowrProf AC value index для GUID параметра процессора.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 19041
+states:
+  balanced:
+    title: Сбалансировано
+    operations:
+      - type: power.set_index
+        scheme: active
+        subgroup: 54533251-82be-4824-96c1-47b60b740d00
+        setting: 893dee8e-2bef-41e0-89c6-b55d0929964c
+        source: ac
+        index: 5
+  maximum:
+    title: Максимум
+    operations:
+      - type: power.set_index
+        scheme: active
+        subgroup: 54533251-82be-4824-96c1-47b60b740d00
+        setting: 893dee8e-2bef-41e0-89c6-b55d0929964c
+        source: ac
+        index: 100
+windows_defaults:
+  - os: windows10
+    builds: [19041, 4294967295]
+    state: balanced
+  - os: windows11
+    builds: [22000, 4294967295]
+    state: balanced
+detect:
+  type: power.setting
+  scheme: active
+  subgroup: 54533251-82be-4824-96c1-47b60b740d00
+  setting: 893dee8e-2bef-41e0-89c6-b55d0929964c
+  source: ac
+  states:
+    5: balanced
+    100: maximum
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

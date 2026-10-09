@@ -1,0 +1,69 @@
+id: devices.registry-value-types
+title: 'Типизированные значения реестра'
+category: devices
+subcategory: metadata
+kind: setting
+summary: 'Проверяет загрузку всех поддерживаемых типов значений реестра.'
+explanation:
+  purpose: 'Описывает типизированные значения реестра.'
+  mechanism: 'Каждое состояние хранит точный native type и байты.'
+  effect: 'Загрузчик формирует типизированную операцию.'
+  tradeoffs: 'Файл используется только тестами каталога.'
+  recommendation: 'Применяется для проверки контракта загрузчика.'
+  technical_details: 'Тестовый объект HKCU Software Tweakopedia Tests TypedValue.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  dword:
+    title: 'DWORD'
+    operations:
+      - {type: registry.set_value, hive: HKCU, key: 'Software\Tweakopedia\Tests', value_name: TypedValue, view: registry64, value_type: dword, value: 16909060}
+  qword:
+    title: 'QWORD'
+    operations:
+      - {type: registry.set_value, hive: HKCU, key: 'Software\Tweakopedia\Tests', value_name: TypedValue, view: registry64, value_type: qword, value: 72623859790382856}
+  string:
+    title: 'Строка'
+    operations:
+      - {type: registry.set_value, hive: HKCU, key: 'Software\Tweakopedia\Tests', value_name: TypedValue, view: registry64, value_type: string, value: OEM}
+  expand:
+    title: 'Расширяемая строка'
+    operations:
+      - {type: registry.set_value, hive: HKCU, key: 'Software\Tweakopedia\Tests', value_name: TypedValue, view: registry64, value_type: expand_string, value: '%TEMP%\logo.bmp'}
+  multi:
+    title: 'Многострочное значение'
+    operations:
+      - {type: registry.set_value, hive: HKCU, key: 'Software\Tweakopedia\Tests', value_name: TypedValue, view: registry64, value_type: multi_string, value: [one, two]}
+  binary:
+    title: 'Двоичное значение'
+    operations:
+      - {type: registry.set_value, hive: HKCU, key: 'Software\Tweakopedia\Tests', value_name: TypedValue, view: registry64, value_type: binary, value: deadbeef}
+  deleted:
+    title: 'Значение отсутствует'
+    operations:
+      - {type: registry.delete_value, hive: HKCU, key: 'Software\Tweakopedia\Tests', value_name: TypedValue, view: registry64}
+windows_defaults:
+  - {os: windows10, builds: [10240, 19045], state: deleted}
+  - {os: windows11, builds: [22000, 26200], state: deleted}
+detect:
+  type: registry.value
+  hive: HKCU
+  key: 'Software\Tweakopedia\Tests'
+  value_name: TypedValue
+  view: registry64
+  states:
+    dword: {value_type: dword, value: 16909060}
+    qword: {value_type: qword, value: 72623859790382856}
+    string: {value_type: string, value: OEM}
+    expand: {value_type: expand_string, value: '%TEMP%\logo.bmp'}
+    multi: {value_type: multi_string, value: [one, two]}
+    binary: {value_type: binary, value: deadbeef}
+  missing_state: deleted
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

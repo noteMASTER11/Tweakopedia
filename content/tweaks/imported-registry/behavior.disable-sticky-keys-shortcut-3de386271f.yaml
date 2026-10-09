@@ -1,0 +1,80 @@
+id: behavior.disable-sticky-keys-shortcut-3de386271f
+title: 'Disable_Sticky_Keys_Shortcut — параметр Flags'
+category: behavior
+subcategory: windows
+kind: setting
+summary: 'Управляет значением реестра Flags и показывает доступные варианты без скрытых команд.'
+explanation:
+  purpose: 'Позволяет явно выбрать сохранённое значение параметра Flags или удалить его.'
+  mechanism: 'Windows и приложения читают этот параметр из реестра; Tweakopedia записывает точный тип и содержимое значения.'
+  effect: 'Результат зависит от компонента, которому принадлежит объект. Доступные состояния повторяют однозначные значения из исходных твикеров.'
+  tradeoffs: 'Неизвестные текущей версии Windows значения отображаются как пользовательское состояние и не подменяются догадкой.'
+  recommendation: 'Перед применением сопоставьте выбранное буквальное значение с описанием и текущим состоянием параметра.'
+  technical_details: 'Объект: HKCU\Control Panel\Accessibility\StickyKeys\Flags; представление: registry64.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  value_0:
+    title: 'Пустая строка'
+    operations:
+      - type: registry.set_value
+        hive: HKCU
+        key: 'Control Panel\Accessibility\StickyKeys'
+        value_name: 'Flags'
+        view: registry64
+        value_type: string
+        value: ''
+  value_1:
+    title: 'Строка «506»'
+    operations:
+      - type: registry.set_value
+        hive: HKCU
+        key: 'Control Panel\Accessibility\StickyKeys'
+        value_name: 'Flags'
+        view: registry64
+        value_type: string
+        value: '506'
+  value_2:
+    title: 'Строка «510»'
+    operations:
+      - type: registry.set_value
+        hive: HKCU
+        key: 'Control Panel\Accessibility\StickyKeys'
+        value_name: 'Flags'
+        view: registry64
+        value_type: string
+        value: '510'
+  absent:
+    title: 'Значение отсутствует'
+    operations:
+      - type: registry.delete_value
+        hive: HKCU
+        key: 'Control Panel\Accessibility\StickyKeys'
+        value_name: 'Flags'
+        view: registry64
+windows_defaults: []
+detect:
+  type: registry.value
+  hive: HKCU
+  key: 'Control Panel\Accessibility\StickyKeys'
+  value_name: 'Flags'
+  view: registry64
+  states:
+    value_0:
+      value_type: string
+      value: ''
+    value_1:
+      value_type: string
+      value: '506'
+    value_2:
+      value_type: string
+      value: '510'
+  missing_state: absent
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

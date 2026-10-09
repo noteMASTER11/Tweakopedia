@@ -69,9 +69,10 @@ Page {
 
                 delegate: Rectangle {
                     id: queueItemCard
+                    property var inputItems: model.inputs || []
                     objectName: "queueItemCard"
                     width: ListView.view.width
-                    height: 64
+                    height: Math.max(64, queueItemLayout.implicitHeight + 28)
                     radius: 8
                     color: FluentTheme.surface
                     border.color: queueItemHover.hovered ? FluentTheme.accent : FluentTheme.stroke
@@ -82,6 +83,13 @@ Page {
                     function openExplanation() {
                         forceActiveFocus()
                         root.showExplanation(model.id, queueItemCard)
+                    }
+
+                    function displayInputValue(input) {
+                        if (input.type === "boolean") return input.value ? "Да" : "Нет"
+                        if (input.type === "file" && input.value && input.value.managedPath)
+                            return input.value.managedPath
+                        return String(input.value)
                     }
 
                     Keys.onReturnPressed: event => {
@@ -106,16 +114,36 @@ Page {
                     HoverHandler { id: queueItemHover }
 
                     RowLayout {
+                        id: queueItemLayout
                         anchors.fill: parent
                         anchors.margins: 14
                         spacing: 14
 
-                        Text {
+                        ColumnLayout {
                             Layout.fillWidth: true
-                            text: model.title + "   " + model.currentState + " → " + model.targetState
-                            color: FluentTheme.textPrimary
-                            font.family: FluentTheme.fontFamily
-                            elide: Text.ElideRight
+                            spacing: 3
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: model.title + "   " + model.currentState + " → " + model.targetState
+                                color: FluentTheme.textPrimary
+                                font.family: FluentTheme.fontFamily
+                                elide: Text.ElideRight
+                            }
+
+                            Repeater {
+                                model: queueItemCard.inputItems
+                                delegate: Text {
+                                    required property var modelData
+                                    objectName: "queueInputSummary"
+                                    Layout.fillWidth: true
+                                    text: modelData.label + ": " + queueItemCard.displayInputValue(modelData)
+                                    color: FluentTheme.textSecondary
+                                    font.family: FluentTheme.fontFamily
+                                    font.pixelSize: 12
+                                    elide: Text.ElideMiddle
+                                }
+                            }
                         }
 
                         Button {

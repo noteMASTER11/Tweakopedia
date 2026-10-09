@@ -1,0 +1,45 @@
+id: behavior.microsoft-office-d7174e9d55
+title: 'Телеметрия Microsoft Office (отключить) — OfficeTelemetryAgentFallBack2016'
+category: behavior
+subcategory: system-components
+kind: setting
+summary: 'Управляет запуском задачи планировщика OfficeTelemetryAgentFallBack2016.'
+explanation:
+  purpose: 'Управляет запуском задачи планировщика OfficeTelemetryAgentFallBack2016.'
+  mechanism: 'Меняет только свойство Enabled существующей задачи через Task Scheduler API.'
+  effect: 'Выключенная задача не запускается по своим триггерам; включённая снова следует своему расписанию.'
+  tradeoffs: 'Если соответствующее приложение не установлено, параметр отображается как неподдерживаемый.'
+  recommendation: 'Изменяйте состояние только после проверки назначения задачи.'
+  technical_details: 'Задача: \Microsoft\Office\OfficeTelemetryAgentFallBack2016.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: scheduled_task.set_enabled
+        folder: '\Microsoft\Office'
+        name: 'OfficeTelemetryAgentFallBack2016'
+        enabled: true
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: scheduled_task.set_enabled
+        folder: '\Microsoft\Office'
+        name: 'OfficeTelemetryAgentFallBack2016'
+        enabled: false
+windows_defaults: []
+detect:
+  type: scheduled_task
+  folder: '\Microsoft\Office'
+  name: 'OfficeTelemetryAgentFallBack2016'
+  enabled_state: enabled
+  disabled_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

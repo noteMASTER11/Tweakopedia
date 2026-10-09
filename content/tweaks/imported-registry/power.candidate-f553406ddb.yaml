@@ -1,0 +1,54 @@
+id: power.candidate-f553406ddb
+title: 'Как устранить проблему с быстрой разрядкой батареи ноутбука — параметр DCSettingIndex'
+category: power
+subcategory: advanced-platform
+kind: setting
+summary: 'Управляет значением реестра DCSettingIndex и показывает доступные варианты без скрытых команд.'
+explanation:
+  purpose: 'Позволяет явно выбрать сохранённое значение параметра DCSettingIndex или удалить его.'
+  mechanism: 'Windows и приложения читают этот параметр из реестра; Tweakopedia записывает точный тип и содержимое значения.'
+  effect: 'Результат зависит от компонента, которому принадлежит объект. Доступные состояния повторяют однозначные значения из исходных твикеров.'
+  tradeoffs: 'Неизвестные текущей версии Windows значения отображаются как пользовательское состояние и не подменяются догадкой.'
+  recommendation: 'Перед применением сопоставьте выбранное буквальное значение с описанием и текущим состоянием параметра.'
+  technical_details: 'Объект: HKLM\Software\Policies\Microsoft\Power\PowerSettings\f15d7e74-843b-4100-b851-7f8d6896265e\DCSettingIndex; представление: registry64.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  value_0:
+    title: 'Значение 0'
+    operations:
+      - type: registry.set_value
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Power\PowerSettings\f15d7e74-843b-4100-b851-7f8d6896265e'
+        value_name: 'DCSettingIndex'
+        view: registry64
+        value_type: dword
+        value: 0
+  absent:
+    title: 'Значение отсутствует'
+    operations:
+      - type: registry.delete_value
+        hive: HKLM
+        key: 'Software\Policies\Microsoft\Power\PowerSettings\f15d7e74-843b-4100-b851-7f8d6896265e'
+        value_name: 'DCSettingIndex'
+        view: registry64
+windows_defaults: []
+detect:
+  type: registry.value
+  hive: HKLM
+  key: 'Software\Policies\Microsoft\Power\PowerSettings\f15d7e74-843b-4100-b851-7f8d6896265e'
+  value_name: 'DCSettingIndex'
+  view: registry64
+  states:
+    value_0:
+      value_type: dword
+      value: 0
+  missing_state: absent
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

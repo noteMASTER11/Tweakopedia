@@ -8,8 +8,13 @@
     <file alias="qml/pages/TweakopediaPage.qml">qml/pages/TweakopediaPage.qml</file>
     <file alias="qml/pages/QueuePage.qml">qml/pages/QueuePage.qml</file>
     <file alias="qml/pages/HistoryPage.qml">qml/pages/HistoryPage.qml</file>
+    <file alias="qml/pages/SettingsPage.qml">qml/pages/SettingsPage.qml</file>
     <file alias="qml/pages/AboutPage.qml">qml/pages/AboutPage.qml</file>
     <file alias="qml/components/TweakRow.qml">qml/components/TweakRow.qml</file>
+    <file alias="qml/components/TweakInputEditor.qml">qml/components/TweakInputEditor.qml</file>
+    <file alias="qml/components/TextInputEditor.qml">qml/components/TextInputEditor.qml</file>
+    <file alias="qml/components/IntegerInputEditor.qml">qml/components/IntegerInputEditor.qml</file>
+    <file alias="qml/components/FileInputEditor.qml">qml/components/FileInputEditor.qml</file>
     <file alias="qml/components/FluentToggle.qml">qml/components/FluentToggle.qml</file>
     <file alias="qml/components/StateLabel.qml">qml/components/StateLabel.qml</file>
     <file alias="qml/components/FluentBadge.qml">qml/components/FluentBadge.qml</file>

@@ -119,6 +119,8 @@ categories:
         title: ИИ-функции Google Chrome
       - id: brave
         title: Компоненты браузера Brave
+      - id: optional-features
+        title: Дополнительные компоненты Windows
   - id: app-removal
     title: Удаление приложений
     subcategories:

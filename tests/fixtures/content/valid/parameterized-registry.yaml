@@ -1,0 +1,74 @@
+id: devices.parameterized-registry
+title: 'Параметризованное значение реестра'
+category: devices
+subcategory: metadata
+kind: setting
+summary: 'Записывает указанное пользователем имя производителя.'
+explanation:
+  purpose: 'Позволяет задать имя производителя.'
+  mechanism: 'Записывает строковое значение в реестр.'
+  effect: 'Windows показывает указанное имя.'
+  tradeoffs: 'Пустое значение не принимается.'
+  recommendation: 'Укажите понятное имя.'
+  technical_details: 'Используется REG_SZ Manufacturer.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+inputs:
+  manufacturer:
+    type: text
+    label: 'Производитель'
+    required: true
+    min_length: 1
+    max_length: 64
+  count:
+    type: integer
+    label: 'Число'
+    required: false
+    min: 0
+    max: 10
+  logo:
+    type: file
+    label: 'Логотип'
+    required: false
+    extensions: [bmp]
+    max_size: 1048576
+  mode:
+    type: choice
+    label: 'Режим'
+    required: false
+    choices:
+      auto: 'Автоматически'
+      manual: 'Вручную'
+  active:
+    type: boolean
+    label: 'Активно'
+    required: false
+states:
+  cleared:
+    title: 'Очищено'
+    operations:
+      - {type: registry.delete_value, hive: HKLM, key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value_name: Manufacturer, view: registry64}
+  configured:
+    title: 'Настроено'
+    operations:
+      - {type: registry.set_value, hive: HKLM, key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value_name: Manufacturer, view: registry64, value_type: string, value: '${input.manufacturer}'}
+windows_defaults:
+  - {os: windows10, builds: [10240, 19045], state: cleared}
+  - {os: windows11, builds: [22000, 26200], state: cleared}
+detect:
+  type: registry.value
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation'
+  value_name: Manufacturer
+  view: registry64
+  states:
+    configured: {value_type: string, value: ACME}
+  missing_state: cleared
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

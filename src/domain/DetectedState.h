@@ -21,12 +21,18 @@ struct DetectedRegistryFingerprint {
     QByteArray fingerprint;
 };
 
+struct DetectedRegistryTreeFingerprint {
+    RegistryKeyLocation location;
+    QByteArray fingerprint;
+};
+
 struct DetectedState {
     DetectionStatus status{DetectionStatus::Unknown};
     QString stateId;
     QString details;
     QByteArray fingerprint;
     QVector<DetectedRegistryFingerprint> registryFingerprints;
+    QVector<DetectedRegistryTreeFingerprint> registryTreeFingerprints;
 };
 
 } // namespace tweakopedia::domain

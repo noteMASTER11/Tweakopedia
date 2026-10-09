@@ -1,8 +1,12 @@
 add_library(TweakopediaPersistence STATIC
     AppPaths.cpp
     AppPaths.h
+    AppSettings.cpp
+    AppSettings.h
     Database.cpp
     Database.h
+    PendingInputStore.cpp
+    PendingInputStore.h
     TransactionFiles.cpp
     TransactionFiles.h
     TransactionRecord.h

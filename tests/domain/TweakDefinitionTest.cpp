@@ -113,6 +113,42 @@ private slots:
 
         QVERIFY(!definition.isValid());
     }
+
+    void encodesRegistryValueTypesWithNativeBytes()
+    {
+        const auto dword = RegistryValueSpec::dword(0x01020304U);
+        QCOMPARE(dword.nativeType, quint32{4});
+        QCOMPARE(dword.rawValue.toHex(), QByteArray("04030201"));
+
+        const auto qword = RegistryValueSpec::qword(0x0102030405060708ULL);
+        QCOMPARE(qword.nativeType, quint32{11});
+        QCOMPARE(qword.rawValue.toHex(), QByteArray("0807060504030201"));
+
+        const auto string = RegistryValueSpec::string(u"OEM");
+        QCOMPARE(string.nativeType, quint32{1});
+        QCOMPARE(string.rawValue.toHex(), QByteArray("4f0045004d000000"));
+
+        const auto expanded = RegistryValueSpec::expandString(u"%TEMP%");
+        QCOMPARE(expanded.nativeType, quint32{2});
+        QCOMPARE(expanded.rawValue.toHex(), QByteArray("2500540045004d00500025000000"));
+
+        const auto multi = RegistryValueSpec::multiString({u"one"_s, u"two"_s});
+        QCOMPARE(multi.nativeType, quint32{7});
+        QCOMPARE(multi.rawValue.toHex(), QByteArray("6f006e0065000000740077006f0000000000"));
+
+        const auto binary = RegistryValueSpec::binary(QByteArray::fromHex("deadbeef"));
+        QCOMPARE(binary.nativeType, quint32{3});
+        QCOMPARE(binary.rawValue.toHex(), QByteArray("deadbeef"));
+    }
+
+    void acceptsDocumentedBootMenuPolicyElement()
+    {
+        QVERIFY(isWhitelistedBcdElement({
+            .objectId = u"{current}"_s,
+            .elementType = 0x250000C2,
+            .valueKind = BcdValueKind::Integer,
+        }));
+    }
 };
 
 QTEST_APPLESS_MAIN(TweakDefinitionTest)

@@ -1,0 +1,51 @@
+id: components.virtual-machine-platform
+title: Платформа виртуальной машины
+category: components
+subcategory: optional-features
+kind: setting
+summary: Управляет дополнительным компонентом платформы виртуальной машины.
+explanation:
+  purpose: Включает или отключает встроенную платформу виртуализации Windows.
+  mechanism: Передаёт DISM фиксированное имя Optional Feature.
+  effect: Компонент становится доступным или отключённым.
+  tradeoffs: Изменение может потребовать перезагрузки.
+  recommendation: Включать только для функций, которым нужна виртуализация.
+  technical_details: DISM Online FeatureName VirtualMachinePlatform.
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 19041
+states:
+  disabled:
+    title: Выключено
+    operations:
+      - type: windows_feature.set_state
+        name: VirtualMachinePlatform
+        state: disabled
+  enabled:
+    title: Включено
+    operations:
+      - type: windows_feature.set_state
+        name: VirtualMachinePlatform
+        state: enabled
+windows_defaults:
+  - os: windows10
+    builds: [19041, 4294967295]
+    state: disabled
+  - os: windows11
+    builds: [22000, 4294967295]
+    state: disabled
+detect:
+  type: windows_component
+  component_kind: feature
+  name: VirtualMachinePlatform
+  states:
+    disabled: disabled
+    absent: disabled
+    enabled: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

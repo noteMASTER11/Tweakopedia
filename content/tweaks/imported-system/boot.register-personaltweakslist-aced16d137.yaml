@@ -1,0 +1,50 @@
+id: boot.register-personaltweakslist-aced16d137
+title: 'Стиль меню загрузки'
+category: boot
+subcategory: diagnostics
+kind: setting
+summary: 'Управляет параметром загрузчика {current}|bootmenupolicy.'
+explanation:
+  purpose: 'Управляет параметром загрузчика {current}|bootmenupolicy.'
+  mechanism: 'Значение записывается типизированно через BCD WMI Provider в текущую загрузочную запись.'
+  effect: 'Выбранная политика применяется при следующей загрузке Windows.'
+  tradeoffs: 'Некорректная политика загрузки может изменить поведение старта системы.'
+  recommendation: 'Используйте штатный вариант, если нет конкретной причины менять загрузчик.'
+  technical_details: 'Объект {current}; element type 0x250000C2; kind integer.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  legacy:
+    title: 'Классическое меню'
+    operations:
+      - type: bcd.set_element
+        object_id: '{current}'
+        element_type: 0x250000C2
+        value_kind: integer
+        value: 0
+  standard:
+    title: 'Стандартное меню'
+    operations:
+      - type: bcd.set_element
+        object_id: '{current}'
+        element_type: 0x250000C2
+        value_kind: integer
+        value: 1
+windows_defaults: []
+detect:
+  type: bcd.element
+  object_id: '{current}'
+  element_type: 0x250000C2
+  value_kind: integer
+  states:
+    legacy: 0
+    standard: 1
+  missing_state: standard
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

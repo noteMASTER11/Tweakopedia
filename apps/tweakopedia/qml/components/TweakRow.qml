@@ -20,9 +20,14 @@ Item {
     property string supportDetails: ""
     property string impact: "low"
     property string restart: "none"
+    property var inputs: []
+    property string draftTarget: ""
+    property var draftInputs: ({})
+    property var activeInputs: []
 
     signal explanationRequested()
     signal targetSelected(string state)
+    signal parameterizedTargetSelected(string state, var inputs)
 
     implicitHeight: Math.max(116, content.implicitHeight + 32)
     height: implicitHeight
@@ -35,17 +40,59 @@ Item {
         explanationRequested()
     }
 
+    function chooseTarget(state) {
+        if (!inputs || inputs.length === 0) {
+            targetSelected(state)
+            return
+        }
+        let inputIds = null
+        for (let index = 0; index < availableStates.length; ++index) {
+            if (availableStates[index].id === state) {
+                inputIds = availableStates[index].inputIds
+                break
+            }
+        }
+        if (inputIds === undefined || inputIds === null)
+            inputIds = inputs.map(definition => definition.id)
+        activeInputs = inputs.filter(definition => inputIds.indexOf(definition.id) >= 0)
+        if (activeInputs.length === 0) {
+            draftTarget = ""
+            draftInputs = ({})
+            targetSelected(state)
+            return
+        }
+        draftTarget = state
+        draftInputs = ({})
+    }
+
+    function confirmInput(inputId, value) {
+        const updated = Object.assign({}, draftInputs)
+        updated[inputId] = value
+        draftInputs = updated
+        for (let index = 0; index < activeInputs.length; ++index) {
+            if (activeInputs[index].required && updated[activeInputs[index].id] === undefined)
+                return
+        }
+        parameterizedTargetSelected(draftTarget, updated)
+    }
+
     Keys.onReturnPressed: event => {
-        openExplanation()
-        event.accepted = true
+        if (root.activeFocus) {
+            openExplanation()
+            event.accepted = true
+        }
     }
     Keys.onEnterPressed: event => {
-        openExplanation()
-        event.accepted = true
+        if (root.activeFocus) {
+            openExplanation()
+            event.accepted = true
+        }
     }
     Keys.onSpacePressed: event => {
-        openExplanation()
-        event.accepted = true
+        if (root.activeFocus) {
+            openExplanation()
+            event.accepted = true
+        }
     }
 
     Rectangle {
@@ -94,11 +141,16 @@ Item {
         id: cardHover
     }
 
-    RowLayout {
+    ColumnLayout {
         id: content
         anchors.fill: parent
         anchors.margins: 16
-        spacing: 16
+        spacing: 10
+
+        RowLayout {
+            id: mainContent
+            Layout.fillWidth: true
+            spacing: 16
 
         ColumnLayout {
             Layout.fillWidth: true
@@ -154,7 +206,7 @@ Item {
             enabled: root.supported
             states: root.availableStates
             selectedState: root.pending ? root.targetState : root.currentState
-            onStateSelected: state => root.targetSelected(state)
+            onStateSelected: state => root.chooseTarget(state)
         }
 
         FluentToggle {
@@ -165,7 +217,7 @@ Item {
                 : root.currentState === "enabled"
             enabled: root.supported
                 && (root.currentState === "disabled" || root.currentState === "enabled")
-            onToggledByUser: checked => root.targetSelected(checked ? "enabled" : "disabled")
+            onToggledByUser: checked => root.chooseTarget(checked ? "enabled" : "disabled")
         }
 
         Button {
@@ -177,7 +229,7 @@ Item {
             implicitWidth: 124
             implicitHeight: 36
             hoverEnabled: true
-            onClicked: root.targetSelected("remove")
+            onClicked: root.chooseTarget("remove")
 
             contentItem: Text {
                 text: actionButton.text
@@ -194,6 +246,34 @@ Item {
                 color: !actionButton.enabled
                     ? FluentTheme.disabledSurface
                     : actionButton.hovered ? FluentTheme.accentHover : FluentTheme.accent
+            }
+        }
+
+        }
+
+        ColumnLayout {
+            id: inputPanel
+            objectName: "tweakInputPanel"
+            Layout.fillWidth: true
+            visible: !root.pending && root.draftTarget.length > 0
+                && root.inputs && root.inputs.length > 0
+            spacing: 8
+
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 1
+                color: FluentTheme.stroke
+            }
+
+            Repeater {
+            model: root.activeInputs || []
+                delegate: TweakInputEditor {
+                    required property var modelData
+                    Layout.fillWidth: true
+                    definition: modelData
+                    value: root.draftInputs[modelData.id]
+                    onValueConfirmed: (inputId, value) => root.confirmInput(inputId, value)
+                }
             }
         }
 

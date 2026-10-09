@@ -299,6 +299,35 @@ private slots:
         QCOMPARE(controller.queue()->rowCount(), 0);
     }
 
+    void queuesParameterizedTargetAndExposesNormalizedInputSummary()
+    {
+        auto backend = services();
+        auto tweak = backend.catalog.tweaks().first();
+        tweak.inputs = {{
+            .id = u"name"_s, .label = u"Значение"_s,
+            .type = domain::TweakInputType::Integer, .required = true,
+        }};
+        auto operation = std::get<domain::SetRegistryDwordOperation>(
+            tweak.states[1].operations.first());
+        operation.valueInput = u"name"_s;
+        tweak.states[1].operations = {operation};
+        backend.catalog = content::TweakCatalog({tweak});
+        app::AppController controller(backend);
+        QVERIFY(controller.startup());
+
+        QVERIFY(controller.selectParameterizedTarget(
+            tweak.id.toString(), u"enabled"_s, {{u"name"_s, 1}}));
+
+        QCOMPARE(controller.queue()->rowCount(), 1);
+        const auto inputs = controller.queue()->data(
+            controller.queue()->index(0), app::QueueListModel::InputsRole).toList();
+        QCOMPARE(inputs.first().toMap().value(u"label"_s).toString(), u"Значение"_s);
+        QCOMPARE(inputs.first().toMap().value(u"value"_s).toLongLong(), 1);
+        QVERIFY(controller.buildPreview());
+        QCOMPARE(controller.previewOperations().first().toMap()
+                     .value(u"inputs"_s).toMap().value(u"name"_s).toLongLong(), 1);
+    }
+
     void startupQueuePreviewCancelSuccessAndRollback()
     {
         auto backend = services();

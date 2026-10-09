@@ -21,6 +21,80 @@ struct PlannedRegistryDwordChange {
     domain::SetRegistryDwordOperation change;
     QByteArray beforeFingerprint;
     domain::RestartRequirement restart{domain::RestartRequirement::None};
+    domain::TweakInputMap inputs;
+};
+
+using RegistryValueChange = std::variant<
+    domain::SetRegistryValueOperation,
+    domain::DeleteRegistryValueOperation>;
+
+struct PlannedRegistryValueChange {
+    domain::TweakId tweakId;
+    QString targetState;
+    RegistryValueChange change;
+    QByteArray beforeFingerprint;
+    domain::RestartRequirement restart{domain::RestartRequirement::None};
+    domain::TweakInputMap inputs;
+};
+
+using RegistryTreeChange = std::variant<
+    domain::CreateRegistryKeyOperation,
+    domain::DeleteRegistryTreeOperation>;
+
+struct PlannedRegistryTreeChange {
+    domain::TweakId tweakId;
+    QString targetState;
+    RegistryTreeChange change;
+    QByteArray beforeFingerprint;
+    domain::RestartRequirement restart{domain::RestartRequirement::None};
+    domain::TweakInputMap inputs;
+};
+
+struct PlannedFileChange {
+    domain::TweakId tweakId;
+    QString targetState;
+    domain::FileOperation change;
+    QByteArray beforeFingerprint;
+    domain::RestartRequirement restart{domain::RestartRequirement::None};
+    domain::TweakInputMap inputs;
+    QStringList allowedExtensions;
+    quint64 maximumInputSize{};
+};
+
+struct PlannedScheduledTaskChange {
+    domain::TweakId tweakId;
+    QString targetState;
+    domain::SetScheduledTaskEnabledOperation change;
+    QByteArray beforeFingerprint;
+    domain::RestartRequirement restart{domain::RestartRequirement::None};
+    domain::TweakInputMap inputs;
+};
+
+struct PlannedBcdElementChange {
+    domain::TweakId tweakId;
+    QString targetState;
+    domain::SetBcdElementOperation change;
+    QByteArray beforeFingerprint;
+    domain::RestartRequirement restart{domain::RestartRequirement::None};
+    domain::TweakInputMap inputs;
+};
+
+struct PlannedPowerSettingChange {
+    domain::TweakId tweakId;
+    QString targetState;
+    domain::SetPowerSettingOperation change;
+    QByteArray beforeFingerprint;
+    domain::RestartRequirement restart{domain::RestartRequirement::None};
+    domain::TweakInputMap inputs;
+};
+
+struct PlannedWindowsComponentChange {
+    domain::TweakId tweakId;
+    QString targetState;
+    domain::SetWindowsComponentStateOperation change;
+    QByteArray beforeFingerprint;
+    domain::RestartRequirement restart{domain::RestartRequirement::None};
+    domain::TweakInputMap inputs;
 };
 
 struct PlannedAppxRemoval {
@@ -29,6 +103,7 @@ struct PlannedAppxRemoval {
     domain::RemoveAppxPackageOperation change;
     QByteArray beforeFingerprint;
     domain::RestartRequirement restart{domain::RestartRequirement::None};
+    domain::TweakInputMap inputs;
 };
 
 struct PlannedFeatureStateChange {
@@ -37,10 +112,18 @@ struct PlannedFeatureStateChange {
     domain::SetFeatureStateOperation change;
     QByteArray beforeFingerprint;
     domain::RestartRequirement restart{domain::RestartRequirement::None};
+    domain::TweakInputMap inputs;
 };
 
 using PlannedOperation = std::variant<
     PlannedRegistryDwordChange,
+    PlannedRegistryValueChange,
+    PlannedRegistryTreeChange,
+    PlannedFileChange,
+    PlannedScheduledTaskChange,
+    PlannedBcdElementChange,
+    PlannedPowerSettingChange,
+    PlannedWindowsComponentChange,
     PlannedFeatureStateChange,
     PlannedAppxRemoval>;
 

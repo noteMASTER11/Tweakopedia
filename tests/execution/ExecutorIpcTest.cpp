@@ -2,17 +2,25 @@
 #include "execution/ExecutorClient.h"
 #include "execution/ExecutorServer.h"
 #include "execution/RegistrySnapshot.h"
+#include "execution/FileOperationExecutor.h"
+#include "execution/ScheduledTaskExecutor.h"
+#include "execution/PowerSettingExecutor.h"
 #include "persistence/Database.h"
 #include "persistence/TransactionFiles.h"
 #include "persistence/TransactionRepository.h"
 
 #include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QCryptographicHash>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QProcess>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QtTest/QTest>
+
+#include <algorithm>
 
 using namespace tweakopedia;
 using namespace Qt::StringLiterals;
@@ -31,22 +39,22 @@ planning::ExecutionPlan samplePlan()
             .architecture = domain::CpuArchitecture::X64,
         },
         .createdAtUtc = QDateTime::currentDateTimeUtc(),
-        .operations = {planning::PlannedRegistryDwordChange{
+        .operations = {planning::PlannedRegistryValueChange{
             .tweakId = domain::TweakId::parse(u"filesystem.win32-long-paths"_s).value(),
             .targetState = u"enabled"_s,
-            .change = {
+            .change = domain::SetRegistryValueOperation{
                 .location = {
                     .hive = domain::RegistryHive::LocalMachine,
                     .key = u"SYSTEM\\CurrentControlSet\\Control\\FileSystem"_s,
                     .valueName = u"LongPathsEnabled"_s,
                     .view = domain::RegistryView::Registry64,
                 },
-                .value = 1,
+                .value = domain::RegistryValueSpec::string(u"enabled"),
             },
             .beforeFingerprint = execution::RegistrySnapshot::fingerprint(
                 platform::RegistryReadResult::missing()),
         }},
-        .summary = u"Одна операция"_s,
+        .summary = u"Смешанный пакет"_s,
     };
 }
 
@@ -103,9 +111,48 @@ private slots:
 
         QTemporaryDir dataRoot;
         QVERIFY(dataRoot.isValid());
-        const auto plan = samplePlan();
+        auto plan = samplePlan();
         const auto transactionDirectory = QDir(dataRoot.path()).filePath(
             u"transactions/"_s + plan.transactionId.toString(QUuid::WithoutBraces));
+        const auto inputRelative = u"inputs/ipc/new.bin"_s;
+        const auto input = QDir(transactionDirectory).filePath(inputRelative);
+        QVERIFY(QDir().mkpath(QFileInfo(input).absolutePath()));
+        QFile inputFile(input);
+        QVERIFY(inputFile.open(QIODevice::WriteOnly));
+        QCOMPARE(inputFile.write("new"), 3);
+        inputFile.close();
+        const auto destination = QDir(dataRoot.path()).filePath(u"destination.bin"_s);
+        QFile destinationFile(destination);
+        QVERIFY(destinationFile.open(QIODevice::WriteOnly));
+        QCOMPARE(destinationFile.write("old"), 3);
+        destinationFile.close();
+        plan.operations.append(planning::PlannedFileChange{
+            .tweakId = *domain::TweakId::parse(u"devices.ipc-file"_s),
+            .targetState = u"configured"_s,
+            .change = {.kind = domain::FileOperationKind::Replace,
+                       .artifact = {.id = u"file"_s, .storageId = u"ipc"_s,
+                                    .managedPath = inputRelative, .size = 3,
+                                    .sha256 = QCryptographicHash::hash(
+                                        "new", QCryptographicHash::Sha256).toHex()},
+                       .destination = destination},
+            .beforeFingerprint = execution::FileOperationExecutor::fingerprint(
+                {.destination = destination, .existed = true, .size = 3,
+                 .sha256 = QCryptographicHash::hash(
+                     "old", QCryptographicHash::Sha256).toHex()})});
+        const domain::ScheduledTaskLocation task{u"\\Tweakopedia"_s, u"Ipc"_s};
+        plan.operations.append(planning::PlannedScheduledTaskChange{
+            .tweakId = *domain::TweakId::parse(u"tasks.ipc"_s),
+            .targetState = u"disabled"_s,
+            .change = {task, false},
+            .beforeFingerprint = execution::ScheduledTaskExecutor::fingerprint({task, true})});
+        const domain::PowerSettingLocation power{
+            u"active"_s, u"54533251-82be-4824-96c1-47b60b740d00"_s,
+            u"893dee8e-2bef-41e0-89c6-b55d0929964c"_s, domain::PowerSource::Ac};
+        plan.operations.append(planning::PlannedPowerSettingChange{
+            .tweakId = *domain::TweakId::parse(u"power.ipc"_s),
+            .targetState = u"maximum"_s, .change = {power, 100},
+            .beforeFingerprint = execution::PowerSettingExecutor::fingerprint(
+                {power, u"381b4222-f694-41f0-9685-ff5bb260df2e"_s, 7})});
         QVERIFY(server.sendPlan(
             execution::ExecutionProtocol::encode(plan),
             dataRoot.path(),
@@ -119,7 +166,17 @@ private slots:
         persistence::TransactionFiles files(QDir(dataRoot.path()).filePath(u"transactions"_s));
         const auto before = files.readBefore(plan.transactionId);
         QVERIFY(before.has_value());
-        QCOMPARE(before->value(u"operations"_s).toArray().size(), 1);
+        const auto snapshots = before->value(u"operations"_s).toArray();
+        QCOMPARE(snapshots.size(), 4);
+        QCOMPARE(snapshots.at(0).toObject().value(u"snapshotType"_s).toString(),
+                 u"registry.value"_s);
+        QCOMPARE(snapshots.at(1).toObject().value(u"type"_s).toString(), u"file"_s);
+        QCOMPARE(snapshots.at(2).toObject().value(u"type"_s).toString(), u"scheduled_task"_s);
+        QCOMPARE(snapshots.at(3).toObject().value(u"type"_s).toString(), u"power.setting"_s);
+        QVERIFY(std::any_of(progress.cbegin(), progress.cend(), [](const auto& entry) {
+            return entry.at(1).toString().contains(u"registry.value"_s)
+                && entry.at(1).toString().contains(u"1/4"_s);
+        }));
         persistence::Database database;
         QVERIFY(database.open(QDir(dataRoot.path()).filePath(u"tweakopedia.db"_s)));
         persistence::TransactionRepository repository(database);

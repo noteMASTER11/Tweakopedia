@@ -12,9 +12,26 @@ namespace {
 
 QString registryLocation(const domain::RegistryLocation& location)
 {
-    const auto hive = location.hive == domain::RegistryHive::LocalMachine
-        ? u"HKLM"_s : u"HKCU"_s;
+    QString hive;
+    switch (location.hive) {
+    case domain::RegistryHive::CurrentUser: hive = u"HKCU"_s; break;
+    case domain::RegistryHive::LocalMachine: hive = u"HKLM"_s; break;
+    case domain::RegistryHive::ClassesRoot: hive = u"HKCR"_s; break;
+    case domain::RegistryHive::Users: hive = u"HKU"_s; break;
+    }
     return hive + u"\\"_s + location.key + u"\\"_s + location.valueName;
+}
+
+QString registryLocation(const domain::RegistryKeyLocation& location)
+{
+    QString hive;
+    switch (location.hive) {
+    case domain::RegistryHive::CurrentUser: hive = u"HKCU"_s; break;
+    case domain::RegistryHive::LocalMachine: hive = u"HKLM"_s; break;
+    case domain::RegistryHive::ClassesRoot: hive = u"HKCR"_s; break;
+    case domain::RegistryHive::Users: hive = u"HKU"_s; break;
+    }
+    return hive + u"\\"_s + location.key;
 }
 
 } // namespace
@@ -209,16 +226,48 @@ QString EncyclopediaTreeModel::technicalTerms(const domain::TweakDefinition& twe
 {
     QStringList terms;
     if (tweak.detection) terms.append(registryLocation(tweak.detection->location));
+    if (tweak.valueDetection) terms.append(registryLocation(tweak.valueDetection->location));
+    if (tweak.treeDetection) terms.append(registryLocation(tweak.treeDetection->location));
     if (tweak.appxDetection) terms.append(tweak.appxDetection->packageName);
     if (tweak.featureDetection) terms.append(QString::number(tweak.featureDetection->featureId));
+    if (tweak.scheduledTaskDetection) {
+        terms.append(tweak.scheduledTaskDetection->location.folder
+                     + u"\\"_s + tweak.scheduledTaskDetection->location.name);
+    }
+    if (tweak.bcdDetection) {
+        terms.append(tweak.bcdDetection->spec.objectId + u" "_s
+                     + QString::number(tweak.bcdDetection->spec.elementType, 16));
+    }
+    if (tweak.powerDetection) {
+        terms.append(tweak.powerDetection->location.subgroup + u" "_s
+                     + tweak.powerDetection->location.setting);
+    }
+    if (tweak.windowsComponentDetection) {
+        terms.append(tweak.windowsComponentDetection->target.name);
+    }
     for (const auto& state : tweak.states) {
         for (const auto& operation : state.operations) {
             std::visit([&](const auto& value) {
                 using T = std::decay_t<decltype(value)>;
-                if constexpr (std::is_same_v<T, domain::SetRegistryDwordOperation>) {
+                if constexpr (std::is_same_v<T, domain::SetRegistryDwordOperation>
+                              || std::is_same_v<T, domain::SetRegistryValueOperation>
+                              || std::is_same_v<T, domain::DeleteRegistryValueOperation>
+                              || std::is_same_v<T, domain::CreateRegistryKeyOperation>
+                              || std::is_same_v<T, domain::DeleteRegistryTreeOperation>) {
                     terms.append(registryLocation(value.location));
                 } else if constexpr (std::is_same_v<T, domain::RemoveAppxPackageOperation>) {
                     terms.append(value.packageName);
+                } else if constexpr (std::is_same_v<T, domain::FileOperationDefinition>) {
+                    terms.append(value.destination);
+                } else if constexpr (std::is_same_v<T, domain::SetScheduledTaskEnabledOperation>) {
+                    terms.append(value.location.folder + u"\\"_s + value.location.name);
+                } else if constexpr (std::is_same_v<T, domain::SetBcdElementOperation>) {
+                    terms.append(value.spec.objectId + u" "_s
+                                 + QString::number(value.spec.elementType, 16));
+                } else if constexpr (std::is_same_v<T, domain::SetPowerSettingOperation>) {
+                    terms.append(value.location.subgroup + u" "_s + value.location.setting);
+                } else if constexpr (std::is_same_v<T, domain::SetWindowsComponentStateOperation>) {
+                    terms.append(value.target.name);
                 } else {
                     terms.append(QString::number(value.featureId));
                 }

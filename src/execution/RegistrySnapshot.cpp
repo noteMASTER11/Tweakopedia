@@ -52,6 +52,7 @@ QJsonObject RegistrySnapshot::toJson() const
         {u"valueName"_s, location.valueName},
         {u"view"_s, static_cast<int>(location.view)},
         {u"presence"_s, static_cast<int>(presence)},
+        {u"snapshotType"_s, u"registry.value"_s},
         {u"type"_s, static_cast<int>(type)},
         {u"nativeType"_s, static_cast<qint64>(nativeType)},
         {u"rawBase64"_s, QString::fromLatin1(rawValue.toBase64())},
@@ -68,7 +69,7 @@ std::optional<RegistrySnapshot> RegistrySnapshot::fromJson(const QJsonObject& ob
     const auto nativeType = object.value(u"nativeType"_s).toInteger(-1);
     const auto key = object.value(u"key"_s).toString();
     const auto valueName = object.value(u"valueName"_s).toString();
-    if (hive < 0 || hive > static_cast<int>(domain::RegistryHive::LocalMachine)
+    if (hive < 0 || hive > static_cast<int>(domain::RegistryHive::Users)
         || view < 0 || view > static_cast<int>(domain::RegistryView::Registry64)
         || presence < 0 || presence > static_cast<int>(platform::RegistryPresence::Error)
         || type < 0 || type > static_cast<int>(platform::RegistryValueType::Unknown)

@@ -180,5 +180,58 @@ TestCase {
         compare(spy.signalArguments[0][0], "remove")
     }
 
+    function test_parameterizedTargetUsesEditorAndKeepsCardBounds() {
+        const row = createTemporaryObject(rowComponent, this, {
+            binary: false,
+            availableStates: [{id: "configured", title: "Настроено",
+                               inputIds: ["manufacturer"]}],
+            inputs: [{id: "manufacturer", label: "Производитель", type: "text",
+                      required: true, maxLength: 64}]
+        })
+        const initialHeight = row.height
+        const spy = signalSpy.createObject(row, {
+            target: row, signalName: "parameterizedTargetSelected"
+        })
+        const explanationSpy = signalSpy.createObject(row, {
+            target: row, signalName: "explanationRequested"
+        })
+        row.chooseTarget("configured")
+        const panel = findChild(row, "tweakInputPanel")
+        tryCompare(panel, "visible", true)
+        verify(row.height >= initialHeight)
+        verify(panel.y + panel.height + 16 <= row.height)
+        const field = findChild(row, "textInputField")
+        field.text = "Tweakopedia"
+        field.forceActiveFocus()
+        keyClick(Qt.Key_Return)
+        compare(spy.count, 1)
+        compare(spy.signalArguments[0][0], "configured")
+        compare(spy.signalArguments[0][1].manufacturer, "Tweakopedia")
+        compare(explanationSpy.count, 0)
+        verify(panel.x >= 0)
+        verify(panel.x + panel.width <= row.width)
+    }
+
+    function test_stateWithoutInputsQueuesImmediately() {
+        const row = createTemporaryObject(rowComponent, this, {
+            binary: false,
+            availableStates: [
+                {id: "cleared", title: "Очистить", inputIds: []},
+                {id: "configured", title: "Настроить", inputIds: ["manufacturer"]}
+            ],
+            inputs: [{id: "manufacturer", label: "Производитель", type: "text",
+                      required: true, maxLength: 64}]
+        })
+        const directSpy = signalSpy.createObject(row, {
+            target: row, signalName: "targetSelected"
+        })
+
+        row.chooseTarget("cleared")
+
+        compare(directSpy.count, 1)
+        compare(directSpy.signalArguments[0][0], "cleared")
+        compare(findChild(row, "tweakInputPanel").visible, false)
+    }
+
     Component { id: signalSpy; SignalSpy {} }
 }

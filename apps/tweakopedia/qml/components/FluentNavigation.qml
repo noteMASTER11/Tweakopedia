@@ -108,7 +108,7 @@ Rectangle {
         visible: !root.compact
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.bottom: aboutItem.top
+        anchors.bottom: settingsItem.top
         anchors.bottomMargin: 8
         height: 58
         checked: root.hideUnsupportedTweaks
@@ -172,7 +172,7 @@ Rectangle {
         objectName: "unsupportedTweaksCompactButton"
         visible: root.compact
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: aboutItem.top
+        anchors.bottom: settingsItem.top
         anchors.bottomMargin: 8
         width: 44
         height: 44
@@ -205,8 +205,26 @@ Rectangle {
     }
 
     FluentNavigationItem {
-        id: aboutItem
+        id: settingsItem
         objectName: "navItem_5"
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: aboutItem.top
+        anchors.bottomMargin: 2
+        title: "Настройки"
+        glyph: "\uE713"
+        compact: root.compact
+        selected: root.currentIndex === 5
+        destinationIndex: 5
+        onClicked: {
+            root.currentIndex = 5
+            root.destinationRequested(5)
+        }
+    }
+
+    FluentNavigationItem {
+        id: aboutItem
+        objectName: "navItem_6"
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
@@ -214,11 +232,11 @@ Rectangle {
         title: "О программе"
         glyph: "\uE946"
         compact: root.compact
-        selected: root.currentIndex === 5
-        destinationIndex: 5
+        selected: root.currentIndex === 6
+        destinationIndex: 6
         onClicked: {
-            root.currentIndex = 5
-            root.destinationRequested(5)
+            root.currentIndex = 6
+            root.destinationRequested(6)
         }
     }
 }

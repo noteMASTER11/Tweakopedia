@@ -82,6 +82,10 @@ target_link_libraries(DomainTweakDefinitionTest
 
 add_test(NAME DomainTweakDefinition COMMAND DomainTweakDefinitionTest)
 
+add_executable(TweakInputTest domain/TweakInputTest.cpp)
+target_link_libraries(TweakInputTest PRIVATE Qt6::Test TweakopediaDomain)
+add_test(NAME TweakInput COMMAND TweakInputTest)
+
 add_executable(TweakCatalogLoaderTest
     content/TweakCatalogLoaderTest.cpp
 )
@@ -100,6 +104,16 @@ target_link_libraries(TweakCatalogLoaderTest
 
 add_test(NAME TweakCatalogLoader COMMAND TweakCatalogLoaderTest)
 add_test(NAME ContentCatalog COMMAND TweakCatalogLoaderTest loadsRealCatalog)
+
+add_executable(CompleteTweakImportAuditTest
+    content/CompleteTweakImportAuditTest.cpp
+)
+target_compile_definitions(CompleteTweakImportAuditTest PRIVATE
+    TWEAKOPEDIA_IMPORT_AUDIT="${PROJECT_SOURCE_DIR}/docs/audits/complete-tweak-import.json"
+    TWEAKOPEDIA_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content"
+)
+target_link_libraries(CompleteTweakImportAuditTest PRIVATE Qt6::Test TweakopediaContent)
+add_test(NAME CompleteTweakImportAudit COMMAND CompleteTweakImportAuditTest)
 
 add_executable(AppRemovalCatalogLoaderTest
     content/AppRemovalCatalogLoaderTest.cpp
@@ -174,6 +188,26 @@ add_executable(WindowsFeatureStoreBackendTest platform/WindowsFeatureStoreBacken
 target_link_libraries(WindowsFeatureStoreBackendTest PRIVATE Qt6::Test TweakopediaPlatform)
 add_test(NAME WindowsFeatureStoreBackend COMMAND WindowsFeatureStoreBackendTest)
 
+add_executable(WindowsScheduledTaskBackendTest platform/WindowsScheduledTaskBackendTest.cpp)
+target_link_libraries(WindowsScheduledTaskBackendTest PRIVATE
+    Qt6::Test TweakopediaPlatform ole32 oleaut32 taskschd)
+add_test(NAME WindowsScheduledTaskBackend COMMAND WindowsScheduledTaskBackendTest)
+
+add_executable(WindowsBcdBackendTest platform/WindowsBcdBackendTest.cpp)
+target_link_libraries(WindowsBcdBackendTest PRIVATE
+    Qt6::Test TweakopediaPlatform ole32 oleaut32 wbemuuid)
+add_test(NAME WindowsBcdBackend COMMAND WindowsBcdBackendTest)
+
+add_executable(WindowsPowerSettingBackendTest platform/WindowsPowerSettingBackendTest.cpp)
+target_link_libraries(WindowsPowerSettingBackendTest PRIVATE
+    Qt6::Test TweakopediaPlatform powrprof)
+add_test(NAME WindowsPowerSettingBackend COMMAND WindowsPowerSettingBackendTest)
+
+add_executable(WindowsComponentBackendTest platform/WindowsComponentBackendTest.cpp)
+target_link_libraries(WindowsComponentBackendTest PRIVATE
+    Qt6::Test TweakopediaPlatform)
+add_test(NAME WindowsComponentBackend COMMAND WindowsComponentBackendTest)
+
 add_executable(RegistryDwordStateDetectorTest
     detection/RegistryDwordStateDetectorTest.cpp
     fakes/FakeRegistryBackend.cpp
@@ -194,6 +228,20 @@ target_link_libraries(RegistryDwordStateDetectorTest
 
 add_test(NAME RegistryDwordStateDetector COMMAND RegistryDwordStateDetectorTest)
 
+add_executable(RegistryValueStateDetectorTest
+    detection/RegistryValueStateDetectorTest.cpp
+    fakes/FakeRegistryBackend.cpp
+    fakes/FakeRegistryBackend.h
+)
+target_include_directories(RegistryValueStateDetectorTest PRIVATE ${PROJECT_SOURCE_DIR}/tests)
+target_link_libraries(RegistryValueStateDetectorTest PRIVATE Qt6::Test TweakopediaDetection TweakopediaPlatform)
+add_test(NAME RegistryValueStateDetector COMMAND RegistryValueStateDetectorTest)
+
+add_executable(RegistryTreeStateDetectorTest detection/RegistryTreeStateDetectorTest.cpp)
+target_link_libraries(RegistryTreeStateDetectorTest PRIVATE
+    Qt6::Test TweakopediaDetection TweakopediaPlatform)
+add_test(NAME RegistryTreeStateDetector COMMAND RegistryTreeStateDetectorTest)
+
 add_executable(AppxPackageStateDetectorTest
     detection/AppxPackageStateDetectorTest.cpp
 )
@@ -203,6 +251,26 @@ add_test(NAME AppxPackageStateDetector COMMAND AppxPackageStateDetectorTest)
 add_executable(FeatureStateDetectorTest detection/FeatureStateDetectorTest.cpp)
 target_link_libraries(FeatureStateDetectorTest PRIVATE Qt6::Test TweakopediaDetection TweakopediaPlatform)
 add_test(NAME FeatureStateDetector COMMAND FeatureStateDetectorTest)
+
+add_executable(ScheduledTaskStateDetectorTest detection/ScheduledTaskStateDetectorTest.cpp)
+target_link_libraries(ScheduledTaskStateDetectorTest PRIVATE
+    Qt6::Test TweakopediaDetection TweakopediaPlatform)
+add_test(NAME ScheduledTaskStateDetector COMMAND ScheduledTaskStateDetectorTest)
+
+add_executable(BcdStateDetectorTest detection/BcdStateDetectorTest.cpp)
+target_link_libraries(BcdStateDetectorTest PRIVATE
+    Qt6::Test TweakopediaDetection TweakopediaPlatform)
+add_test(NAME BcdStateDetector COMMAND BcdStateDetectorTest)
+
+add_executable(PowerSettingStateDetectorTest detection/PowerSettingStateDetectorTest.cpp)
+target_link_libraries(PowerSettingStateDetectorTest PRIVATE
+    Qt6::Test TweakopediaDetection TweakopediaPlatform)
+add_test(NAME PowerSettingStateDetector COMMAND PowerSettingStateDetectorTest)
+
+add_executable(WindowsComponentStateDetectorTest detection/WindowsComponentStateDetectorTest.cpp)
+target_link_libraries(WindowsComponentStateDetectorTest PRIVATE
+    Qt6::Test TweakopediaDetection)
+add_test(NAME WindowsComponentStateDetector COMMAND WindowsComponentStateDetectorTest)
 
 add_executable(WindowsRegistryBackendTest
     platform/WindowsRegistryBackendTest.cpp
@@ -261,6 +329,18 @@ target_link_libraries(AppPathsTest
 
 add_test(NAME AppPaths COMMAND AppPathsTest)
 
+add_executable(AppSettingsTest
+    persistence/AppSettingsTest.cpp
+)
+
+target_link_libraries(AppSettingsTest
+    PRIVATE
+        Qt6::Test
+        TweakopediaPersistence
+)
+
+add_test(NAME AppSettings COMMAND AppSettingsTest)
+
 add_executable(TransactionRepositoryTest
     persistence/TransactionRepositoryTest.cpp
 )
@@ -284,6 +364,10 @@ target_link_libraries(TransactionFilesTest
 )
 
 add_test(NAME TransactionFiles COMMAND TransactionFilesTest)
+
+add_executable(PendingInputStoreTest persistence/PendingInputStoreTest.cpp)
+target_link_libraries(PendingInputStoreTest PRIVATE Qt6::Test TweakopediaPersistence)
+add_test(NAME PendingInputStore COMMAND PendingInputStoreTest)
 
 add_executable(ExecutionProtocolTest
     execution/ExecutionProtocolTest.cpp
@@ -318,6 +402,39 @@ add_executable(RegistryDwordExecutorTest
 target_include_directories(RegistryDwordExecutorTest PRIVATE ${PROJECT_SOURCE_DIR}/tests)
 target_link_libraries(RegistryDwordExecutorTest PRIVATE Qt6::Test TweakopediaExecution TweakopediaPlatform)
 add_test(NAME RegistryDwordExecutor COMMAND RegistryDwordExecutorTest)
+
+add_executable(RegistryValueExecutorTest
+    execution/RegistryValueExecutorTest.cpp
+    fakes/FakeRegistryBackend.cpp
+    fakes/FakeRegistryBackend.h
+)
+target_include_directories(RegistryValueExecutorTest PRIVATE ${PROJECT_SOURCE_DIR}/tests)
+target_link_libraries(RegistryValueExecutorTest PRIVATE Qt6::Test TweakopediaExecution TweakopediaPlatform)
+add_test(NAME RegistryValueExecutor COMMAND RegistryValueExecutorTest)
+
+add_executable(RegistryTreeExecutorTest execution/RegistryTreeExecutorTest.cpp)
+target_link_libraries(RegistryTreeExecutorTest PRIVATE Qt6::Test TweakopediaExecution TweakopediaPlatform)
+add_test(NAME RegistryTreeExecutor COMMAND RegistryTreeExecutorTest)
+
+add_executable(FileOperationExecutorTest execution/FileOperationExecutorTest.cpp)
+target_link_libraries(FileOperationExecutorTest PRIVATE Qt6::Test TweakopediaExecution)
+add_test(NAME FileOperationExecutor COMMAND FileOperationExecutorTest)
+
+add_executable(ScheduledTaskExecutorTest execution/ScheduledTaskExecutorTest.cpp)
+target_link_libraries(ScheduledTaskExecutorTest PRIVATE Qt6::Test TweakopediaExecution)
+add_test(NAME ScheduledTaskExecutor COMMAND ScheduledTaskExecutorTest)
+
+add_executable(BcdElementExecutorTest execution/BcdElementExecutorTest.cpp)
+target_link_libraries(BcdElementExecutorTest PRIVATE Qt6::Test TweakopediaExecution)
+add_test(NAME BcdElementExecutor COMMAND BcdElementExecutorTest)
+
+add_executable(PowerSettingExecutorTest execution/PowerSettingExecutorTest.cpp)
+target_link_libraries(PowerSettingExecutorTest PRIVATE Qt6::Test TweakopediaExecution)
+add_test(NAME PowerSettingExecutor COMMAND PowerSettingExecutorTest)
+
+add_executable(WindowsComponentExecutorTest execution/WindowsComponentExecutorTest.cpp)
+target_link_libraries(WindowsComponentExecutorTest PRIVATE Qt6::Test TweakopediaExecution)
+add_test(NAME WindowsComponentExecutor COMMAND WindowsComponentExecutorTest)
 
 add_executable(AppxPackageExecutorTest
     execution/AppxPackageExecutorTest.cpp
@@ -354,6 +471,14 @@ target_compile_definitions(AppControllerTest PRIVATE
 )
 target_link_libraries(AppControllerTest PRIVATE Qt6::Test TweakopediaApp TweakopediaContent)
 add_test(NAME AppController COMMAND AppControllerTest)
+
+add_executable(SessionLoggerTest app/SessionLoggerTest.cpp)
+target_link_libraries(SessionLoggerTest PRIVATE Qt6::Test TweakopediaApp)
+add_test(NAME SessionLogger COMMAND SessionLoggerTest)
+
+add_executable(SettingsControllerTest app/SettingsControllerTest.cpp)
+target_link_libraries(SettingsControllerTest PRIVATE Qt6::Test TweakopediaApp)
+add_test(NAME SettingsController COMMAND SettingsControllerTest)
 
 add_executable(SystemOverviewPresenterTest app/SystemOverviewPresenterTest.cpp)
 target_link_libraries(SystemOverviewPresenterTest PRIVATE Qt6::Test TweakopediaApp)

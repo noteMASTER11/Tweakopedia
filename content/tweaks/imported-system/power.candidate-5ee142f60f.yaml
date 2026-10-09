@@ -1,0 +1,42 @@
+id: power.candidate-5ee142f60f
+title: 'Отключить энергосбережение — 4d2b0152-7d5c-498b-88e2-34345392a2c5 (AC)'
+category: power
+subcategory: advanced-platform
+kind: setting
+summary: 'Управляет одним индексом активной схемы питания.'
+explanation:
+  purpose: 'Управляет одним индексом активной схемы питания.'
+  mechanism: 'PowrProf записывает фиксированное значение отдельно для питания от сети или батареи.'
+  effect: 'Новое значение начинает участвовать в работе активной схемы питания.'
+  tradeoffs: 'Эффект зависит от поддержки GUID прошивкой, драйвером и текущим оборудованием.'
+  recommendation: 'Если назначение GUID не отображается системой, оставьте текущее значение.'
+  technical_details: 'Активная схема; subgroup 54533251-82be-4824-96c1-47b60b740d00; setting 4d2b0152-7d5c-498b-88e2-34345392a2c5; source ac.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  index_0:
+    title: 'Индекс 200'
+    operations:
+      - type: power.set_index
+        scheme: active
+        subgroup: 54533251-82be-4824-96c1-47b60b740d00
+        setting: 4d2b0152-7d5c-498b-88e2-34345392a2c5
+        source: ac
+        index: 200
+windows_defaults: []
+detect:
+  type: power.setting
+  scheme: active
+  subgroup: 54533251-82be-4824-96c1-47b60b740d00
+  setting: 4d2b0152-7d5c-498b-88e2-34345392a2c5
+  source: ac
+  states:
+    200: index_0
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,54 @@
+id: behavior.lsa-082f3cc935
+title: 'Ограничение анонимного доступа LSA (включить) — параметр RestrictRemoteSAM'
+category: behavior
+subcategory: windows
+kind: setting
+summary: 'Управляет значением реестра RestrictRemoteSAM и показывает доступные варианты без скрытых команд.'
+explanation:
+  purpose: 'Позволяет явно выбрать сохранённое значение параметра RestrictRemoteSAM или удалить его.'
+  mechanism: 'Windows и приложения читают этот параметр из реестра; Tweakopedia записывает точный тип и содержимое значения.'
+  effect: 'Результат зависит от компонента, которому принадлежит объект. Доступные состояния повторяют однозначные значения из исходных твикеров.'
+  tradeoffs: 'Неизвестные текущей версии Windows значения отображаются как пользовательское состояние и не подменяются догадкой.'
+  recommendation: 'Перед применением сопоставьте выбранное буквальное значение с описанием и текущим состоянием параметра.'
+  technical_details: 'Объект: HKLM\SYSTEM\CurrentControlSet\Control\Lsa\RestrictRemoteSAM; представление: registry64.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  value_0:
+    title: 'Строка «O:BAG:BAD:(A;;RC;;;BA)»'
+    operations:
+      - type: registry.set_value
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Lsa'
+        value_name: 'RestrictRemoteSAM'
+        view: registry64
+        value_type: string
+        value: 'O:BAG:BAD:(A;;RC;;;BA)'
+  absent:
+    title: 'Значение отсутствует'
+    operations:
+      - type: registry.delete_value
+        hive: HKLM
+        key: 'SYSTEM\CurrentControlSet\Control\Lsa'
+        value_name: 'RestrictRemoteSAM'
+        view: registry64
+windows_defaults: []
+detect:
+  type: registry.value
+  hive: HKLM
+  key: 'SYSTEM\CurrentControlSet\Control\Lsa'
+  value_name: 'RestrictRemoteSAM'
+  view: registry64
+  states:
+    value_0:
+      value_type: string
+      value: 'O:BAG:BAD:(A;;RC;;;BA)'
+  missing_state: absent
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

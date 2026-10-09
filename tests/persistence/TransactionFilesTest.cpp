@@ -2,6 +2,8 @@
 
 #include <QDir>
 #include <QFileInfo>
+#include <QFile>
+#include <QCryptographicHash>
 #include <QJsonObject>
 #include <QTemporaryDir>
 #include <QtTest/QTest>
@@ -59,6 +61,30 @@ private slots:
         QVERIFY(files.writeResult(id, replacement));
 
         QCOMPARE(files.readResult(id), std::optional<QJsonObject>{replacement});
+    }
+
+    void materializesVerifiedArtifactAsTransactionRelativePath()
+    {
+        QTemporaryDir root;
+        const auto id = QUuid::createUuid();
+        TransactionFiles files(root.filePath(u"transactions"_s));
+        QVERIFY(files.create(id));
+        const auto source = root.filePath(u"pending/logo.bmp"_s);
+        QVERIFY(QDir{}.mkpath(QFileInfo(source).absolutePath()));
+        QFile input(source);
+        QVERIFY(input.open(QIODevice::WriteOnly));
+        QCOMPARE(input.write("logo"), 4);
+        input.close();
+        const auto hash = QCryptographicHash::hash("logo", QCryptographicHash::Sha256).toHex();
+
+        const auto result = files.materializeInput(id, {
+            .id = u"logo"_s, .storageId = u"artifact-1"_s,
+            .managedPath = source, .size = 4, .sha256 = hash,
+        });
+
+        QVERIFY(result.artifact.has_value());
+        QCOMPARE(result.artifact->managedPath, u"inputs/artifact-1/logo.bmp"_s);
+        QVERIFY(QFileInfo::exists(QDir(files.directory(id)).filePath(result.artifact->managedPath)));
     }
 };
 

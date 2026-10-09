@@ -1,0 +1,54 @@
+id: updates.windows-54ea038621
+title: 'Исключить драйверы из центра обновлений Windows — параметр DontSearchWindowsUpdate'
+category: updates
+subcategory: drivers
+kind: setting
+summary: 'Управляет значением реестра DontSearchWindowsUpdate и показывает доступные варианты без скрытых команд.'
+explanation:
+  purpose: 'Позволяет явно выбрать сохранённое значение параметра DontSearchWindowsUpdate или удалить его.'
+  mechanism: 'Windows и приложения читают этот параметр из реестра; Tweakopedia записывает точный тип и содержимое значения.'
+  effect: 'Результат зависит от компонента, которому принадлежит объект. Доступные состояния повторяют однозначные значения из исходных твикеров.'
+  tradeoffs: 'Неизвестные текущей версии Windows значения отображаются как пользовательское состояние и не подменяются догадкой.'
+  recommendation: 'Перед применением сопоставьте выбранное буквальное значение с описанием и текущим состоянием параметра.'
+  technical_details: 'Объект: HKLM\SOFTWARE\Policies\Microsoft\Windows\DriverSearching\DontSearchWindowsUpdate; представление: registry64.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  value_0:
+    title: 'Значение 1'
+    operations:
+      - type: registry.set_value
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\DriverSearching'
+        value_name: 'DontSearchWindowsUpdate'
+        view: registry64
+        value_type: dword
+        value: 1
+  absent:
+    title: 'Значение отсутствует'
+    operations:
+      - type: registry.delete_value
+        hive: HKLM
+        key: 'SOFTWARE\Policies\Microsoft\Windows\DriverSearching'
+        value_name: 'DontSearchWindowsUpdate'
+        view: registry64
+windows_defaults: []
+detect:
+  type: registry.value
+  hive: HKLM
+  key: 'SOFTWARE\Policies\Microsoft\Windows\DriverSearching'
+  value_name: 'DontSearchWindowsUpdate'
+  view: registry64
+  states:
+    value_0:
+      value_type: dword
+      value: 1
+  missing_state: absent
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "domain/TweakInput.h"
+
 #include <QJsonObject>
 #include <QString>
 #include <QUuid>
@@ -7,6 +9,11 @@
 #include <optional>
 
 namespace tweakopedia::persistence {
+
+struct ArtifactMaterializeResult {
+    std::optional<domain::InputArtifact> artifact;
+    QString code;
+};
 
 class TransactionFiles final
 {
@@ -21,6 +28,8 @@ public:
     [[nodiscard]] std::optional<QJsonObject> readPlan(const QUuid& id) const;
     [[nodiscard]] std::optional<QJsonObject> readBefore(const QUuid& id) const;
     [[nodiscard]] std::optional<QJsonObject> readResult(const QUuid& id) const;
+    [[nodiscard]] ArtifactMaterializeResult materializeInput(
+        const QUuid& id, const domain::InputArtifact& artifact) const;
 
 private:
     [[nodiscard]] bool write(const QUuid& id, QStringView fileName, const QJsonObject& json) const;

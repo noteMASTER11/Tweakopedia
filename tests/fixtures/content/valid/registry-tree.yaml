@@ -1,0 +1,42 @@
+id: devices.registry-tree
+title: 'Тестовая ветвь реестра'
+category: devices
+subcategory: metadata
+kind: setting
+summary: 'Проверяет операции создания и удаления ветви.'
+explanation:
+  purpose: 'Проверяет типизированные операции дерева реестра.'
+  mechanism: 'Создаёт или удаляет фиксированную ветвь.'
+  effect: 'Загрузчик формирует операции над деревом.'
+  tradeoffs: 'Файл используется только тестами каталога.'
+  recommendation: 'Применяется для проверки контракта загрузчика.'
+  technical_details: 'Тестовый объект HKCU Software Tweakopedia Tests Tree.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  present:
+    title: 'Ветвь существует'
+    operations:
+      - {type: registry.create_key, hive: HKCU, key: 'Software\Tweakopedia\Tests\Tree', view: registry64}
+  absent:
+    title: 'Ветвь отсутствует'
+    operations:
+      - {type: registry.delete_key, hive: HKCU, key: 'Software\Tweakopedia\Tests\Tree', view: registry64}
+windows_defaults:
+  - {os: windows10, builds: [10240, 19045], state: absent}
+  - {os: windows11, builds: [22000, 26200], state: absent}
+detect:
+  type: registry.tree
+  hive: HKCU
+  key: 'Software\Tweakopedia\Tests\Tree'
+  view: registry64
+  present_state: present
+  missing_state: absent
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

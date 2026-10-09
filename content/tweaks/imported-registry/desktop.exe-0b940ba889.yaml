@@ -1,0 +1,54 @@
+id: desktop.exe-0b940ba889
+title: 'Не запускать указанные exe  (по умолчанию) — параметр DisallowRun'
+category: desktop
+subcategory: explorer
+kind: setting
+summary: 'Управляет значением реестра DisallowRun и показывает доступные варианты без скрытых команд.'
+explanation:
+  purpose: 'Позволяет явно выбрать сохранённое значение параметра DisallowRun или удалить его.'
+  mechanism: 'Windows и приложения читают этот параметр из реестра; Tweakopedia записывает точный тип и содержимое значения.'
+  effect: 'Результат зависит от компонента, которому принадлежит объект. Доступные состояния повторяют однозначные значения из исходных твикеров.'
+  tradeoffs: 'Неизвестные текущей версии Windows значения отображаются как пользовательское состояние и не подменяются догадкой.'
+  recommendation: 'Перед применением сопоставьте выбранное буквальное значение с описанием и текущим состоянием параметра.'
+  technical_details: 'Объект: HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\DisallowRun; представление: registry64.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  value_0:
+    title: 'Значение 1'
+    operations:
+      - type: registry.set_value
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: 'DisallowRun'
+        view: registry64
+        value_type: dword
+        value: 1
+  absent:
+    title: 'Значение отсутствует'
+    operations:
+      - type: registry.delete_value
+        hive: HKCU
+        key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+        value_name: 'DisallowRun'
+        view: registry64
+windows_defaults: []
+detect:
+  type: registry.value
+  hive: HKCU
+  key: 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+  value_name: 'DisallowRun'
+  view: registry64
+  states:
+    value_0:
+      value_type: dword
+      value: 1
+  missing_state: absent
+dependencies: []
+conflicts: []
+restart: explorer
+impact: medium
+reversibility: reversible
+requires_network: false

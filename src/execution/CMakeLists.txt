@@ -1,4 +1,10 @@
 add_library(TweakopediaExecution STATIC
+    BcdElementExecutor.cpp
+    BcdElementExecutor.h
+    PowerSettingExecutor.cpp
+    PowerSettingExecutor.h
+    WindowsComponentExecutor.cpp
+    WindowsComponentExecutor.h
     AppxPackageExecutor.cpp
     AppxPackageExecutor.h
     ExecutionProtocol.cpp
@@ -9,6 +15,8 @@ add_library(TweakopediaExecution STATIC
     ExecutorLauncher.h
     ExecutorServer.cpp
     ExecutorServer.h
+    FileOperationExecutor.cpp
+    FileOperationExecutor.h
     FeatureStateExecutor.cpp
     FeatureStateExecutor.h
     PlanValidator.cpp
@@ -17,6 +25,12 @@ add_library(TweakopediaExecution STATIC
     RegistryDwordExecutor.h
     RegistrySnapshot.cpp
     RegistrySnapshot.h
+    RegistryTreeExecutor.cpp
+    RegistryTreeExecutor.h
+    RegistryValueExecutor.cpp
+    RegistryValueExecutor.h
+    ScheduledTaskExecutor.cpp
+    ScheduledTaskExecutor.h
     TransactionRunner.cpp
     TransactionRunner.h
 )

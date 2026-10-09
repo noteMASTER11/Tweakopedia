@@ -4,6 +4,9 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <QSaveFile>
+#include <QCryptographicHash>
+#include <QFileInfo>
+#include <QRegularExpression>
 
 using namespace Qt::StringLiterals;
 
@@ -56,6 +59,56 @@ std::optional<QJsonObject> TransactionFiles::readBefore(const QUuid& id) const
 std::optional<QJsonObject> TransactionFiles::readResult(const QUuid& id) const
 {
     return read(id, u"result.json");
+}
+
+ArtifactMaterializeResult TransactionFiles::materializeInput(
+    const QUuid& id,
+    const domain::InputArtifact& artifact) const
+{
+    static const QRegularExpression storagePattern(u"^[A-Za-z0-9-]{1,64}$"_s);
+    const QFileInfo sourceInfo(artifact.managedPath);
+    if (id.isNull() || !QDir(directory(id)).exists() || !sourceInfo.isAbsolute()
+        || !sourceInfo.isFile() || !sourceInfo.isReadable()
+        || !storagePattern.match(artifact.storageId).hasMatch()) {
+        return {.code = u"input.artifact_invalid"_s};
+    }
+    QFile source(artifact.managedPath);
+    if (!source.open(QIODevice::ReadOnly)) return {.code = u"input.artifact_unreadable"_s};
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    quint64 size{};
+    const auto relative = u"inputs/"_s + artifact.storageId + u"/"_s + sourceInfo.fileName();
+    const auto destination = QDir(directory(id)).filePath(relative);
+    if (!QDir{}.mkpath(QFileInfo(destination).absolutePath())) {
+        return {.code = u"input.materialize_failed"_s};
+    }
+    QSaveFile output(destination);
+    if (!output.open(QIODevice::WriteOnly)) return {.code = u"input.materialize_failed"_s};
+    while (!source.atEnd()) {
+        const auto chunk = source.read(1024 * 1024);
+        if (chunk.isEmpty() && source.error() != QFile::NoError) {
+            output.cancelWriting();
+            return {.code = u"input.artifact_unreadable"_s};
+        }
+        size += static_cast<quint64>(chunk.size());
+        hash.addData(chunk);
+        if (output.write(chunk) != chunk.size()) {
+            output.cancelWriting();
+            return {.code = u"input.materialize_failed"_s};
+        }
+    }
+    const auto digest = hash.result().toHex();
+    if (size != artifact.size || digest != artifact.sha256) {
+        output.cancelWriting();
+        return {.code = u"input.artifact_changed"_s};
+    }
+    if (!output.commit()) return {.code = u"input.materialize_failed"_s};
+    return {.artifact = domain::InputArtifact{
+        .id = artifact.id,
+        .storageId = artifact.storageId,
+        .managedPath = relative,
+        .size = size,
+        .sha256 = digest,
+    }};
 }
 
 bool TransactionFiles::write(const QUuid& id, QStringView fileName, const QJsonObject& json) const

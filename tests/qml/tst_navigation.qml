@@ -74,7 +74,7 @@ TestCase {
 
     function test_orderAboutPlacementBadgeAndAccessibleNames() {
         const navigation = createTemporaryObject(navigationComponent, this, {availableWidth: 1099})
-        const expected = ["Обзор", "Твики", "Твикопедия", "Очередь", "История", "О программе"]
+        const expected = ["Обзор", "Твики", "Твикопедия", "Очередь", "История", "Настройки", "О программе"]
         for (let index = 0; index < expected.length; ++index) {
             const item = findChild(navigation, "navItem_" + index)
             verify(item)
@@ -83,8 +83,11 @@ TestCase {
         }
 
         const history = findChild(navigation, "navItem_4")
-        const about = findChild(navigation, "navItem_5")
+        const settings = findChild(navigation, "navItem_5")
+        const about = findChild(navigation, "navItem_6")
+        verify(settings.y > history.y)
         verify(about.y > history.y)
+        verify(about.y > settings.y)
 
         const queueBadge = findChild(navigation, "navBadge_3")
         compare(queueBadge.visible, true)
@@ -124,7 +127,7 @@ TestCase {
     function test_sidebarUsesThematicMdl2Glyphs() {
         const navigation = createTemporaryObject(navigationComponent, this)
         const expectedGlyphs = [
-            "\uE80F", "\uE8AB", "\uE736", "\uE8FD", "\uE81C", "\uE946"
+            "\uE80F", "\uE8AB", "\uE736", "\uE8FD", "\uE81C", "\uE713", "\uE946"
         ]
         for (let index = 0; index < expectedGlyphs.length; ++index) {
             const icon = findChild(navigation, "navIcon_" + index)
@@ -145,8 +148,8 @@ TestCase {
         compare(expandedFilter.visible, true)
         compare(compactFilter.visible, false)
         compare(navigation.hideUnsupportedTweaks, false)
-        const about = findChild(navigation, "navItem_5")
-        compare(expandedFilter.y, about.y - 8 - expandedFilter.height)
+        const settings = findChild(navigation, "navItem_5")
+        compare(expandedFilter.y, settings.y - 8 - expandedFilter.height)
 
         const spy = signalSpy.createObject(navigation, {
             target: navigation,
@@ -162,7 +165,7 @@ TestCase {
         tryCompare(expandedFilter, "visible", false)
         tryCompare(compactFilter, "visible", true)
         compare(compactFilter.checked, true)
-        compare(compactFilter.y, about.y - 8 - compactFilter.height)
+        compare(compactFilter.y, settings.y - 8 - compactFilter.height)
         compare(compactFilter.Accessible.name, "Показывать неподдерживаемые твики")
     }
 

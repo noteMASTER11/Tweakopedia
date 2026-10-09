@@ -41,10 +41,14 @@ QVariantList availableStates(const domain::TweakDefinition& tweak)
     QVariantList result;
     result.reserve(tweak.states.size());
     for (const auto& state : tweak.states) {
-        result.append(QVariantMap{
+        QVariantMap item{
             {u"id"_s, state.id},
             {u"title"_s, state.title},
-        });
+        };
+        if (!tweak.inputs.isEmpty()) {
+            item.insert(u"inputIds"_s, domain::referencedInputIds(state));
+        }
+        result.append(item);
     }
     return result;
 }
@@ -95,6 +99,7 @@ QVariant TweakListModel::data(const QModelIndex& index, int role) const
     case PendingRole: return !entry.targetState.isEmpty();
     case SupportDetailsRole: return entry.detected.details;
     case ActionRole: return entry.tweak.kind == domain::TweakKind::Action;
+    case InputsRole: return domain::inputDefinitionsToVariantList(entry.tweak.inputs);
     default: return {};
     }
 }
@@ -119,6 +124,7 @@ QHash<int, QByteArray> TweakListModel::roleNames() const
         {PendingRole, "pending"},
         {SupportDetailsRole, "supportDetails"},
         {ActionRole, "action"},
+        {InputsRole, "inputs"},
     };
 }
 

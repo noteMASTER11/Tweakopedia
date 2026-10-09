@@ -1,0 +1,50 @@
+id: devices.oem-manufacturer
+title: 'Производитель компьютера'
+category: devices
+subcategory: metadata
+kind: setting
+summary: 'Задаёт имя производителя, отображаемое в сведениях о системе и поддержке.'
+explanation:
+  purpose: 'Позволяет заменить или убрать имя производителя компьютера.'
+  mechanism: 'Windows читает строку Manufacturer из раздела OEMInformation системного реестра.'
+  effect: 'В системных окнах, использующих OEM-сведения, отображается указанное имя.'
+  tradeoffs: 'Параметр меняет только подпись и не влияет на определение оборудования.'
+  recommendation: 'Используйте короткое узнаваемое название или очистите поле, если OEM-подпись не нужна.'
+  technical_details: 'Изменяется REG_SZ HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation\Manufacturer.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+inputs:
+  manufacturer:
+    type: text
+    label: 'Производитель'
+    required: true
+    min_length: 1
+    max_length: 128
+states:
+  cleared:
+    title: 'Очистить'
+    operations:
+      - {type: registry.delete_value, hive: HKLM, key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value_name: Manufacturer, view: registry64}
+  configured:
+    title: 'Задать значение'
+    operations:
+      - {type: registry.set_value, hive: HKLM, key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation', value_name: Manufacturer, view: registry64, value_type: string, value: '${input.manufacturer}'}
+windows_defaults:
+  - {os: windows10, builds: [10240, 19045], state: cleared}
+  - {os: windows11, builds: [22000, 26200], state: cleared}
+detect:
+  type: registry.value
+  hive: HKLM
+  key: 'SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation'
+  value_name: Manufacturer
+  view: registry64
+  states: {}
+  missing_state: cleared
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

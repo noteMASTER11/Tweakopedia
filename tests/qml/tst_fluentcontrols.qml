@@ -131,5 +131,26 @@ TestCase {
         compare(combo.currentText, "Автоматически")
     }
 
+    function test_stateSelectorMouseChoiceEmitsNamedState() {
+        const selector = createTemporaryObject(selectorComponent, this)
+        const spy = signalSpy.createObject(selector, {
+            target: selector,
+            signalName: "stateSelected"
+        })
+
+        mouseClick(selector)
+        tryVerify(function() { return selector.popup.visible })
+        tryVerify(function() {
+            return selector.popup.contentItem.itemAtIndex(2) !== null
+        })
+        const option = selector.popup.contentItem.itemAtIndex(2)
+        verify(option)
+        mouseClick(option)
+
+        compare(selector.currentText, "Автоматически")
+        compare(spy.count, 1)
+        compare(spy.signalArguments[0][0], "automatic")
+    }
+
     Component { id: signalSpy; SignalSpy {} }
 }

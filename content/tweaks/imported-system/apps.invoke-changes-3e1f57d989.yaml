@@ -1,0 +1,45 @@
+id: apps.invoke-changes-3e1f57d989
+title: 'Подсистема Windows для Linux'
+category: apps
+subcategory: optional-features
+kind: setting
+summary: 'Включает или отключает дополнительный компонент Windows Microsoft-Windows-Subsystem-Linux.'
+explanation:
+  purpose: 'Включает или отключает дополнительный компонент Windows Microsoft-Windows-Subsystem-Linux.'
+  mechanism: 'Приложение передаёт DISM фиксированное имя компонента без произвольной командной строки.'
+  effect: 'После включения компонент становится доступен приложениям; после отключения его функции недоступны.'
+  tradeoffs: 'Изменение состава Windows может потребовать перезагрузки и дополнительного места на диске.'
+  recommendation: 'Включайте компонент только для сценариев, которым он требуется.'
+  technical_details: 'DISM Online FeatureName Microsoft-Windows-Subsystem-Linux.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 16299
+states:
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: windows_feature.set_state
+        name: Microsoft-Windows-Subsystem-Linux
+        state: disabled
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: windows_feature.set_state
+        name: Microsoft-Windows-Subsystem-Linux
+        state: enabled
+windows_defaults: []
+detect:
+  type: windows_component
+  component_kind: feature
+  name: Microsoft-Windows-Subsystem-Linux
+  states:
+    disabled: disabled
+    absent: disabled
+    enabled: enabled
+dependencies: []
+conflicts: []
+restart: reboot
+impact: medium
+reversibility: reversible
+requires_network: false

@@ -1,0 +1,54 @@
+id: behavior.enable-photo-viewer-4193f961e0
+title: 'enable-photo-viewer — параметр (default)'
+category: behavior
+subcategory: windows
+kind: setting
+summary: 'Управляет значением реестра (default) и показывает доступные варианты без скрытых команд.'
+explanation:
+  purpose: 'Позволяет явно выбрать сохранённое значение параметра (default) или удалить его.'
+  mechanism: 'Windows и приложения читают этот параметр из реестра; Tweakopedia записывает точный тип и содержимое значения.'
+  effect: 'Результат зависит от компонента, которому принадлежит объект. Доступные состояния повторяют однозначные значения из исходных твикеров.'
+  tradeoffs: 'Неизвестные текущей версии Windows значения отображаются как пользовательское состояние и не подменяются догадкой.'
+  recommendation: 'Перед применением сопоставьте выбранное буквальное значение с описанием и текущим состоянием параметра.'
+  technical_details: 'Объект: HKCR\Applications\photoviewer.dll\shell\print\command\(default); представление: registry64.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  value_0:
+    title: 'Строка «%SystemRoot%\System32\rundll32.exe "%ProgramFiles%\Wi…»'
+    operations:
+      - type: registry.set_value
+        hive: HKCR
+        key: 'Applications\photoviewer.dll\shell\print\command'
+        value_name: '(default)'
+        view: registry64
+        value_type: expand_string
+        value: '%SystemRoot%\System32\rundll32.exe "%ProgramFiles%\Windows Photo Viewer\PhotoViewer.dll", ImageView_Fullscreen %1'
+  absent:
+    title: 'Значение отсутствует'
+    operations:
+      - type: registry.delete_value
+        hive: HKCR
+        key: 'Applications\photoviewer.dll\shell\print\command'
+        value_name: '(default)'
+        view: registry64
+windows_defaults: []
+detect:
+  type: registry.value
+  hive: HKCR
+  key: 'Applications\photoviewer.dll\shell\print\command'
+  value_name: '(default)'
+  view: registry64
+  states:
+    value_0:
+      value_type: expand_string
+      value: '%SystemRoot%\System32\rundll32.exe "%ProgramFiles%\Windows Photo Viewer\PhotoViewer.dll", ImageView_Fullscreen %1'
+  missing_state: absent
+dependencies: []
+conflicts: []
+restart: none
+impact: low
+reversibility: reversible
+requires_network: false

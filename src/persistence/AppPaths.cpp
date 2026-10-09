@@ -45,6 +45,11 @@ QString AppPaths::databasePath() const
     return QDir(dataRoot_).filePath(u"tweakopedia.db"_s);
 }
 
+QString AppPaths::settingsPath() const
+{
+    return QDir(dataRoot_).filePath(u"settings.ini"_s);
+}
+
 QString AppPaths::logsRoot() const
 {
     return QDir(dataRoot_).filePath(u"logs"_s);
@@ -55,12 +60,18 @@ QString AppPaths::transactionsRoot() const
     return QDir(dataRoot_).filePath(u"transactions"_s);
 }
 
+QString AppPaths::pendingInputsRoot() const
+{
+    return QDir(dataRoot_).filePath(u"pending-inputs"_s);
+}
+
 bool AppPaths::ensureDataDirectories() const
 {
     QDir root;
     return root.mkpath(dataRoot_)
         && root.mkpath(logsRoot())
-        && root.mkpath(transactionsRoot());
+        && root.mkpath(transactionsRoot())
+        && root.mkpath(pendingInputsRoot());
 }
 
 } // namespace tweakopedia::persistence

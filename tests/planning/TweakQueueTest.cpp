@@ -94,6 +94,73 @@ private slots:
         QCOMPARE(after.type, before.type);
         QCOMPARE(after.rawValue, before.rawValue);
     }
+
+    void normalizesAndReplacesParameterizedTarget()
+    {
+        auto tweak = definition();
+        tweak.inputs = {{
+            .id = u"manufacturer"_s,
+            .label = u"Производитель"_s,
+            .type = TweakInputType::Text,
+            .required = true,
+            .maximumLength = 40,
+        }};
+        tweak.states[1].operations = {SetRegistryValueOperation{
+            .location = location(), .value = RegistryValueSpec::string({}),
+            .valueInput = u"manufacturer"_s,
+        }};
+        TweakQueue queue;
+
+        QVERIFY(queue.setTarget(tweak, u"enabled", {{u"manufacturer"_s, u"  ACME  "_s}}).accepted);
+        QVERIFY(queue.setTarget(tweak, u"enabled", {{u"manufacturer"_s, u"Contoso"_s}}).accepted);
+
+        QCOMPARE(queue.size(), 1);
+        QCOMPARE(std::get<QString>(queue.items().first().inputs.value(u"manufacturer"_s)),
+                 u"Contoso"_s);
+    }
+
+    void rejectsMissingRequiredParameterizedValue()
+    {
+        auto tweak = definition();
+        tweak.inputs = {{
+            .id = u"manufacturer"_s, .label = u"Производитель"_s,
+            .type = TweakInputType::Text, .required = true,
+        }};
+        tweak.states[1].operations = {SetRegistryValueOperation{
+            .location = location(), .value = RegistryValueSpec::string({}),
+            .valueInput = u"manufacturer"_s,
+        }};
+        TweakQueue queue;
+
+        const auto result = queue.setTarget(tweak, u"enabled", {});
+
+        QVERIFY(!result.accepted);
+        QCOMPARE(result.errorCode, u"input.required"_s);
+        QVERIFY(queue.isEmpty());
+    }
+
+    void doesNotRequireInputUnusedBySelectedState()
+    {
+        auto tweak = definition();
+        tweak.inputs = {{
+            .id = u"manufacturer"_s, .label = u"Производитель"_s,
+            .type = TweakInputType::Text, .required = true,
+        }};
+        tweak.states[0].operations = {DeleteRegistryValueOperation{location()}};
+        tweak.states[1].operations = {SetRegistryValueOperation{
+            .location = location(),
+            .value = RegistryValueSpec::string({}),
+            .valueInput = u"manufacturer"_s,
+        }};
+        TweakQueue queue;
+
+        const auto cleared = queue.setTarget(tweak, u"disabled", {});
+        const auto configured = queue.setTarget(tweak, u"enabled", {});
+
+        QVERIFY(cleared.accepted);
+        QVERIFY(!configured.accepted);
+        QCOMPARE(configured.errorCode, u"input.required"_s);
+    }
 };
 
 QTEST_APPLESS_MAIN(TweakQueueTest)

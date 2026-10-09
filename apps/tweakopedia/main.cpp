@@ -1,26 +1,41 @@
 #include "app/AppController.h"
+#include "app/SessionLogger.h"
+#include "app/SettingsController.h"
 #include "content/AppRemovalCatalogLoader.h"
 #include "content/TweakCatalogLoader.h"
 #include "content/CategoryCatalogLoader.h"
 #include "detection/RegistryDwordStateDetector.h"
+#include "detection/RegistryValueStateDetector.h"
+#include "detection/RegistryTreeStateDetector.h"
 #include "detection/AppxPackageStateDetector.h"
 #include "detection/FeatureStateDetector.h"
+#include "detection/ScheduledTaskStateDetector.h"
+#include "detection/BcdStateDetector.h"
+#include "detection/PowerSettingStateDetector.h"
+#include "detection/WindowsComponentStateDetector.h"
 #include "execution/ExecutionProtocol.h"
 #include "execution/ExecutorLauncher.h"
 #include "execution/ExecutorServer.h"
 #include "persistence/AppPaths.h"
+#include "persistence/AppSettings.h"
 #include "persistence/Database.h"
 #include "persistence/TransactionFiles.h"
+#include "persistence/PendingInputStore.h"
 #include "persistence/TransactionRepository.h"
 #include "platform/WindowsRegistryBackend.h"
 #include "platform/WindowsAppxPackageProvider.h"
 #include "platform/WindowsFeatureStoreBackend.h"
+#include "platform/WindowsScheduledTaskBackend.h"
+#include "platform/WindowsBcdBackend.h"
+#include "platform/WindowsPowerSettingBackend.h"
+#include "platform/WindowsComponentBackend.h"
 #include "platform/WindowsSystemProfileProvider.h"
 #include "platform/WindowsSystemOverviewProvider.h"
 #include "UiFontLoader.h"
 
 #include <QDir>
 #include <QCommandLineParser>
+#include <QDesktopServices>
 #include <QEventLoop>
 #include <QFileInfo>
 #include <QFont>
@@ -34,6 +49,8 @@
 #include <QQuickStyle>
 #include <QTimer>
 #include <QTemporaryDir>
+#include <QSysInfo>
+#include <QUrl>
 #include <QWindow>
 #include <QUuid>
 
@@ -165,6 +182,25 @@ public:
         if (tweak.featureDetection) {
             return detection::FeatureStateDetector{}.detect(tweak, features_, profile);
         }
+        if (tweak.scheduledTaskDetection) {
+            return detection::ScheduledTaskStateDetector{}.detect(tweak, tasks_, profile);
+        }
+        if (tweak.bcdDetection) {
+            return detection::BcdStateDetector{}.detect(tweak, bcd_, profile);
+        }
+        if (tweak.powerDetection) {
+            return detection::PowerSettingStateDetector{}.detect(tweak, power_, profile);
+        }
+        if (tweak.windowsComponentDetection) {
+            return detection::WindowsComponentStateDetector{}.detect(
+                tweak, windowsComponents_, profile);
+        }
+        if (tweak.valueDetection) {
+            return detection::RegistryValueStateDetector{}.detect(tweak, registry_, profile);
+        }
+        if (tweak.treeDetection) {
+            return detection::RegistryTreeStateDetector{}.detect(tweak, registry_, profile);
+        }
         return detection::RegistryDwordStateDetector{}.detect(tweak, registry_, profile);
     }
 
@@ -174,21 +210,48 @@ public:
         const app::ProgressCallback& progress) override
     {
         if (!repository_) return databaseFailure();
+        auto materializedPlan = plan;
         persistence::TransactionFiles files(paths_.transactionsRoot());
-        if (!files.create(plan.transactionId)
-            || !files.writePlan(plan.transactionId,
-                QJsonDocument::fromJson(execution::ExecutionProtocol::encode(plan)).object())) {
+        if (!files.create(materializedPlan.transactionId)) {
             return failure(u"transaction.plan_persist_failed"_s, u"Не удалось подготовить файлы транзакции."_s);
         }
-        const auto directory = files.directory(plan.transactionId);
+        persistence::PendingInputStore pending(paths_.pendingInputsRoot());
+        for (auto& operationVariant : materializedPlan.operations) {
+            auto* operation = std::get_if<planning::PlannedFileChange>(&operationVariant);
+            if (!operation || operation->change.kind == domain::FileOperationKind::Delete) continue;
+            auto artifact = operation->change.artifact;
+            if (artifact.storageId.isEmpty() || artifact.sha256.isEmpty()) {
+                const auto imported = pending.importFile(
+                    artifact.id,
+                    artifact.managedPath,
+                    operation->allowedExtensions,
+                    operation->maximumInputSize);
+                if (!imported.artifact) {
+                    return failure(imported.code, imported.message);
+                }
+                artifact = *imported.artifact;
+            }
+            const auto copied = files.materializeInput(materializedPlan.transactionId, artifact);
+            if (!copied.artifact) {
+                return failure(copied.code, u"Не удалось перенести выбранный файл в транзакцию."_s);
+            }
+            operation->change.artifact = *copied.artifact;
+            operation->inputs.insert(copied.artifact->id, *copied.artifact);
+        }
+        (void)pending.cleanupUnused({});
+        const auto encoded = execution::ExecutionProtocol::encode(materializedPlan);
+        if (!files.writePlan(materializedPlan.transactionId,
+                QJsonDocument::fromJson(encoded).object())) {
+            return failure(u"transaction.plan_persist_failed"_s, u"Не удалось подготовить файлы транзакции."_s);
+        }
+        const auto directory = files.directory(materializedPlan.transactionId);
         if (!repository_->insert(persistence::TransactionRecord::pending(
-                plan.transactionId, packageName, directory))) {
+                materializedPlan.transactionId, packageName, directory))) {
             return failure(u"transaction.insert_failed"_s, repository_->lastError());
         }
 
-        const auto encoded = execution::ExecutionProtocol::encode(plan);
         const auto result = runExecutor(
-            plan.transactionId,
+            materializedPlan.transactionId,
             progress,
             [&](execution::ExecutorServer& server) {
                 return server.sendPlan(encoded, paths_.dataRoot(), directory);
@@ -351,7 +414,86 @@ private:
     mutable platform::WindowsRegistryBackend registry_;
     platform::WindowsAppxPackageProvider appx_;
     platform::WindowsFeatureStoreBackend features_;
+    mutable platform::WindowsScheduledTaskBackend tasks_;
+    mutable platform::WindowsBcdBackend bcd_;
+    mutable platform::WindowsPowerSettingBackend power_;
+    mutable platform::WindowsComponentBackend windowsComponents_;
     platform::AppxPackageQueryResult appxInventory_;
+};
+
+class DesktopSettingsServices final : public app::ISettingsServices
+{
+public:
+    DesktopSettingsServices(
+        QString settingsPath,
+        QString logsRoot,
+        QString runtimeRoot,
+        QString dataRoot)
+        : settings_(std::move(settingsPath))
+        , logger_(logsRoot)
+        , logsRoot_(QDir::cleanPath(std::move(logsRoot)))
+        , runtimeRoot_(QDir::cleanPath(std::move(runtimeRoot)))
+        , dataRoot_(QDir::cleanPath(std::move(dataRoot)))
+    {
+        if (settings_.debugLoggingEnabled()) {
+            if (logger_.setEnabled(true)) {
+                writeSessionContext();
+            } else {
+                qWarning().noquote() << "Failed to start debug logging:"
+                                     << logger_.errorString();
+            }
+        }
+    }
+
+    bool debugLoggingEnabled() const override
+    {
+        return logger_.enabled();
+    }
+
+    bool setDebugLoggingEnabled(bool enabled) override
+    {
+        const auto previous = logger_.enabled();
+        if (previous == enabled) {
+            return settings_.setDebugLoggingEnabled(enabled);
+        }
+
+        if (!logger_.setEnabled(enabled)) {
+            qWarning().noquote() << "Failed to change debug logging:"
+                                 << logger_.errorString();
+            return false;
+        }
+
+        if (!settings_.setDebugLoggingEnabled(enabled)) {
+            (void)logger_.setEnabled(previous);
+            return false;
+        }
+
+        if (enabled) writeSessionContext();
+        return true;
+    }
+
+    bool openLogsDirectory() override
+    {
+        if (!QDir{}.mkpath(logsRoot_)) return false;
+        return QDesktopServices::openUrl(QUrl::fromLocalFile(logsRoot_));
+    }
+
+private:
+    void writeSessionContext() const
+    {
+        qInfo().noquote() << "Tweakopedia debug logging enabled";
+        qInfo().noquote() << "Operating system:" << QSysInfo::prettyProductName()
+                          << "architecture:" << QSysInfo::currentCpuArchitecture();
+        qDebug().noquote() << "Runtime root:" << runtimeRoot_;
+        qDebug().noquote() << "Data root:" << dataRoot_;
+        qDebug().noquote() << "Log file:" << logger_.currentFilePath();
+    }
+
+    persistence::AppSettings settings_;
+    app::SessionLogger logger_;
+    QString logsRoot_;
+    QString runtimeRoot_;
+    QString dataRoot_;
 };
 
 } // namespace
@@ -400,12 +542,23 @@ int main(int argc, char* argv[])
         if (!selfCheckData->isValid() || !parser.isSet(u"no-elevation"_s)) return 2;
     }
 
-    DesktopServices services(runtimeRoot, selfCheckData ? selfCheckData->path() : QString{});
+    const auto dataRootOverride = selfCheckData ? selfCheckData->path() : QString{};
+    const persistence::AppPaths applicationPaths(runtimeRoot, dataRootOverride);
+    DesktopSettingsServices settingsServices(
+        applicationPaths.settingsPath(),
+        applicationPaths.logsRoot(),
+        runtimeRoot,
+        applicationPaths.dataRoot());
+    app::SettingsController settingsController(settingsServices);
+
+    DesktopServices services(runtimeRoot, dataRootOverride);
     app::AppController controller(services);
     const auto started = controller.startup();
+    qInfo().noquote() << "Application startup completed:" << started;
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty(u"appController"_s, &controller);
+    engine.rootContext()->setContextProperty(u"settingsController"_s, &settingsController);
     engine.load(QUrl(u"qrc:/qml/Main.qml"_s));
     if (engine.rootObjects().isEmpty()) return 1;
     applyLightTitleBar(qobject_cast<QWindow*>(engine.rootObjects().constFirst()));

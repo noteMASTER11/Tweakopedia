@@ -1,8 +1,22 @@
 add_library(TweakopediaDomain STATIC
+    BcdElement.cpp
+    BcdElement.h
+    PowerSetting.cpp
+    PowerSetting.h
+    WindowsComponent.cpp
+    WindowsComponent.h
+    FileOperation.cpp
+    FileOperation.h
     TweakDefinition.cpp
     TweakDefinition.h
     TweakId.h
+    TweakInput.cpp
+    TweakInput.h
     RegistryTypes.h
+    ScheduledTask.cpp
+    ScheduledTask.h
+    RegistryTree.cpp
+    RegistryTree.h
     SystemOverview.h
     SystemProfile.h
     DetectedState.h

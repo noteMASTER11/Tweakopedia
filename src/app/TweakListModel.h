@@ -31,6 +31,7 @@ public:
         PendingRole,
         SupportDetailsRole,
         ActionRole,
+        InputsRole,
     };
     Q_ENUM(Role)
 

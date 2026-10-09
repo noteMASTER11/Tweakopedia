@@ -13,6 +13,10 @@ add_library(TweakopediaApp STATIC
     HistoryListModel.h
     QueueListModel.cpp
     QueueListModel.h
+    SessionLogger.cpp
+    SessionLogger.h
+    SettingsController.cpp
+    SettingsController.h
     SystemOverviewPresenter.cpp
     SystemOverviewPresenter.h
     TweakListModel.cpp

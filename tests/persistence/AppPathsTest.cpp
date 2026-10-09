@@ -46,6 +46,7 @@ private slots:
         QVERIFY(QFileInfo::exists(paths.transactionsRoot()));
         QVERIFY(QFileInfo::exists(paths.logsRoot()));
         QCOMPARE(QFileInfo(paths.databasePath()).absolutePath(), QDir::cleanPath(dataDirectory.path()));
+        QCOMPARE(paths.settingsPath(), QDir(dataDirectory.path()).filePath(u"settings.ini"_s));
         QCOMPARE(paths.dataRoot(), QDir::cleanPath(dataDirectory.path()));
     }
 

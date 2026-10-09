@@ -10,6 +10,7 @@ namespace tweakopedia::planning {
 struct QueueItem {
     domain::TweakId tweakId;
     QString targetState;
+    domain::TweakInputMap inputs;
 };
 
 struct QueueChangeResult {
@@ -22,7 +23,8 @@ class TweakQueue final
 public:
     [[nodiscard]] QueueChangeResult setTarget(
         const domain::TweakDefinition& tweak,
-        QStringView targetState);
+        QStringView targetState,
+        const QVariantMap& inputs = {});
     [[nodiscard]] bool remove(const domain::TweakId& tweakId);
     [[nodiscard]] bool isEmpty() const noexcept;
     [[nodiscard]] qsizetype size() const noexcept;

@@ -83,6 +83,53 @@ private slots:
         QVERIFY(result.errors.isEmpty());
     }
 
+    void acceptsGenericRegistryValueChange()
+    {
+        const auto now = QDateTime::currentDateTimeUtc();
+        auto candidate = plan(now);
+        candidate.operations = {PlannedRegistryValueChange{
+            .tweakId = *TweakId::parse(u"devices.registry-value"_s),
+            .targetState = u"enabled"_s,
+            .change = SetRegistryValueOperation{
+                .location = {
+                    .hive = RegistryHive::CurrentUser,
+                    .key = u"Software\\Tweakopedia"_s,
+                    .valueName = u"Value"_s,
+                    .view = RegistryView::Registry64,
+                },
+                .value = RegistryValueSpec::binary(QByteArray::fromHex("deadbeef")),
+            },
+            .beforeFingerprint = QByteArray(64, 'd'),
+        }};
+        const auto hash = ExecutionProtocol::bodyHash(candidate);
+
+        const auto result = PlanValidator{}.validate(candidate, profile(), now, hash, hash);
+
+        QVERIFY(result.accepted);
+    }
+
+    void rejectsGenericRegistryEmptyPathAndOversizedValue()
+    {
+        const auto now = QDateTime::currentDateTimeUtc();
+        auto candidate = plan(now);
+        candidate.operations = {PlannedRegistryValueChange{
+            .tweakId = *TweakId::parse(u"devices.registry-value"_s),
+            .targetState = u"enabled"_s,
+            .change = SetRegistryValueOperation{
+                .location = {.hive = RegistryHive::CurrentUser, .key = {}, .valueName = {}},
+                .value = RegistryValueSpec::binary(QByteArray(1024 * 1024 + 1, 'x')),
+            },
+            .beforeFingerprint = QByteArray(64, 'd'),
+        }};
+        const auto hash = ExecutionProtocol::bodyHash(candidate);
+
+        const auto result = PlanValidator{}.validate(candidate, profile(), now, hash, hash);
+
+        QVERIFY(!result.accepted);
+        QVERIFY(result.hasError(u"registry.path_invalid"));
+        QVERIFY(result.hasError(u"registry.value_too_large"));
+    }
+
     void rejectsChangedSystemProfile()
     {
         const auto now = QDateTime::currentDateTimeUtc();

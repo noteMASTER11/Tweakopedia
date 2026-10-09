@@ -1,0 +1,48 @@
+id: boot.candidate-88bd8a1397
+title: 'Динамический системный таймер'
+category: boot
+subcategory: diagnostics
+kind: setting
+summary: 'Управляет параметром загрузчика {current}|disabledynamictick.'
+explanation:
+  purpose: 'Управляет параметром загрузчика {current}|disabledynamictick.'
+  mechanism: 'Значение записывается типизированно через BCD WMI Provider в текущую загрузочную запись.'
+  effect: 'Выбранная политика применяется при следующей загрузке Windows.'
+  tradeoffs: 'Некорректная политика загрузки может изменить поведение старта системы.'
+  recommendation: 'Используйте штатный вариант, если нет конкретной причины менять загрузчик.'
+  technical_details: 'Объект {current}; element type 0x260000A5; kind boolean.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  default:
+    title: 'По умолчанию'
+    operations:
+      - type: bcd.delete_element
+        object_id: '{current}'
+        element_type: 0x260000A5
+        value_kind: boolean
+  disabled:
+    title: 'Динамический таймер выключен'
+    operations:
+      - type: bcd.set_element
+        object_id: '{current}'
+        element_type: 0x260000A5
+        value_kind: boolean
+        value: true
+windows_defaults: []
+detect:
+  type: bcd.element
+  object_id: '{current}'
+  element_type: 0x260000A5
+  value_kind: boolean
+  states:
+    disabled: true
+  missing_state: default
+dependencies: []
+conflicts: []
+restart: reboot
+impact: high
+reversibility: reversible
+requires_network: false

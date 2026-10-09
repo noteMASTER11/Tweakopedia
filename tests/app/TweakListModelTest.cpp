@@ -140,6 +140,61 @@ private slots:
         QVERIFY(model.data(index, app::TweakListModel::ActionRole).toBool());
         QVERIFY(!model.data(index, app::TweakListModel::BinaryRole).toBool());
     }
+
+    void exposesTypedInputDefinitions()
+    {
+        auto definitions = catalog().tweaks();
+        definitions[0].inputs = {{
+            .id = u"name"_s, .label = u"Название"_s,
+            .type = domain::TweakInputType::Text, .required = true,
+            .minimumLength = 1, .maximumLength = 40,
+        }};
+        const content::TweakCatalog source(std::move(definitions));
+        const auto id = source.tweaks().first().id;
+        app::TweakListModel model;
+        model.reset(source, {{id, {.status = domain::DetectionStatus::Named,
+                                  .stateId = u"disabled"_s}}}, {{id, true}});
+
+        const auto inputs = model.data(model.index(0), app::TweakListModel::InputsRole).toList();
+
+        QCOMPARE(inputs.size(), 1);
+        QCOMPARE(inputs.first().toMap().value(u"id"_s).toString(), u"name"_s);
+        QCOMPARE(inputs.first().toMap().value(u"type"_s).toString(), u"text"_s);
+        QVERIFY(inputs.first().toMap().value(u"required"_s).toBool());
+        QCOMPARE(model.roleNames().value(app::TweakListModel::InputsRole), QByteArray("inputs"));
+    }
+
+    void exposesInputsUsedByEachState()
+    {
+        auto definitions = catalog().tweaks();
+        definitions[0].inputs = {{
+            .id = u"name"_s, .label = u"Название"_s,
+            .type = domain::TweakInputType::Text, .required = true,
+        }};
+        const auto location = definitions[0].detection->location;
+        definitions[0].states = {
+            {.id = u"cleared"_s, .title = u"Очистить"_s,
+             .operations = {domain::DeleteRegistryValueOperation{location}}},
+            {.id = u"configured"_s, .title = u"Настроить"_s,
+             .operations = {domain::SetRegistryValueOperation{
+                 .location = location,
+                 .value = domain::RegistryValueSpec::string({}),
+                 .valueInput = u"name"_s,
+             }}},
+        };
+        const content::TweakCatalog source(std::move(definitions));
+        const auto id = source.tweaks().first().id;
+        app::TweakListModel model;
+        model.reset(source, {{id, {.status = domain::DetectionStatus::Named,
+                                  .stateId = u"cleared"_s}}}, {{id, true}});
+
+        const auto states = model.data(
+            model.index(0), app::TweakListModel::AvailableStatesRole).toList();
+
+        QCOMPARE(states[0].toMap().value(u"inputIds"_s).toStringList(), QStringList{});
+        QCOMPARE(states[1].toMap().value(u"inputIds"_s).toStringList(),
+                 QStringList{u"name"_s});
+    }
 };
 
 QTEST_APPLESS_MAIN(TweakListModelTest)

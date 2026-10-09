@@ -1,4 +1,10 @@
 add_library(TweakopediaDetection STATIC
+    BcdStateDetector.cpp
+    BcdStateDetector.h
+    PowerSettingStateDetector.cpp
+    PowerSettingStateDetector.h
+    WindowsComponentStateDetector.cpp
+    WindowsComponentStateDetector.h
     AppxPackageStateDetector.cpp
     AppxPackageStateDetector.h
     CompatibilityEvaluator.cpp
@@ -7,6 +13,12 @@ add_library(TweakopediaDetection STATIC
     FeatureStateDetector.h
     RegistryDwordStateDetector.cpp
     RegistryDwordStateDetector.h
+    RegistryValueStateDetector.cpp
+    RegistryValueStateDetector.h
+    RegistryTreeStateDetector.cpp
+    RegistryTreeStateDetector.h
+    ScheduledTaskStateDetector.cpp
+    ScheduledTaskStateDetector.h
 )
 
 target_include_directories(TweakopediaDetection

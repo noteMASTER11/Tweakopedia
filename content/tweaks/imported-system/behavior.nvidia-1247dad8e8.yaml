@@ -1,0 +1,45 @@
+id: behavior.nvidia-1247dad8e8
+title: 'Телеметрия Nvidia (отключить) — NvTmRepOnLogon_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}'
+category: behavior
+subcategory: system-components
+kind: setting
+summary: 'Управляет запуском задачи планировщика NvTmRepOnLogon_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}.'
+explanation:
+  purpose: 'Управляет запуском задачи планировщика NvTmRepOnLogon_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}.'
+  mechanism: 'Меняет только свойство Enabled существующей задачи через Task Scheduler API.'
+  effect: 'Выключенная задача не запускается по своим триггерам; включённая снова следует своему расписанию.'
+  tradeoffs: 'Если соответствующее приложение не установлено, параметр отображается как неподдерживаемый.'
+  recommendation: 'Изменяйте состояние только после проверки назначения задачи.'
+  technical_details: 'Задача: \\NvTmRepOnLogon_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}.'
+compatibility:
+  architectures: [x64]
+  os: [windows10, windows11]
+  min_build: 10240
+states:
+  enabled:
+    title: 'Включено'
+    operations:
+      - type: scheduled_task.set_enabled
+        folder: '\'
+        name: 'NvTmRepOnLogon_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}'
+        enabled: true
+  disabled:
+    title: 'Выключено'
+    operations:
+      - type: scheduled_task.set_enabled
+        folder: '\'
+        name: 'NvTmRepOnLogon_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}'
+        enabled: false
+windows_defaults: []
+detect:
+  type: scheduled_task
+  folder: '\'
+  name: 'NvTmRepOnLogon_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}'
+  enabled_state: enabled
+  disabled_state: disabled
+dependencies: []
+conflicts: []
+restart: none
+impact: medium
+reversibility: reversible
+requires_network: false
