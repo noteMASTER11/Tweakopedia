@@ -14,6 +14,10 @@ add_dependencies(BuildSmokeTest Tweakopedia TweakopediaExecutor)
 
 add_test(NAME BuildSmoke COMMAND BuildSmokeTest)
 
+add_executable(StartupStageTest startup/StartupStageTest.cpp)
+target_link_libraries(StartupStageTest PRIVATE Qt6::Test TweakopediaStartup)
+add_test(NAME StartupStage COMMAND StartupStageTest)
+
 add_executable(PackageFooterTest package/PackageFooterTest.cpp)
 target_link_libraries(PackageFooterTest PRIVATE Qt6::Test TweakopediaPackage)
 add_test(NAME PackageFooter COMMAND PackageFooterTest)

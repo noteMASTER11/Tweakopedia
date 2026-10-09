@@ -16,6 +16,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+add_subdirectory(src/startup)
 add_subdirectory(src/domain)
 add_subdirectory(src/content)
 add_subdirectory(src/platform)
