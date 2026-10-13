@@ -9,6 +9,7 @@ Page {
 
     property int selectedToolIndex: -1
     property var integrityController
+    property var fileSystemController
     readonly property bool wideLayout: width >= 820
     padding: 0
 
@@ -65,7 +66,8 @@ Page {
     StackLayout {
         anchors.fill: parent
         currentIndex: root.selectedToolIndex < 0 ? 0
-            : root.selectedToolIndex === 0 ? 1 : 2
+            : root.selectedToolIndex === 0 ? 1
+            : root.selectedToolIndex === 1 ? 2 : 3
 
         Item {
             id: overview
@@ -238,6 +240,11 @@ Page {
 
         SystemIntegrityPage {
             controller: root.integrityController
+            onBackRequested: root.selectedToolIndex = -1
+        }
+
+        FileSystemCheckPage {
+            controller: root.fileSystemController
             onBackRequested: root.selectedToolIndex = -1
         }
 

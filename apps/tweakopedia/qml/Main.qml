@@ -61,7 +61,10 @@ ApplicationWindow {
                 onReturnToTweaksRequested: navigation.currentIndex = 1
             }
             HistoryPage { controller: appController }
-            ToolsPage { integrityController: systemIntegrityController }
+            ToolsPage {
+                integrityController: systemIntegrityController
+                fileSystemController: fileSystemCheckController
+            }
             SettingsPage { controller: settingsController }
             AboutPage {}
         }
