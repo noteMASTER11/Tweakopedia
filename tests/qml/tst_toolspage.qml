@@ -56,6 +56,27 @@ TestCase {
         function openSessionLog() { return true }
     }
 
+    QtObject {
+        id: fakeNetworkController
+        property string state: "idle"
+        property string stageText: ""
+        property string outputText: ""
+        property string resultTitle: ""
+        property string resultDescription: ""
+        property string errorCode: ""
+        property string sessionLogPath: ""
+        property var checks: []
+        property int okCount: 0
+        property int attentionCount: 0
+        property int unavailableCount: 0
+        property bool hasAttention: false
+        property bool busy: false
+        property bool canStart: true
+        function startDiagnostics() { return true }
+        function copyOutput() { return true }
+        function openSessionLog() { return true }
+    }
+
     Component {
         id: toolsPageComponent
         ToolsPage {
@@ -63,6 +84,7 @@ TestCase {
             height: 660
             integrityController: fakeIntegrityController
             fileSystemController: fakeFileSystemController
+            networkController: fakeNetworkController
         }
     }
 
@@ -91,19 +113,27 @@ TestCase {
         }
     }
 
-    function test_cardOpensDedicatedPlaceholderAndReturns() {
+    function test_networkCardOpensDedicatedScreenAndReturns() {
         const page = createTemporaryObject(toolsPageComponent, this)
         const card = findChild(page, "toolCard_2")
         mouseClick(card)
 
         compare(findChild(page, "toolsOverview").visible, false)
-        compare(findChild(page, "toolPlaceholder").visible, true)
-        compare(findChild(page, "toolPlaceholderTitle").text, "Диагностика сети")
-        compare(findChild(page, "toolPlaceholderStatus").text, "В разработке")
+        verify(findChild(page, "networkDiagnosticsPage").visible)
 
-        mouseClick(findChild(page, "toolPlaceholderBackButton"))
+        mouseClick(findChild(page, "networkDiagnosticsBackButton"))
         compare(findChild(page, "toolsOverview").visible, true)
-        compare(findChild(page, "toolPlaceholder").visible, false)
+        compare(findChild(page, "networkDiagnosticsPage").visible, false)
+    }
+
+    function test_networkRecoveryActionOpensRecoveryPlaceholder() {
+        fakeNetworkController.attentionCount = 1
+        fakeNetworkController.hasAttention = true
+        const page = createTemporaryObject(toolsPageComponent, this)
+        mouseClick(findChild(page, "toolCard_2"))
+        mouseClick(findChild(page, "networkDiagnosticsRecoveryButton"))
+        compare(findChild(page, "toolPlaceholder").visible, true)
+        compare(findChild(page, "toolPlaceholderTitle").text, "Восстановление сети")
     }
 
     function test_firstCardOpensIntegrityScreenAndReturnsWithoutResettingController() {

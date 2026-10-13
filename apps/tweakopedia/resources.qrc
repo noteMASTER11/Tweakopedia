@@ -11,6 +11,7 @@
     <file alias="qml/pages/ToolsPage.qml">qml/pages/ToolsPage.qml</file>
     <file alias="qml/pages/SystemIntegrityPage.qml">qml/pages/SystemIntegrityPage.qml</file>
     <file alias="qml/pages/FileSystemCheckPage.qml">qml/pages/FileSystemCheckPage.qml</file>
+    <file alias="qml/pages/NetworkDiagnosticsPage.qml">qml/pages/NetworkDiagnosticsPage.qml</file>
     <file alias="qml/pages/SettingsPage.qml">qml/pages/SettingsPage.qml</file>
     <file alias="qml/pages/AboutPage.qml">qml/pages/AboutPage.qml</file>
     <file alias="qml/components/TweakRow.qml">qml/components/TweakRow.qml</file>

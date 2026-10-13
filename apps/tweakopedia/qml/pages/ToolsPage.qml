@@ -10,6 +10,7 @@ Page {
     property int selectedToolIndex: -1
     property var integrityController
     property var fileSystemController
+    property var networkController
     readonly property bool wideLayout: width >= 820
     padding: 0
 
@@ -67,7 +68,8 @@ Page {
         anchors.fill: parent
         currentIndex: root.selectedToolIndex < 0 ? 0
             : root.selectedToolIndex === 0 ? 1
-            : root.selectedToolIndex === 1 ? 2 : 3
+            : root.selectedToolIndex === 1 ? 2
+            : root.selectedToolIndex === 2 ? 3 : 4
 
         Item {
             id: overview
@@ -246,6 +248,12 @@ Page {
         FileSystemCheckPage {
             controller: root.fileSystemController
             onBackRequested: root.selectedToolIndex = -1
+        }
+
+        NetworkDiagnosticsPage {
+            controller: root.networkController
+            onBackRequested: root.selectedToolIndex = -1
+            onRecoveryRequested: root.selectedToolIndex = 3
         }
 
         Item {

@@ -64,6 +64,7 @@ ApplicationWindow {
             ToolsPage {
                 integrityController: systemIntegrityController
                 fileSystemController: fileSystemCheckController
+                networkController: networkDiagnosticsController
             }
             SettingsPage { controller: settingsController }
             AboutPage {}
