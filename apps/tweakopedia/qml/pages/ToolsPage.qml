@@ -8,6 +8,7 @@ Page {
     id: root
 
     property int selectedToolIndex: -1
+    property var integrityController
     readonly property bool wideLayout: width >= 820
     padding: 0
 
@@ -63,7 +64,8 @@ Page {
 
     StackLayout {
         anchors.fill: parent
-        currentIndex: root.selectedToolIndex < 0 ? 0 : 1
+        currentIndex: root.selectedToolIndex < 0 ? 0
+            : root.selectedToolIndex === 0 ? 1 : 2
 
         Item {
             id: overview
@@ -232,6 +234,11 @@ Page {
                     Item { Layout.preferredHeight: 24 }
                 }
             }
+        }
+
+        SystemIntegrityPage {
+            controller: root.integrityController
+            onBackRequested: root.selectedToolIndex = -1
         }
 
         Item {

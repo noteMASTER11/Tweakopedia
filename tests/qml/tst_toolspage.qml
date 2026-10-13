@@ -10,9 +10,35 @@ TestCase {
     width: 1000
     height: 700
 
+    QtObject {
+        id: fakeIntegrityController
+        property string state: "idle"
+        property string stageText: ""
+        property int progress: 0
+        property bool progressKnown: false
+        property string outputText: ""
+        property string resultTitle: ""
+        property string resultDescription: ""
+        property string errorCode: ""
+        property int exitCode: -1
+        property string sessionLogPath: ""
+        property string dismLogPath: "C:/Windows/Logs/DISM/dism.log"
+        property bool busy: false
+        property bool canScan: true
+        property bool canRestore: false
+        function startScan() { return true }
+        function startRestore() { return true }
+        function copyOutput() { return true }
+        function openDismLog() { return true }
+    }
+
     Component {
         id: toolsPageComponent
-        ToolsPage { width: 960; height: 660 }
+        ToolsPage {
+            width: 960
+            height: 660
+            integrityController: fakeIntegrityController
+        }
     }
 
     function test_overviewShowsApprovedToolCards() {
@@ -53,5 +79,18 @@ TestCase {
         mouseClick(findChild(page, "toolPlaceholderBackButton"))
         compare(findChild(page, "toolsOverview").visible, true)
         compare(findChild(page, "toolPlaceholder").visible, false)
+    }
+
+    function test_firstCardOpensIntegrityScreenAndReturnsWithoutResettingController() {
+        const page = createTemporaryObject(toolsPageComponent, this)
+        mouseClick(findChild(page, "toolCard_0"))
+
+        compare(findChild(page, "toolsOverview").visible, false)
+        verify(findChild(page, "systemIntegrityPage").visible)
+        compare(fakeIntegrityController.state, "idle")
+
+        mouseClick(findChild(page, "systemIntegrityBackButton"))
+        compare(findChild(page, "toolsOverview").visible, true)
+        compare(fakeIntegrityController.state, "idle")
     }
 }

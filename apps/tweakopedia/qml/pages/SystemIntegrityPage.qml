@@ -1,0 +1,427 @@
+import QtQuick
+import QtQuick.Controls.Basic
+import QtQuick.Layouts
+import "../components"
+import "../style"
+
+Page {
+    id: root
+    objectName: "systemIntegrityPage"
+
+    property var controller
+    readonly property bool wideLayout: width >= 760
+    readonly property string toolState: controller ? controller.state : "idle"
+    signal backRequested()
+
+    function primaryText() {
+        if (toolState === "repairable")
+            return "Восстановить"
+        if (controller && controller.busy)
+            return "Выполняется…"
+        if (toolState === "idle")
+            return "Начать проверку"
+        if (toolState === "failed")
+            return "Повторить"
+        return "Проверить ещё раз"
+    }
+
+    function runPrimaryAction() {
+        if (!controller)
+            return
+        if (toolState === "repairable")
+            controller.startRestore()
+        else
+            controller.startScan()
+    }
+
+    function defaultTitle() {
+        if (toolState === "awaiting_elevation")
+            return "Требуется подтверждение"
+        if (controller && controller.busy)
+            return "Проверка выполняется"
+        return "Проверка ещё не запускалась"
+    }
+
+    function defaultDescription() {
+        if (toolState === "awaiting_elevation")
+            return "Подтвердите запуск встроенного средства Windows от имени администратора."
+        if (controller && controller.busy)
+            return "Не закрывайте исполнительный процесс. Можно перейти в другой раздел программы."
+        return "DISM проверит хранилище компонентов текущей установки Windows и сообщит его состояние."
+    }
+
+    padding: 0
+    background: Rectangle { color: FluentTheme.canvas }
+
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.leftMargin: 28
+        anchors.rightMargin: 28
+        anchors.topMargin: 22
+        anchors.bottomMargin: 24
+        spacing: 14
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 12
+
+            AbstractButton {
+                id: backButton
+                objectName: "systemIntegrityBackButton"
+                Layout.preferredWidth: 42
+                Layout.preferredHeight: 38
+                focusPolicy: Qt.StrongFocus
+                Accessible.name: "Вернуться к инструментам"
+                onClicked: root.backRequested()
+
+                contentItem: Text {
+                    text: "\uE72B"
+                    color: FluentTheme.textPrimary
+                    font.family: "Segoe MDL2 Assets"
+                    font.pixelSize: 16
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                background: Rectangle {
+                    radius: 6
+                    color: backButton.pressed ? FluentTheme.selected
+                                              : backButton.hovered ? FluentTheme.hover : FluentTheme.surface
+                    border.width: 1
+                    border.color: backButton.activeFocus ? FluentTheme.accent : FluentTheme.stroke
+                }
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 2
+
+                FluentText {
+                    Layout.fillWidth: true
+                    text: "Проверка целостности системы"
+                    color: FluentTheme.textPrimary
+                    font.family: FluentTheme.fontFamily
+                    font.pixelSize: 26
+                    font.weight: Font.DemiBold
+                    wrapMode: Text.WordWrap
+                }
+                FluentText {
+                    Layout.fillWidth: true
+                    text: "Диагностика и восстановление хранилища компонентов средствами DISM."
+                    color: FluentTheme.textSecondary
+                    font.family: FluentTheme.fontFamily
+                    font.pixelSize: 13
+                    wrapMode: Text.WordWrap
+                }
+            }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: stateGrid.implicitHeight + 36
+            radius: 10
+            color: FluentTheme.surface
+            border.width: 1
+            border.color: FluentTheme.stroke
+
+            GridLayout {
+                id: stateGrid
+                anchors.fill: parent
+                anchors.margins: 18
+                columns: root.wideLayout ? 2 : 1
+                columnSpacing: 22
+                rowSpacing: 14
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 10
+
+                        Rectangle {
+                            Layout.preferredWidth: 34
+                            Layout.preferredHeight: 34
+                            radius: 17
+                            color: root.toolState === "healthy" ? "#E8F5EA"
+                                : root.toolState === "repairable" ? "#FFF4CE"
+                                : (root.toolState === "failed" || root.toolState === "non_repairable")
+                                    ? "#FDE7E9" : FluentTheme.selected
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: root.toolState === "healthy" ? "\uE73E"
+                                    : root.toolState === "repairable" ? "\uE7BA"
+                                    : (root.toolState === "failed" || root.toolState === "non_repairable")
+                                        ? "\uEA39" : "\uE9F5"
+                                color: root.toolState === "healthy" ? "#107C10"
+                                    : root.toolState === "repairable" ? "#9D5D00"
+                                    : (root.toolState === "failed" || root.toolState === "non_repairable")
+                                        ? "#C42B1C" : FluentTheme.accent
+                                font.family: "Segoe MDL2 Assets"
+                                font.pixelSize: 16
+                            }
+                        }
+
+                        FluentText {
+                            Layout.fillWidth: true
+                            text: controller && controller.resultTitle.length > 0
+                                ? controller.resultTitle : root.defaultTitle()
+                            color: FluentTheme.textPrimary
+                            font.family: FluentTheme.fontFamily
+                            font.pixelSize: 17
+                            font.weight: Font.DemiBold
+                            wrapMode: Text.WordWrap
+                        }
+                    }
+
+                    FluentText {
+                        Layout.fillWidth: true
+                        text: controller && controller.resultDescription.length > 0
+                            ? controller.resultDescription : root.defaultDescription()
+                        color: FluentTheme.textSecondary
+                        font.family: FluentTheme.fontFamily
+                        font.pixelSize: 13
+                        lineHeight: 1.2
+                        wrapMode: Text.WordWrap
+                    }
+
+                    FluentText {
+                        id: stageText
+                        objectName: "systemIntegrityStageText"
+                        Layout.fillWidth: true
+                        visible: text.length > 0
+                        text: controller ? controller.stageText : ""
+                        color: FluentTheme.textPrimary
+                        font.family: FluentTheme.fontFamily
+                        font.pixelSize: 13
+                        font.weight: Font.DemiBold
+                        wrapMode: Text.WordWrap
+                    }
+
+                    ProgressBar {
+                        id: progressBar
+                        objectName: "systemIntegrityProgressBar"
+                        Layout.fillWidth: true
+                        visible: controller && controller.busy
+                        from: 0
+                        to: 100
+                        value: controller && controller.progressKnown ? controller.progress : 0
+                        indeterminate: controller && controller.busy && !controller.progressKnown
+                    }
+
+                    FluentText {
+                        Layout.fillWidth: true
+                        visible: controller && (controller.errorCode.length > 0 || controller.exitCode >= 0)
+                        text: {
+                            let details = []
+                            if (controller.errorCode.length > 0)
+                                details.push("Код: " + controller.errorCode)
+                            if (controller.exitCode >= 0)
+                                details.push("Код завершения: " + controller.exitCode)
+                            return details.join(" · ")
+                        }
+                        color: FluentTheme.textSecondary
+                        font.family: FluentTheme.fontFamily
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
+                    }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: !root.wideLayout
+                    Layout.alignment: root.wideLayout ? Qt.AlignRight | Qt.AlignVCenter : Qt.AlignLeft
+                    spacing: 8
+
+                    Button {
+                        id: primaryButton
+                        objectName: "systemIntegrityPrimaryButton"
+                        Layout.fillWidth: !root.wideLayout
+                        Layout.preferredWidth: root.wideLayout ? 178 : -1
+                        text: root.primaryText()
+                        enabled: controller && (root.toolState === "repairable"
+                            ? controller.canRestore : controller.canScan)
+                        onClicked: root.runPrimaryAction()
+
+                        contentItem: FluentText {
+                            text: primaryButton.text
+                            color: primaryButton.enabled ? "white" : FluentTheme.textDisabled
+                            font.family: FluentTheme.fontFamily
+                            font.pixelSize: 13
+                            font.weight: Font.DemiBold
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            radius: 6
+                            color: !primaryButton.enabled ? FluentTheme.surfaceInset
+                                : primaryButton.pressed ? FluentTheme.accentPressed
+                                : primaryButton.hovered ? FluentTheme.accentHover : FluentTheme.accent
+                            border.width: primaryButton.activeFocus ? 2 : 0
+                            border.color: FluentTheme.accentDark
+                        }
+                    }
+
+                    FluentText {
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: root.wideLayout ? 210 : -1
+                        text: "Проверка может занять несколько минут."
+                        color: FluentTheme.textSecondary
+                        font.family: FluentTheme.fontFamily
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
+                        horizontalAlignment: root.wideLayout ? Text.AlignHCenter : Text.AlignLeft
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.minimumHeight: 220
+            radius: 10
+            color: FluentTheme.surface
+            border.width: 1
+            border.color: FluentTheme.stroke
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 14
+                spacing: 10
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    FluentText {
+                        Layout.fillWidth: true
+                        text: "Вывод DISM"
+                        color: FluentTheme.textPrimary
+                        font.family: FluentTheme.fontFamily
+                        font.pixelSize: 14
+                        font.weight: Font.DemiBold
+                    }
+
+                    Button {
+                        id: copyButton
+                        objectName: "systemIntegrityCopyButton"
+                        text: "Копировать вывод"
+                        enabled: controller && controller.outputText.length > 0
+                        onClicked: if (controller) controller.copyOutput()
+
+                        contentItem: FluentText {
+                            text: copyButton.text
+                            color: copyButton.enabled ? FluentTheme.textPrimary : FluentTheme.textDisabled
+                            font.family: FluentTheme.fontFamily
+                            font.pixelSize: 12
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            implicitHeight: 34
+                            radius: 6
+                            color: copyButton.pressed ? FluentTheme.selected
+                                : copyButton.hovered ? FluentTheme.hover : FluentTheme.surface
+                            border.width: 1
+                            border.color: copyButton.activeFocus ? FluentTheme.accent : FluentTheme.stroke
+                        }
+                    }
+                    Button {
+                        id: openLogButton
+                        objectName: "systemIntegrityOpenLogButton"
+                        text: "Открыть журнал DISM"
+                        onClicked: if (controller) controller.openDismLog()
+
+                        contentItem: FluentText {
+                            text: openLogButton.text
+                            color: FluentTheme.textPrimary
+                            font.family: FluentTheme.fontFamily
+                            font.pixelSize: 12
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            implicitHeight: 34
+                            radius: 6
+                            color: openLogButton.pressed ? FluentTheme.selected
+                                : openLogButton.hovered ? FluentTheme.hover : FluentTheme.surface
+                            border.width: 1
+                            border.color: openLogButton.activeFocus ? FluentTheme.accent : FluentTheme.stroke
+                        }
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    radius: 7
+                    color: "#101218"
+                    border.width: 1
+                    border.color: "#2B3040"
+
+                    Flickable {
+                        id: terminalScroll
+                        anchors.fill: parent
+                        anchors.margins: 1
+                        clip: true
+                        contentWidth: width
+                        contentHeight: Math.max(height, terminalText.implicitHeight + 24)
+                        boundsBehavior: Flickable.StopAtBounds
+                        property bool following: true
+
+                        onContentYChanged: {
+                            const maximum = Math.max(0, contentHeight - height)
+                            following = maximum - contentY < 4
+                        }
+
+                        TextArea {
+                            id: terminalText
+                            objectName: "systemIntegrityTerminal"
+                            x: 10
+                            y: 8
+                            width: terminalScroll.width - 20
+                            height: Math.max(terminalScroll.height - 16, implicitHeight)
+                            text: controller ? controller.outputText : ""
+                            placeholderText: "Здесь появятся команды и вывод DISM."
+                            readOnly: true
+                            selectByMouse: true
+                            wrapMode: TextEdit.WrapAnywhere
+                            color: "#E6EDF3"
+                            placeholderTextColor: "#798294"
+                            selectionColor: FluentTheme.accent
+                            selectedTextColor: "white"
+                            font.family: "Cascadia Mono, Consolas"
+                            font.pixelSize: 12
+                            background: null
+
+                            onTextChanged: {
+                                if (terminalScroll.following) {
+                                    Qt.callLater(function() {
+                                        terminalScroll.contentY = Math.max(0,
+                                            terminalScroll.contentHeight - terminalScroll.height)
+                                    })
+                                }
+                            }
+                        }
+
+                        ScrollBar.vertical: ScrollBar {}
+                    }
+
+                    Button {
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        anchors.margins: 12
+                        visible: !terminalScroll.following
+                        text: "К последней строке"
+                        onClicked: {
+                            terminalScroll.contentY = Math.max(0,
+                                terminalScroll.contentHeight - terminalScroll.height)
+                            terminalScroll.following = true
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

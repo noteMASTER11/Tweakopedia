@@ -1,6 +1,7 @@
 #include "app/AppController.h"
 #include "app/SessionLogger.h"
 #include "app/SettingsController.h"
+#include "app/SystemIntegrityController.h"
 #include "BootstrapProgressClient.h"
 #include "content/AppRemovalCatalogLoader.h"
 #include "content/TweakCatalogLoader.h"
@@ -17,6 +18,7 @@
 #include "execution/ExecutionProtocol.h"
 #include "execution/ExecutorLauncher.h"
 #include "execution/ExecutorServer.h"
+#include "execution/SystemToolSession.h"
 #include "persistence/AppPaths.h"
 #include "persistence/AppSettings.h"
 #include "persistence/Database.h"
@@ -36,6 +38,7 @@
 
 #include <QDir>
 #include <QCommandLineParser>
+#include <QClipboard>
 #include <QDesktopServices>
 #include <QEventLoop>
 #include <QFileInfo>
@@ -512,6 +515,34 @@ private:
     QString dataRoot_;
 };
 
+class DesktopSystemIntegrityServices final : public app::ISystemIntegrityDesktopServices
+{
+public:
+    QString dismLogPath() const override
+    {
+        const auto windowsRoot = qEnvironmentVariable("WINDIR", "C:\\Windows");
+        return QDir(windowsRoot).filePath(u"Logs/DISM/dism.log"_s);
+    }
+
+    bool fileExists(const QString& path) const override
+    {
+        return QFileInfo(path).isFile();
+    }
+
+    bool copyText(const QString& text) override
+    {
+        auto* clipboard = QGuiApplication::clipboard();
+        if (!clipboard) return false;
+        clipboard->setText(text);
+        return true;
+    }
+
+    bool openFile(const QString& path) override
+    {
+        return QDesktopServices::openUrl(QUrl::fromLocalFile(path));
+    }
+};
+
 } // namespace
 
 int main(int argc, char* argv[])
@@ -576,6 +607,15 @@ int main(int argc, char* argv[])
         applicationPaths.dataRoot());
     app::SettingsController settingsController(settingsServices);
 
+    execution::WindowsShellExecuteBackend toolShellBackend;
+    execution::SystemToolSession systemToolSession(
+        toolShellBackend,
+        QDir(applicationPaths.applicationDirectory())
+            .filePath(u"Tweakopedia.Executor.exe"_s));
+    DesktopSystemIntegrityServices systemIntegrityServices;
+    app::SystemIntegrityController systemIntegrityController(
+        systemToolSession, systemIntegrityServices);
+
     DesktopServices services(runtimeRoot, dataRootOverride);
     app::AppController controller(services);
     const auto started = controller.startup(reportStartup);
@@ -589,6 +629,8 @@ int main(int argc, char* argv[])
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty(u"appController"_s, &controller);
     engine.rootContext()->setContextProperty(u"settingsController"_s, &settingsController);
+    engine.rootContext()->setContextProperty(
+        u"systemIntegrityController"_s, &systemIntegrityController);
     engine.rootContext()->setContextProperty(u"startupManaged"_s, startupClient.has_value());
     reportStartup(startup::StartupStage::Interface);
     engine.load(QUrl(u"qrc:/qml/Main.qml"_s));
