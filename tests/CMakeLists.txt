@@ -460,6 +460,15 @@ target_include_directories(FileSystemCheckWorkflowTest PRIVATE ${PROJECT_SOURCE_
 target_link_libraries(FileSystemCheckWorkflowTest PRIVATE Qt6::Test TweakopediaExecution)
 add_test(NAME FileSystemCheckWorkflow COMMAND FileSystemCheckWorkflowTest)
 
+add_executable(NetworkDiagnosticsWorkflowTest
+    execution/NetworkDiagnosticsWorkflowTest.cpp
+    fakes/FakeDismProcessRunner.cpp
+    fakes/FakeDismProcessRunner.h
+)
+target_include_directories(NetworkDiagnosticsWorkflowTest PRIVATE ${PROJECT_SOURCE_DIR}/tests)
+target_link_libraries(NetworkDiagnosticsWorkflowTest PRIVATE Qt6::Test TweakopediaExecution)
+add_test(NAME NetworkDiagnosticsWorkflow COMMAND NetworkDiagnosticsWorkflowTest)
+
 add_executable(PlanValidatorTest
     execution/PlanValidatorTest.cpp
 )

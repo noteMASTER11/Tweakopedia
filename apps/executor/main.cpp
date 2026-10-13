@@ -13,6 +13,7 @@
 #include "execution/QProcessDismRunner.h"
 #include "execution/SystemIntegrityWorkflow.h"
 #include "execution/FileSystemCheckWorkflow.h"
+#include "execution/NetworkDiagnosticsWorkflow.h"
 #include "execution/WindowsComponentExecutor.h"
 #include "persistence/AppPaths.h"
 #include "persistence/Database.h"
@@ -135,6 +136,20 @@ public:
     {
         QTimer::singleShot(0, qApp,
             [program, arguments, output = std::move(output), finished = std::move(finished)]() mutable {
+                if (arguments.contains(u"-EncodedCommand"_s)) {
+                    output("Network diagnostics fixture\n");
+                    const QByteArray ids[] = {
+                        "adapters", "dns", "proxy", "hosts", "routes", "firewall"};
+                    for (const auto& id : ids) {
+                        output("@@TWEAKOPEDIA@@{\"type\":\"stage\",\"id\":\"" + id + "\"}\n");
+                        output("@@TWEAKOPEDIA@@{\"type\":\"check\",\"id\":\"" + id
+                               + "\",\"title\":\"Fixture\",\"status\":\"ok\","
+                                 "\"summary\":\"OK\",\"details\":[]}\n");
+                    }
+                    finished({.termination = execution::DismProcessTermination::Normal,
+                              .exitCode = 0});
+                    return;
+                }
                 if (program.compare(u"chkdsk.exe"_s, Qt::CaseInsensitive) == 0) {
                     output("The type of the file system is NTFS.\r\n");
                     output("Windows has scanned the file system and found no problems.\r\n");
@@ -224,12 +239,13 @@ int main(int argc, char* argv[])
     std::unique_ptr<execution::IDismProcessRunner> toolRunner;
     std::unique_ptr<execution::SystemIntegrityWorkflow> integrityWorkflow;
     std::unique_ptr<execution::FileSystemCheckWorkflow> fileSystemWorkflow;
+    std::unique_ptr<execution::NetworkDiagnosticsWorkflow> networkWorkflow;
     QObject::connect(
         &client,
         &execution::ExecutorClient::toolRequestReceived,
         &app,
         [&](const execution::SystemToolRequest& request) {
-            if (integrityWorkflow || fileSystemWorkflow) {
+            if (integrityWorkflow || fileSystemWorkflow || networkWorkflow) {
                 sendToolAndQuit(client, {
                     .requestId = request.requestId,
                     .status = execution::SystemToolResultStatus::Failed,
@@ -284,7 +300,7 @@ int main(int argc, char* argv[])
                                  &execution::SystemIntegrityWorkflow::finished,
                                  &app, finishTool);
                 (void)integrityWorkflow->start(request);
-            } else {
+            } else if (request.tool == execution::SystemToolKind::FileSystem) {
                 fileSystemWorkflow = std::make_unique<execution::FileSystemCheckWorkflow>(
                     *toolRunner, logsRoot, &app);
                 QObject::connect(fileSystemWorkflow.get(),
@@ -297,6 +313,19 @@ int main(int argc, char* argv[])
                                  &execution::FileSystemCheckWorkflow::finished,
                                  &app, finishTool);
                 (void)fileSystemWorkflow->start(request);
+            } else {
+                networkWorkflow = std::make_unique<execution::NetworkDiagnosticsWorkflow>(
+                    *toolRunner, logsRoot, &app);
+                QObject::connect(networkWorkflow.get(),
+                                 &execution::NetworkDiagnosticsWorkflow::stageChanged,
+                                 &app, forwardStage);
+                QObject::connect(networkWorkflow.get(),
+                                 &execution::NetworkDiagnosticsWorkflow::outputReady,
+                                 &app, forwardOutput);
+                QObject::connect(networkWorkflow.get(),
+                                 &execution::NetworkDiagnosticsWorkflow::finished,
+                                 &app, finishTool);
+                (void)networkWorkflow->start(request);
             }
         });
     QObject::connect(

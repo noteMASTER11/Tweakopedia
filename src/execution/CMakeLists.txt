@@ -22,6 +22,9 @@ add_library(TweakopediaExecution STATIC
     SystemIntegrityWorkflow.h
     FileSystemCheckWorkflow.cpp
     FileSystemCheckWorkflow.h
+    NetworkDiagnosticsScript.h
+    NetworkDiagnosticsWorkflow.cpp
+    NetworkDiagnosticsWorkflow.h
     ISystemToolRunner.h
     SystemToolSession.cpp
     SystemToolSession.h
