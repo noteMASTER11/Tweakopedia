@@ -68,6 +68,18 @@ class SystemIntegrityControllerTest final : public QObject
     Q_OBJECT
 
 private slots:
+    void ignoresToolEventsWhenItDidNotStartTheSession()
+    {
+        tests::FakeSystemToolRunner runner;
+        FakeDesktopServices desktop;
+        app::SystemIntegrityController controller(runner, desktop);
+        emit runner.stageChanged(stage(execution::SystemToolStage::CheckFileSystem));
+        emit runner.outputReceived(output(u"CHKDSK output"_s));
+        emit runner.finished(result(execution::SystemToolOutcome::IssuesFound, 2));
+        QCOMPARE(controller.state(), u"idle"_s);
+        QVERIFY(controller.outputText().isEmpty());
+    }
+
     void scanTransitionsToHealthy()
     {
         tests::FakeSystemToolRunner runner;

@@ -49,6 +49,7 @@ SystemIntegrityController::SystemIntegrityController(
 {
     connect(runner_, &execution::ISystemToolRunner::launchCancelled, this,
             [this](const QString& message) {
+        if (!busy_) return;
         busy_ = false;
         pendingNewSession_ = false;
         state_ = u"idle"_s;
@@ -153,6 +154,7 @@ void SystemIntegrityController::beginConfirmedSession()
 
 void SystemIntegrityController::handleStage(const execution::SystemToolStageEvent& event)
 {
+    if (!busy_ || event.stage == execution::SystemToolStage::CheckFileSystem) return;
     beginConfirmedSession();
     busy_ = true;
     state_ = stateForStage(event.stage);
@@ -164,6 +166,7 @@ void SystemIntegrityController::handleStage(const execution::SystemToolStageEven
 
 void SystemIntegrityController::handleOutput(const execution::SystemToolOutputEvent& event)
 {
+    if (!busy_) return;
     outputText_ += event.text;
     trimOutput();
     emit changed();
@@ -171,6 +174,7 @@ void SystemIntegrityController::handleOutput(const execution::SystemToolOutputEv
 
 void SystemIntegrityController::handleProgress(const execution::SystemToolProgressEvent& event)
 {
+    if (!busy_) return;
     progress_ = event.percent;
     progressKnown_ = true;
     emit changed();
@@ -178,6 +182,7 @@ void SystemIntegrityController::handleProgress(const execution::SystemToolProgre
 
 void SystemIntegrityController::handleResult(const execution::SystemToolResult& result)
 {
+    if (!busy_) return;
     busy_ = false;
     pendingNewSession_ = false;
     progressKnown_ = false;
@@ -227,6 +232,7 @@ void SystemIntegrityController::handleResult(const execution::SystemToolResult& 
 
 void SystemIntegrityController::handleFailure(const QString& code, const QString& message)
 {
+    if (!busy_) return;
     busy_ = false;
     pendingNewSession_ = false;
     progressKnown_ = false;

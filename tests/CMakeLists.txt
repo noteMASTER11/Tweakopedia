@@ -578,6 +578,17 @@ target_link_libraries(SystemIntegrityControllerTest PRIVATE
     Qt6::Test TweakopediaApp TweakopediaExecution)
 add_test(NAME SystemIntegrityController COMMAND SystemIntegrityControllerTest)
 
+add_executable(FileSystemCheckControllerTest
+    app/FileSystemCheckControllerTest.cpp
+    fakes/FakeSystemToolRunner.cpp
+    fakes/FakeSystemToolRunner.h
+    fakes/FakeLocalVolumeProvider.h
+)
+target_include_directories(FileSystemCheckControllerTest PRIVATE ${PROJECT_SOURCE_DIR}/tests)
+target_link_libraries(FileSystemCheckControllerTest PRIVATE
+    Qt6::Test TweakopediaApp TweakopediaExecution TweakopediaPlatform)
+add_test(NAME FileSystemCheckController COMMAND FileSystemCheckControllerTest)
+
 add_executable(TweakListModelTest app/TweakListModelTest.cpp)
 target_compile_definitions(TweakListModelTest PRIVATE
     TWEAKOPEDIA_TEST_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content/tweaks"

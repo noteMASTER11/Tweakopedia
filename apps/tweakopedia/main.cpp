@@ -1,4 +1,5 @@
 #include "app/AppController.h"
+#include "app/FileSystemCheckController.h"
 #include "app/SessionLogger.h"
 #include "app/SettingsController.h"
 #include "app/SystemIntegrityController.h"
@@ -34,6 +35,7 @@
 #include "platform/WindowsComponentBackend.h"
 #include "platform/WindowsSystemProfileProvider.h"
 #include "platform/WindowsSystemOverviewProvider.h"
+#include "platform/WindowsLocalVolumeProvider.h"
 #include "UiTypography.h"
 
 #include <QDir>
@@ -615,6 +617,9 @@ int main(int argc, char* argv[])
     DesktopSystemIntegrityServices systemIntegrityServices;
     app::SystemIntegrityController systemIntegrityController(
         systemToolSession, systemIntegrityServices);
+    platform::WindowsLocalVolumeProvider localVolumeProvider;
+    app::FileSystemCheckController fileSystemCheckController(
+        localVolumeProvider, systemToolSession, systemIntegrityServices);
 
     DesktopServices services(runtimeRoot, dataRootOverride);
     app::AppController controller(services);
@@ -631,6 +636,8 @@ int main(int argc, char* argv[])
     engine.rootContext()->setContextProperty(u"settingsController"_s, &settingsController);
     engine.rootContext()->setContextProperty(
         u"systemIntegrityController"_s, &systemIntegrityController);
+    engine.rootContext()->setContextProperty(
+        u"fileSystemCheckController"_s, &fileSystemCheckController);
     engine.rootContext()->setContextProperty(u"startupManaged"_s, startupClient.has_value());
     reportStartup(startup::StartupStage::Interface);
     engine.load(QUrl(u"qrc:/qml/Main.qml"_s));

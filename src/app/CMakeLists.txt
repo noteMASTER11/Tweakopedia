@@ -9,6 +9,8 @@ add_library(TweakopediaApp STATIC
     EncyclopediaController.h
     EncyclopediaTreeModel.cpp
     EncyclopediaTreeModel.h
+    FileSystemCheckController.cpp
+    FileSystemCheckController.h
     HistoryListModel.cpp
     HistoryListModel.h
     QueueListModel.cpp
