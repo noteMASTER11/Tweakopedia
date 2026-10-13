@@ -70,6 +70,23 @@ private slots:
         QVERIFY(pageText.contains("systemIntegrityTerminal"));
     }
 
+    void networkDiagnosticsPageIsEmbeddedInApplicationResources()
+    {
+        const QDir sourceRoot(QStringLiteral(TWEAKOPEDIA_TEST_SOURCE_ROOT));
+        QFile resources(sourceRoot.filePath(QStringLiteral("apps/tweakopedia/resources.qrc")));
+        QVERIFY(resources.open(QIODevice::ReadOnly));
+        const auto resourceText = resources.readAll();
+        QVERIFY(resourceText.contains("qml/pages/NetworkDiagnosticsPage.qml"));
+
+        QFile page(sourceRoot.filePath(
+            QStringLiteral("apps/tweakopedia/qml/pages/NetworkDiagnosticsPage.qml")));
+        QVERIFY(page.open(QIODevice::ReadOnly));
+        const auto pageText = page.readAll();
+        QVERIFY(pageText.contains("networkDiagnosticsPage"));
+        QVERIFY(pageText.contains("networkDiagnosticsTerminal"));
+        QVERIFY(pageText.contains("networkDiagnosticsCheckRepeater"));
+    }
+
     void executorAdvertisesFixtureSystemToolMode()
     {
         QProcess process;

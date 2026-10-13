@@ -148,6 +148,33 @@ private slots:
         QVERIFY(controller.outputText().toUtf8().size() <= 2 * 1024 * 1024);
         QVERIFY(controller.outputText().startsWith(u"[Начало вывода удалено"_s));
     }
+
+    void ignoresEventsFromAnotherRequest()
+    {
+        tests::FakeSystemToolRunner runner;
+        FakeDesktopServices desktop;
+        app::NetworkDiagnosticsController controller(runner, desktop);
+        QVERIFY(controller.startDiagnostics());
+        const auto activeId = QUuid::createUuid();
+        const auto foreignId = QUuid::createUuid();
+        emit runner.stageChanged({activeId, execution::SystemToolStage::CheckNetworkDns});
+        emit runner.outputReceived({foreignId, 0, u"Чужой вывод"_s});
+        emit runner.finished({.requestId = foreignId,
+                              .status = execution::SystemToolResultStatus::Completed,
+                              .outcome = execution::SystemToolOutcome::Healthy,
+                              .details = diagnosticDetails()});
+
+        QVERIFY(controller.busy());
+        QVERIFY(controller.outputText().isEmpty());
+        QCOMPARE(controller.state(), u"checking"_s);
+
+        emit runner.finished({.requestId = activeId,
+                              .status = execution::SystemToolResultStatus::Completed,
+                              .outcome = execution::SystemToolOutcome::Healthy,
+                              .details = diagnosticDetails()});
+        QVERIFY(!controller.busy());
+        QCOMPARE(controller.state(), u"healthy"_s);
+    }
 };
 
 QTEST_APPLESS_MAIN(NetworkDiagnosticsControllerTest)

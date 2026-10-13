@@ -51,6 +51,7 @@ NetworkDiagnosticsController::NetworkDiagnosticsController(
         if (!busy_) return;
         busy_ = false;
         pendingNewSession_ = false;
+        activeRequestId_ = QUuid{};
         state_ = u"idle"_s;
         stageText_ = message;
         errorCode_ = u"launch.cancelled"_s;
@@ -86,6 +87,7 @@ bool NetworkDiagnosticsController::startDiagnostics()
     if (!canStart()) return false;
     busy_ = true;
     pendingNewSession_ = true;
+    activeRequestId_ = QUuid{};
     state_ = u"awaiting_elevation"_s;
     stageText_ = u"Ожидание подтверждения прав администратора"_s;
     emit changed();
@@ -135,6 +137,8 @@ void NetworkDiagnosticsController::beginConfirmedSession()
 void NetworkDiagnosticsController::handleStage(const execution::SystemToolStageEvent& event)
 {
     if (!busy_ || !isNetworkStage(event.stage)) return;
+    if (activeRequestId_.isNull()) activeRequestId_ = event.requestId;
+    else if (event.requestId != activeRequestId_) return;
     beginConfirmedSession();
     state_ = u"checking"_s;
     stageText_ = stageTitle(event.stage);
@@ -144,6 +148,7 @@ void NetworkDiagnosticsController::handleStage(const execution::SystemToolStageE
 void NetworkDiagnosticsController::handleOutput(const execution::SystemToolOutputEvent& event)
 {
     if (!busy_) return;
+    if (!activeRequestId_.isNull() && event.requestId != activeRequestId_) return;
     outputText_ += event.text;
     trimOutput();
     emit changed();
@@ -152,9 +157,11 @@ void NetworkDiagnosticsController::handleOutput(const execution::SystemToolOutpu
 void NetworkDiagnosticsController::handleResult(const execution::SystemToolResult& result)
 {
     if (!busy_) return;
+    if (!activeRequestId_.isNull() && result.requestId != activeRequestId_) return;
     beginConfirmedSession();
     busy_ = false;
     pendingNewSession_ = false;
+    activeRequestId_ = QUuid{};
     stageText_.clear();
     sessionLogPath_ = result.logPath;
     errorCode_ = result.code;
@@ -202,6 +209,7 @@ void NetworkDiagnosticsController::handleFailure(const QString& code, const QStr
     if (!busy_) return;
     busy_ = false;
     pendingNewSession_ = false;
+    activeRequestId_ = QUuid{};
     state_ = u"failed"_s;
     stageText_.clear();
     resultTitle_ = u"Диагностика не выполнена"_s;

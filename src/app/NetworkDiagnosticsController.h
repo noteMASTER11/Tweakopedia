@@ -4,6 +4,7 @@
 #include "execution/ISystemToolRunner.h"
 
 #include <QObject>
+#include <QUuid>
 #include <QVariantList>
 
 namespace tweakopedia::app {
@@ -77,6 +78,7 @@ private:
     int unavailableCount_{};
     bool busy_{};
     bool pendingNewSession_{};
+    QUuid activeRequestId_;
 };
 
 } // namespace tweakopedia::app

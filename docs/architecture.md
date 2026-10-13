@@ -27,15 +27,15 @@ Executor повторно сверяет исходное состояние и 
 контракт сообщений:
 
 ```text
-SystemIntegrityPage.qml       FileSystemCheckPage.qml
-        ↓                              ↓
-SystemIntegrityController     FileSystemCheckController
-                 \            /
-                  SystemToolSession
+SystemIntegrityPage.qml   FileSystemCheckPage.qml   NetworkDiagnosticsPage.qml
+        ↓                          ↓                          ↓
+SystemIntegrityController FileSystemCheckController NetworkDiagnosticsController
+                 \                 |                 /
+                         SystemToolSession
                          ↓  verified local IPC
                  Tweakopedia.Executor.exe
                          ↓
-                DISM.exe / chkdsk.exe
+          DISM.exe / chkdsk.exe / powershell.exe
 ```
 
 Для проверки разрешены только операции `system_integrity.scan` и
@@ -55,13 +55,23 @@ SystemIntegrityController     FileSystemCheckController
 завершения, а не по локализованному выводу. Полный вывод хранится в
 `Logs/Tools/FileSystemCheck`, экранный буфер также ограничен 2 МиБ.
 
+Диагностика сети запускает фиксированный сценарий Windows PowerShell 5.1 без
+пользовательских аргументов. Он выполняет шесть независимых операций чтения:
+адаптеры, DNS, прокси/PAC, `hosts`, маршруты и Windows Firewall. Каждая операция
+выдаёт служебный JSON-маркер и отдельный текст для терминала.
+`NetworkDiagnosticsWorkflow` удаляет маркеры из пользовательского вывода,
+собирает типизированный массив `details.checks` и сохраняет исходный поток в
+`Logs/Tools/NetworkDiagnostics`. Ошибка одного блока превращает только этот
+результат в `unavailable`; остальные данные остаются доступны. Экранный буфер
+контроллера ограничен 2 МиБ.
+
 ## Границы модулей
 
 - `src/domain` — типы параметров и операций;
 - `src/content` — YAML/JSON-каталог и его проверка;
 - `src/detection` — чтение фактических состояний Windows;
 - `src/planning` — очередь и типизированный план;
-- `src/execution` — IPC, исполнители, workflow DISM/CHKDSK и протоколы;
+- `src/execution` — IPC, исполнители, workflow DISM/CHKDSK/диагностики сети и протоколы;
 - `src/persistence` — SQLite, настройки и файлы транзакций;
 - `src/platform` — Win32, WMI, DXGI, AppX и Feature Store;
 - `src/app` — долгоживущие модели и контроллеры QML;
