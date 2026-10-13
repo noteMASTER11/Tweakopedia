@@ -20,7 +20,7 @@ ApplicationWindow {
         FluentNavigation {
             Layout.fillHeight: true
             availableWidth: window.width
-            currentIndex: 5
+            currentIndex: 7
         }
 
         AboutPage {

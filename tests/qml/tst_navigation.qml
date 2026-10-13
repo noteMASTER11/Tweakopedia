@@ -74,7 +74,7 @@ TestCase {
 
     function test_orderAboutPlacementBadgeAndAccessibleNames() {
         const navigation = createTemporaryObject(navigationComponent, this, {availableWidth: 1099})
-        const expected = ["Обзор", "Твики", "Твикопедия", "Очередь", "История", "Настройки", "О программе"]
+        const expected = ["Обзор", "Твики", "Твикопедия", "Очередь", "История", "Инструменты", "Настройки", "О программе"]
         for (let index = 0; index < expected.length; ++index) {
             const item = findChild(navigation, "navItem_" + index)
             verify(item)
@@ -83,8 +83,10 @@ TestCase {
         }
 
         const history = findChild(navigation, "navItem_4")
-        const settings = findChild(navigation, "navItem_5")
-        const about = findChild(navigation, "navItem_6")
+        const tools = findChild(navigation, "navItem_5")
+        const settings = findChild(navigation, "navItem_6")
+        const about = findChild(navigation, "navItem_7")
+        verify(tools.y > history.y)
         verify(settings.y > history.y)
         verify(about.y > history.y)
         verify(about.y > settings.y)
@@ -127,7 +129,7 @@ TestCase {
     function test_sidebarUsesThematicMdl2Glyphs() {
         const navigation = createTemporaryObject(navigationComponent, this)
         const expectedGlyphs = [
-            "\uE80F", "\uE8AB", "\uE736", "\uE8FD", "\uE81C", "\uE713", "\uE946"
+            "\uE80F", "\uE8AB", "\uE736", "\uE8FD", "\uE81C", "\uE90F", "\uE713", "\uE946"
         ]
         for (let index = 0; index < expectedGlyphs.length; ++index) {
             const icon = findChild(navigation, "navIcon_" + index)
@@ -148,7 +150,7 @@ TestCase {
         compare(expandedFilter.visible, true)
         compare(compactFilter.visible, false)
         compare(navigation.hideUnsupportedTweaks, false)
-        const settings = findChild(navigation, "navItem_5")
+        const settings = findChild(navigation, "navItem_6")
         compare(expandedFilter.y, settings.y - 8 - expandedFilter.height)
 
         const spy = signalSpy.createObject(navigation, {

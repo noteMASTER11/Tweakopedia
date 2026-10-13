@@ -31,7 +31,8 @@ Rectangle {
         {title: "Твики", glyph: "\uE8AB"},
         {title: "Твикопедия", glyph: "\uE736"},
         {title: "Очередь", glyph: "\uE8FD"},
-        {title: "История", glyph: "\uE81C"}
+        {title: "История", glyph: "\uE81C"},
+        {title: "Инструменты", glyph: "\uE90F"}
     ]
 
     Image {
@@ -206,7 +207,7 @@ Rectangle {
 
     FluentNavigationItem {
         id: settingsItem
-        objectName: "navItem_5"
+        objectName: "navItem_6"
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: aboutItem.top
@@ -214,17 +215,17 @@ Rectangle {
         title: "Настройки"
         glyph: "\uE713"
         compact: root.compact
-        selected: root.currentIndex === 5
-        destinationIndex: 5
+        selected: root.currentIndex === 6
+        destinationIndex: 6
         onClicked: {
-            root.currentIndex = 5
-            root.destinationRequested(5)
+            root.currentIndex = 6
+            root.destinationRequested(6)
         }
     }
 
     FluentNavigationItem {
         id: aboutItem
-        objectName: "navItem_6"
+        objectName: "navItem_7"
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
@@ -232,11 +233,11 @@ Rectangle {
         title: "О программе"
         glyph: "\uE946"
         compact: root.compact
-        selected: root.currentIndex === 6
-        destinationIndex: 6
+        selected: root.currentIndex === 7
+        destinationIndex: 7
         onClicked: {
-            root.currentIndex = 6
-            root.destinationRequested(6)
+            root.currentIndex = 7
+            root.destinationRequested(7)
         }
     }
 }
