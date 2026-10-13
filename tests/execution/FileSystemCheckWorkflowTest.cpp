@@ -34,7 +34,10 @@ private slots:
 
         QVERIFY(workflow.start(request));
         QCOMPARE(runner.invocations.size(), 1);
-        QCOMPARE(runner.invocations.at(0).program, u"chkdsk.exe"_s);
+        const QFileInfo executable(runner.invocations.at(0).program);
+        QVERIFY(executable.isAbsolute());
+        QCOMPARE(executable.fileName().toLower(), u"chkdsk.exe"_s);
+        QCOMPARE(QFileInfo(executable.absolutePath()).fileName().toLower(), u"system32"_s);
         QCOMPARE(runner.invocations.at(0).arguments, QStringList{u"C:"_s});
         runner.emitOutput(0, "Stage 1\r17 percent\r\ncomplete\n");
         runner.finish(0, {.termination = DismProcessTermination::Normal, .exitCode = 0});
@@ -59,6 +62,35 @@ private slots:
         QTest::newRow("issues-not-fixed") << 2 << SystemToolOutcome::IssuesFound;
         QTest::newRow("incomplete") << 3 << SystemToolOutcome::Incomplete;
         QTest::newRow("unexpected-fixed") << 1 << SystemToolOutcome::Incomplete;
+    }
+
+    void preservesMultibyteCharactersSplitAcrossChunks()
+    {
+        const auto expected = u"Проверка тома завершена\n"_s;
+        const auto encoded = expected.toLocal8Bit();
+        qsizetype split = -1;
+        for (qsizetype index = 1; index < encoded.size(); ++index) {
+            if (QString::fromLocal8Bit(encoded.first(index))
+                    + QString::fromLocal8Bit(encoded.sliced(index)) != expected) {
+                split = index;
+                break;
+            }
+        }
+        if (split < 0) QSKIP("Текущая системная кодировка не является многобайтовой.");
+
+        QTemporaryDir logs;
+        FakeDismProcessRunner runner;
+        FileSystemCheckWorkflow workflow(runner, logs.path());
+        QSignalSpy output(&workflow, &FileSystemCheckWorkflow::outputReady);
+        QVERIFY(workflow.start({QUuid::createUuid(), SystemToolKind::FileSystem,
+                                SystemToolOperation::Check, u"C:"_s}));
+        runner.emitOutput(0, encoded.first(split));
+        runner.emitOutput(0, encoded.sliced(split));
+        runner.finish(0, {.termination = DismProcessTermination::Normal, .exitCode = 0});
+
+        QString combined;
+        for (const auto& event : output) combined += event.at(1).toString();
+        QVERIFY(combined.contains(expected));
     }
 
     void mapsDocumentedReadOnlyExitCodes()
@@ -117,4 +149,3 @@ private slots:
 
 QTEST_GUILESS_MAIN(FileSystemCheckWorkflowTest)
 #include "FileSystemCheckWorkflowTest.moc"
-

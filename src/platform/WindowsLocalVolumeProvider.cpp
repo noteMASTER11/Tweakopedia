@@ -130,4 +130,3 @@ QVector<LocalVolume> WindowsLocalVolumeProvider::volumes() const
 }
 
 } // namespace tweakopedia::platform
-

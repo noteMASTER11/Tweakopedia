@@ -100,4 +100,3 @@ private slots:
 
 QTEST_GUILESS_MAIN(WindowsLocalVolumeProviderTest)
 #include "WindowsLocalVolumeProviderTest.moc"
-

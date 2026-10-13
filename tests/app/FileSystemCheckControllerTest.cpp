@@ -180,4 +180,3 @@ private slots:
 
 QTEST_APPLESS_MAIN(FileSystemCheckControllerTest)
 #include "FileSystemCheckControllerTest.moc"
-

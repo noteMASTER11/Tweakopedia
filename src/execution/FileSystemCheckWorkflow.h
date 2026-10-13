@@ -4,6 +4,7 @@
 #include "execution/SystemToolLogWriter.h"
 
 #include <QObject>
+#include <QStringConverter>
 
 namespace tweakopedia::execution {
 
@@ -37,9 +38,9 @@ private:
     SystemToolLogWriter log_;
     SystemToolRequest request_;
     QString displayLine_;
+    QStringDecoder outputDecoder_{QStringConverter::System};
     bool pendingCarriageReturn_{};
     bool active_{};
 };
 
 } // namespace tweakopedia::execution
-

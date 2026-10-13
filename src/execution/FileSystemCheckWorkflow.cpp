@@ -1,11 +1,26 @@
 #include "execution/FileSystemCheckWorkflow.h"
 
+#include <QDir>
 #include <QRegularExpression>
 #include <QSysInfo>
+
+#include <windows.h>
 
 using namespace Qt::StringLiterals;
 
 namespace tweakopedia::execution {
+namespace {
+
+QString systemChkdskPath()
+{
+    wchar_t directory[MAX_PATH + 1]{};
+    const auto length = GetSystemDirectoryW(directory, MAX_PATH + 1);
+    if (length == 0 || length > MAX_PATH) return u"chkdsk.exe"_s;
+    return QDir(QString::fromWCharArray(directory, static_cast<qsizetype>(length)))
+        .filePath(u"chkdsk.exe"_s);
+}
+
+} // namespace
 
 FileSystemCheckWorkflow::FileSystemCheckWorkflow(
     IDismProcessRunner& runner,
@@ -37,14 +52,16 @@ bool FileSystemCheckWorkflow::start(const SystemToolRequest& request)
     }
 
     displayLine_.clear();
+    outputDecoder_.resetState();
     pendingCarriageReturn_ = false;
     active_ = true;
     emit stageChanged({request.requestId, SystemToolStage::CheckFileSystem});
     const QStringList arguments{request.target};
+    const auto executable = systemChkdskPath();
     log_.appendCommand(u"chkdsk.exe"_s, arguments);
     emit outputReady(request.requestId, u"> chkdsk.exe "_s + request.target + u"\n"_s);
     if (!runner_->start(
-            u"chkdsk.exe"_s,
+            executable,
             arguments,
             [this](const QByteArray& bytes) { consumeOutput(bytes); },
             [this](DismProcessResult result) { processFinished(std::move(result)); })) {
@@ -64,7 +81,7 @@ bool FileSystemCheckWorkflow::active() const noexcept
 void FileSystemCheckWorkflow::consumeOutput(const QByteArray& bytes)
 {
     log_.appendOutput(bytes);
-    const auto text = QString::fromLocal8Bit(bytes);
+    const QString text = outputDecoder_(bytes);
     for (const auto character : text) {
         if (pendingCarriageReturn_) {
             if (character == u'\n') {
@@ -166,4 +183,3 @@ void FileSystemCheckWorkflow::complete(SystemToolResult result)
 }
 
 } // namespace tweakopedia::execution
-
