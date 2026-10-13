@@ -12,6 +12,7 @@
 #include "execution/PowerSettingExecutor.h"
 #include "execution/QProcessDismRunner.h"
 #include "execution/SystemIntegrityWorkflow.h"
+#include "execution/FileSystemCheckWorkflow.h"
 #include "execution/WindowsComponentExecutor.h"
 #include "persistence/AppPaths.h"
 #include "persistence/Database.h"
@@ -127,13 +128,20 @@ class FixtureDismProcessRunner final : public execution::IDismProcessRunner
 {
 public:
     bool start(
-        const QString&,
+        const QString& program,
         const QStringList& arguments,
         OutputCallback output,
         FinishedCallback finished) override
     {
         QTimer::singleShot(0, qApp,
-            [arguments, output = std::move(output), finished = std::move(finished)]() mutable {
+            [program, arguments, output = std::move(output), finished = std::move(finished)]() mutable {
+                if (program.compare(u"chkdsk.exe"_s, Qt::CaseInsensitive) == 0) {
+                    output("The type of the file system is NTFS.\r\n");
+                    output("Windows has scanned the file system and found no problems.\r\n");
+                    finished({.termination = execution::DismProcessTermination::Normal,
+                              .exitCode = 0});
+                    return;
+                }
                 output("Deployment Image Servicing and Management tool\r\n");
                 output("[==========================100.0%==========================]\r");
                 if (arguments.contains(u"/CheckHealth"_s)) {
@@ -214,13 +222,14 @@ int main(int argc, char* argv[])
         if (!toolActive) QCoreApplication::exit(3);
     });
     std::unique_ptr<execution::IDismProcessRunner> toolRunner;
-    std::unique_ptr<execution::SystemIntegrityWorkflow> toolWorkflow;
+    std::unique_ptr<execution::SystemIntegrityWorkflow> integrityWorkflow;
+    std::unique_ptr<execution::FileSystemCheckWorkflow> fileSystemWorkflow;
     QObject::connect(
         &client,
         &execution::ExecutorClient::toolRequestReceived,
         &app,
         [&](const execution::SystemToolRequest& request) {
-            if (toolWorkflow) {
+            if (integrityWorkflow || fileSystemWorkflow) {
                 sendToolAndQuit(client, {
                     .requestId = request.requestId,
                     .status = execution::SystemToolResultStatus::Failed,
@@ -245,28 +254,50 @@ int main(int argc, char* argv[])
 #else
             const auto logsRoot = paths.logsRoot();
 #endif
-            toolWorkflow = std::make_unique<execution::SystemIntegrityWorkflow>(
-                *toolRunner, logsRoot, &app);
-            QObject::connect(toolWorkflow.get(), &execution::SystemIntegrityWorkflow::stageChanged,
-                             &app, [&](const execution::SystemToolStageEvent& event) {
+            toolActive = true;
+            const auto forwardStage = [&](const execution::SystemToolStageEvent& event) {
                 (void)client.sendToolStage(event);
-            });
-            QObject::connect(toolWorkflow.get(), &execution::SystemIntegrityWorkflow::outputReady,
-                             &app, [&](const QUuid& id, const QString& text) {
+            };
+            const auto forwardOutput = [&](const QUuid& id, const QString& text) {
                 (void)client.sendToolOutput(id, text);
-            });
-            QObject::connect(toolWorkflow.get(), &execution::SystemIntegrityWorkflow::progressChanged,
-                             &app, [&](const execution::SystemToolProgressEvent& event) {
-                (void)client.sendToolProgress(event);
-            });
-            QObject::connect(toolWorkflow.get(), &execution::SystemIntegrityWorkflow::finished,
-                             &app, [&](const execution::SystemToolResult& result) {
+            };
+            const auto finishTool = [&](const execution::SystemToolResult& result) {
                 toolActive = false;
                 sendToolAndQuit(client, result,
                                 result.status == execution::SystemToolResultStatus::Completed ? 0 : 20);
-            });
-            toolActive = true;
-            (void)toolWorkflow->start(request);
+            };
+            if (request.tool == execution::SystemToolKind::ComponentStore) {
+                integrityWorkflow = std::make_unique<execution::SystemIntegrityWorkflow>(
+                    *toolRunner, logsRoot, &app);
+                QObject::connect(integrityWorkflow.get(),
+                                 &execution::SystemIntegrityWorkflow::stageChanged,
+                                 &app, forwardStage);
+                QObject::connect(integrityWorkflow.get(),
+                                 &execution::SystemIntegrityWorkflow::outputReady,
+                                 &app, forwardOutput);
+                QObject::connect(integrityWorkflow.get(),
+                                 &execution::SystemIntegrityWorkflow::progressChanged,
+                                 &app, [&](const execution::SystemToolProgressEvent& event) {
+                    (void)client.sendToolProgress(event);
+                });
+                QObject::connect(integrityWorkflow.get(),
+                                 &execution::SystemIntegrityWorkflow::finished,
+                                 &app, finishTool);
+                (void)integrityWorkflow->start(request);
+            } else {
+                fileSystemWorkflow = std::make_unique<execution::FileSystemCheckWorkflow>(
+                    *toolRunner, logsRoot, &app);
+                QObject::connect(fileSystemWorkflow.get(),
+                                 &execution::FileSystemCheckWorkflow::stageChanged,
+                                 &app, forwardStage);
+                QObject::connect(fileSystemWorkflow.get(),
+                                 &execution::FileSystemCheckWorkflow::outputReady,
+                                 &app, forwardOutput);
+                QObject::connect(fileSystemWorkflow.get(),
+                                 &execution::FileSystemCheckWorkflow::finished,
+                                 &app, finishTool);
+                (void)fileSystemWorkflow->start(request);
+            }
         });
     QObject::connect(
         &client,

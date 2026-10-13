@@ -451,6 +451,15 @@ target_include_directories(SystemIntegrityWorkflowTest PRIVATE ${PROJECT_SOURCE_
 target_link_libraries(SystemIntegrityWorkflowTest PRIVATE Qt6::Test TweakopediaExecution)
 add_test(NAME SystemIntegrityWorkflow COMMAND SystemIntegrityWorkflowTest)
 
+add_executable(FileSystemCheckWorkflowTest
+    execution/FileSystemCheckWorkflowTest.cpp
+    fakes/FakeDismProcessRunner.cpp
+    fakes/FakeDismProcessRunner.h
+)
+target_include_directories(FileSystemCheckWorkflowTest PRIVATE ${PROJECT_SOURCE_DIR}/tests)
+target_link_libraries(FileSystemCheckWorkflowTest PRIVATE Qt6::Test TweakopediaExecution)
+add_test(NAME FileSystemCheckWorkflow COMMAND FileSystemCheckWorkflowTest)
+
 add_executable(PlanValidatorTest
     execution/PlanValidatorTest.cpp
 )

@@ -324,6 +324,50 @@ private slots:
         QCOMPARE(process.exitStatus(), QProcess::NormalExit);
         QCOMPARE(process.exitCode(), 0);
     }
+
+    void runsOneShotFileSystemCheckExecutorSession()
+    {
+        const auto serverName = u"tweakopedia-chkdsk-e2e-"_s
+            + QUuid::createUuid().toString(QUuid::WithoutBraces);
+        const auto nonce = QUuid::createUuid().toString(QUuid::WithoutBraces);
+        execution::ExecutorServer server;
+        QVERIFY(server.listen(serverName, nonce));
+        QSignalSpy authenticated(&server, &execution::ExecutorServer::authenticated);
+        QSignalSpy stages(&server, &execution::ExecutorServer::toolStageReceived);
+        QSignalSpy output(&server, &execution::ExecutorServer::toolOutputReceived);
+        QSignalSpy result(&server, &execution::ExecutorServer::toolResultReceived);
+        QTemporaryDir logs;
+        QVERIFY(logs.isValid());
+
+        QProcess process;
+        process.setProgram(QStringLiteral(TWEAKOPEDIA_TEST_EXECUTOR));
+        process.setArguments({u"--server"_s, serverName, u"--nonce"_s, nonce,
+                              u"--test-tool-mode"_s,
+                              u"--test-tool-root"_s, logs.path()});
+        process.start();
+        QVERIFY2(process.waitForStarted(5000), qPrintable(process.errorString()));
+        server.setExpectedProcessId(process.processId());
+        QTRY_COMPARE_WITH_TIMEOUT(authenticated.size(), 1, 5000);
+
+        const execution::SystemToolRequest request{
+            QUuid::createUuid(), execution::SystemToolKind::FileSystem,
+            execution::SystemToolOperation::Check, u"C:"_s};
+        QVERIFY(server.sendToolRequest(request));
+        QTRY_COMPARE_WITH_TIMEOUT(stages.size(), 1, 5000);
+        QTRY_VERIFY_WITH_TIMEOUT(!output.isEmpty(), 5000);
+        QTRY_COMPARE_WITH_TIMEOUT(result.size(), 1, 5000);
+        const auto typed = qvariant_cast<execution::SystemToolResult>(result.first().first());
+        QCOMPARE(typed.status, execution::SystemToolResultStatus::Completed);
+        QCOMPARE(typed.outcome, execution::SystemToolOutcome::Healthy);
+        QCOMPARE(typed.exitCode, 0);
+        QVERIFY(QFileInfo::exists(typed.logPath));
+        QVERIFY(typed.logPath.contains(u"Tools/FileSystemCheck"_s));
+        if (process.state() != QProcess::NotRunning) {
+            QVERIFY(process.waitForFinished(5000));
+        }
+        QCOMPARE(process.exitStatus(), QProcess::NormalExit);
+        QCOMPARE(process.exitCode(), 0);
+    }
 };
 
 QTEST_GUILESS_MAIN(ExecutorIpcTest)

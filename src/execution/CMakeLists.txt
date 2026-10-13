@@ -20,6 +20,8 @@ add_library(TweakopediaExecution STATIC
     SystemToolLogWriter.h
     SystemIntegrityWorkflow.cpp
     SystemIntegrityWorkflow.h
+    FileSystemCheckWorkflow.cpp
+    FileSystemCheckWorkflow.h
     ISystemToolRunner.h
     SystemToolSession.cpp
     SystemToolSession.h
