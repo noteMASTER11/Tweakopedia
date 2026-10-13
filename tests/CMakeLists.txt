@@ -430,6 +430,19 @@ add_executable(DismOutputParserTest execution/DismOutputParserTest.cpp)
 target_link_libraries(DismOutputParserTest PRIVATE Qt6::Test TweakopediaExecution)
 add_test(NAME DismOutputParser COMMAND DismOutputParserTest)
 
+add_executable(SystemToolLogWriterTest execution/SystemToolLogWriterTest.cpp)
+target_link_libraries(SystemToolLogWriterTest PRIVATE Qt6::Test TweakopediaExecution)
+add_test(NAME SystemToolLogWriter COMMAND SystemToolLogWriterTest)
+
+add_executable(SystemIntegrityWorkflowTest
+    execution/SystemIntegrityWorkflowTest.cpp
+    fakes/FakeDismProcessRunner.cpp
+    fakes/FakeDismProcessRunner.h
+)
+target_include_directories(SystemIntegrityWorkflowTest PRIVATE ${PROJECT_SOURCE_DIR}/tests)
+target_link_libraries(SystemIntegrityWorkflowTest PRIVATE Qt6::Test TweakopediaExecution)
+add_test(NAME SystemIntegrityWorkflow COMMAND SystemIntegrityWorkflowTest)
+
 add_executable(PlanValidatorTest
     execution/PlanValidatorTest.cpp
 )

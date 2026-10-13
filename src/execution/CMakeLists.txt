@@ -13,6 +13,13 @@ add_library(TweakopediaExecution STATIC
     SystemToolProtocol.h
     DismOutputParser.cpp
     DismOutputParser.h
+    IDismProcessRunner.h
+    QProcessDismRunner.cpp
+    QProcessDismRunner.h
+    SystemToolLogWriter.cpp
+    SystemToolLogWriter.h
+    SystemIntegrityWorkflow.cpp
+    SystemIntegrityWorkflow.h
     ExecutorClient.cpp
     ExecutorClient.h
     ExecutorLauncher.cpp
