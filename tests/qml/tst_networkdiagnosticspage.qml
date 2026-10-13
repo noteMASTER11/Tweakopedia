@@ -25,12 +25,23 @@ TestCase {
         property bool hasAttention: attentionCount > 0
         property bool busy: false
         property bool canStart: !busy
+        property string actionState: "idle"
+        property string actionMessage: ""
+        property string activeRuleKey: ""
+        property var removedRuleKeys: []
         property int startCalls: 0
         property int copyCalls: 0
         property int openCalls: 0
+        property int removeCalls: 0
+        property string lastRemovedRule: ""
         function startDiagnostics() { ++startCalls; return true }
         function copyOutput() { ++copyCalls; return true }
         function openSessionLog() { ++openCalls; return true }
+        function removeFirewallRule(key) {
+            ++removeCalls
+            lastRemovedRule = key
+            return true
+        }
     }
 
     Component {
@@ -58,6 +69,12 @@ TestCase {
         fakeController.startCalls = 0
         fakeController.copyCalls = 0
         fakeController.openCalls = 0
+        fakeController.removeCalls = 0
+        fakeController.lastRemovedRule = ""
+        fakeController.actionState = "idle"
+        fakeController.actionMessage = ""
+        fakeController.activeRuleKey = ""
+        fakeController.removedRuleKeys = []
     }
 
     function test_idleStartsDiagnostics() {
@@ -132,6 +149,56 @@ TestCase {
         const point = primary.mapToItem(page, 0, 0)
         verify(point.x >= 0)
         verify(point.x + primary.width <= page.width)
+    }
+
+    function test_resultCardOpensDetailsAndKeepsSelectionAfterClosing() {
+        fakeController.checks = [
+            { id: "dns", title: "DNS", status: "attention",
+              summary: "Сервер не отвечает", details: ["Сервер: 1.1.1.1", "Тайм-аут"] }
+        ]
+        const page = createTemporaryObject(pageComponent, this)
+        const card = findChild(page, "networkDiagnosticsCheckCard_dns")
+        verify(card)
+        mouseClick(card)
+        const panel = findChild(page, "networkDiagnosticsDetailPane")
+        tryCompare(panel, "visible", true)
+        compare(findChild(page, "networkDiagnosticsDetailTitle").text, "DNS")
+        verify(findChild(page, "networkDiagnosticsDetailList").count === 2)
+
+        mouseClick(findChild(page, "networkDiagnosticsDetailCloseButton"))
+        tryCompare(panel, "visible", false)
+        mouseClick(card)
+        tryCompare(panel, "visible", true)
+        compare(findChild(page, "networkDiagnosticsDetailTitle").text, "DNS")
+    }
+
+    function test_firewallDetailsRequireConfirmationBeforeRemoval() {
+        fakeController.checks = [
+            { id: "firewall", title: "Windows Firewall", status: "attention",
+              summary: "Найдено правило", details: ["Входящее разрешение"],
+              items: [{ key: "{RULE-ID}", title: "Тестовое правило",
+                        description: "Разрешает входящее подключение",
+                        profile: "Private", program: "C:/Example/app.exe",
+                        protocol: "TCP", local_port: "8080",
+                        remote_address: "Any" }] }
+        ]
+        const page = createTemporaryObject(pageComponent, this)
+        mouseClick(findChild(page, "networkDiagnosticsCheckCard_firewall"))
+        const ruleRepeater = findChild(page, "firewallRuleRepeater")
+        verify(ruleRepeater)
+        tryCompare(ruleRepeater, "count", 1)
+        const ruleCard = ruleRepeater.itemAt(0)
+        verify(ruleCard)
+        const removeButton = findChild(ruleCard, "firewallRuleRemoveButton")
+        verify(removeButton)
+        mouseClick(removeButton)
+        const confirmation = findChild(page, "firewallRuleConfirmation")
+        tryCompare(confirmation, "visible", true)
+        compare(fakeController.removeCalls, 0)
+        verify(findChild(page, "firewallRuleConfirmationText").text.indexOf("{RULE-ID}") >= 0)
+        mouseClick(findChild(page, "firewallRuleConfirmButton"))
+        compare(fakeController.removeCalls, 1)
+        compare(fakeController.lastRemovedRule, "{RULE-ID}")
     }
 
     Component { id: signalSpy; SignalSpy {} }

@@ -11,6 +11,8 @@ Page {
     property var controller
     readonly property bool narrowLayout: width < 760
     readonly property string toolState: controller ? controller.state : "idle"
+    property var selectedCheck: ({})
+    property var pendingRule: ({})
     signal backRequested()
     signal recoveryRequested()
 
@@ -62,6 +64,16 @@ Page {
         if (status === "ok") return "\uE73E"
         if (status === "attention") return "\uE7BA"
         return "\uE946"
+    }
+
+    function openCheckDetails(check) {
+        selectedCheck = check
+        detailPane.open()
+    }
+
+    function ruleIsRemoved(key) {
+        return controller && controller.removedRuleKeys
+            && controller.removedRuleKeys.indexOf(key) >= 0
     }
 
     padding: 0
@@ -303,19 +315,21 @@ Page {
                     objectName: "networkDiagnosticsCheckRepeater"
                     model: controller ? controller.checks : []
 
-                    delegate: Rectangle {
+                    delegate: AbstractButton {
                         id: checkCard
                         required property var modelData
+                        objectName: "networkDiagnosticsCheckCard_" + modelData.id
                         Layout.fillWidth: true
                         Layout.preferredHeight: 154
-                        radius: 10
-                        color: FluentTheme.surface
-                        border.width: 1
-                        border.color: FluentTheme.stroke
+                        leftPadding: 16
+                        rightPadding: 16
+                        topPadding: 16
+                        bottomPadding: 16
+                        focusPolicy: Qt.StrongFocus
+                        Accessible.name: (modelData.title || "Проверка") + ". Открыть подробности"
+                        onClicked: root.openCheckDetails(modelData)
 
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.margins: 16
+                        contentItem: RowLayout {
                             spacing: 12
 
                             Rectangle {
@@ -387,6 +401,24 @@ Page {
 
                                 Item { Layout.fillHeight: true }
                             }
+
+                            Text {
+                                Layout.alignment: Qt.AlignVCenter
+                                text: "\uE76C"
+                                color: checkCard.hovered || checkCard.activeFocus
+                                    ? FluentTheme.accent : FluentTheme.textSecondary
+                                font.family: "Segoe MDL2 Assets"
+                                font.pixelSize: 13
+                            }
+                        }
+
+                        background: Rectangle {
+                            radius: 10
+                            color: checkCard.pressed ? FluentTheme.selected
+                                : checkCard.hovered ? FluentTheme.hover : FluentTheme.surface
+                            border.width: checkCard.hovered || checkCard.activeFocus ? 2 : 1
+                            border.color: checkCard.hovered || checkCard.activeFocus
+                                ? FluentTheme.accent : FluentTheme.stroke
                         }
                     }
                 }
@@ -589,6 +621,469 @@ Page {
             }
 
             Item { Layout.preferredHeight: 10 }
+        }
+    }
+
+    Popup {
+        id: detailPane
+        objectName: "networkDiagnosticsDetailPane"
+        parent: root
+        x: root.width - width
+        y: 0
+        width: Math.min(540, root.width)
+        height: root.height
+        modal: true
+        dim: true
+        padding: 0
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        enter: Transition {
+            NumberAnimation { property: "x"; from: root.width; duration: 170; easing.type: Easing.OutCubic }
+        }
+        exit: Transition {
+            NumberAnimation { property: "x"; to: root.width; duration: 130; easing.type: Easing.InCubic }
+        }
+        Overlay.modal: Rectangle { color: "#52000000" }
+
+        background: Rectangle {
+            color: FluentTheme.canvas
+            border.width: 1
+            border.color: FluentTheme.stroke
+        }
+
+        contentItem: ColumnLayout {
+            spacing: 0
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 72
+                color: FluentTheme.surface
+                border.width: 0
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 20
+                    anchors.rightMargin: 14
+                    spacing: 12
+
+                    Rectangle {
+                        Layout.preferredWidth: 38
+                        Layout.preferredHeight: 38
+                        radius: 19
+                        color: root.statusTint(root.selectedCheck.status || "unavailable")
+                        Text {
+                            anchors.centerIn: parent
+                            text: root.statusGlyph(root.selectedCheck.status || "unavailable")
+                            color: root.statusColor(root.selectedCheck.status || "unavailable")
+                            font.family: "Segoe MDL2 Assets"
+                            font.pixelSize: 16
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 2
+                        FluentText {
+                            id: detailTitle
+                            objectName: "networkDiagnosticsDetailTitle"
+                            Layout.fillWidth: true
+                            text: root.selectedCheck.title || "Подробности проверки"
+                            color: FluentTheme.textPrimary
+                            font.family: FluentTheme.fontFamily
+                            font.pixelSize: 18
+                            font.weight: Font.DemiBold
+                            elide: Text.ElideRight
+                        }
+                        FluentText {
+                            text: root.statusTitle(root.selectedCheck.status || "unavailable")
+                            color: root.statusColor(root.selectedCheck.status || "unavailable")
+                            font.family: FluentTheme.fontFamily
+                            font.pixelSize: 11
+                            font.weight: Font.DemiBold
+                        }
+                    }
+
+                    AbstractButton {
+                        id: detailCloseButton
+                        objectName: "networkDiagnosticsDetailCloseButton"
+                        Layout.preferredWidth: 36
+                        Layout.preferredHeight: 36
+                        Accessible.name: "Закрыть подробности"
+                        onClicked: detailPane.close()
+                        contentItem: Text {
+                            text: "\uE8BB"
+                            color: FluentTheme.textPrimary
+                            font.family: "Segoe MDL2 Assets"
+                            font.pixelSize: 13
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        background: Rectangle {
+                            radius: 6
+                            color: detailCloseButton.pressed ? FluentTheme.selected
+                                : detailCloseButton.hovered ? FluentTheme.hover : "transparent"
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 1
+                color: FluentTheme.stroke
+            }
+
+            ScrollView {
+                id: detailScroll
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+
+                ColumnLayout {
+                    width: detailScroll.availableWidth
+                    spacing: 14
+
+                    Item { Layout.preferredHeight: 4 }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 18
+                        Layout.rightMargin: 18
+                        implicitHeight: summaryText.implicitHeight + 28
+                        radius: 8
+                        color: FluentTheme.surface
+                        border.width: 1
+                        border.color: FluentTheme.stroke
+                        FluentText {
+                            id: summaryText
+                            anchors.fill: parent
+                            anchors.margins: 14
+                            text: root.selectedCheck.summary || "Подробное описание отсутствует."
+                            color: FluentTheme.textPrimary
+                            font.family: FluentTheme.fontFamily
+                            font.pixelSize: 13
+                            wrapMode: Text.WordWrap
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 18
+                        Layout.rightMargin: 18
+                        spacing: 8
+                        visible: !!(root.selectedCheck.details
+                            && root.selectedCheck.details.length > 0)
+
+                        FluentText {
+                            text: "Собранные данные"
+                            color: FluentTheme.textPrimary
+                            font.family: FluentTheme.fontFamily
+                            font.pixelSize: 14
+                            font.weight: Font.DemiBold
+                        }
+
+                        Repeater {
+                            id: detailList
+                            objectName: "networkDiagnosticsDetailList"
+                            model: root.selectedCheck.details || []
+                            delegate: Rectangle {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                implicitHeight: detailLine.implicitHeight + 22
+                                radius: 7
+                                color: FluentTheme.surface
+                                border.width: 1
+                                border.color: FluentTheme.stroke
+                                FluentText {
+                                    id: detailLine
+                                    anchors.fill: parent
+                                    anchors.margins: 11
+                                    text: String(modelData)
+                                    color: FluentTheme.textSecondary
+                                    font.family: FluentTheme.fontFamily
+                                    font.pixelSize: 12
+                                    wrapMode: Text.WrapAnywhere
+                                }
+                            }
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 18
+                        Layout.rightMargin: 18
+                        spacing: 8
+                        visible: root.selectedCheck.id === "firewall"
+                            && root.selectedCheck.items
+                            && root.selectedCheck.items.length > 0
+
+                        FluentText {
+                            text: "Найденные правила"
+                            color: FluentTheme.textPrimary
+                            font.family: FluentTheme.fontFamily
+                            font.pixelSize: 14
+                            font.weight: Font.DemiBold
+                        }
+
+                        Repeater {
+                            id: firewallRuleRepeater
+                            objectName: "firewallRuleRepeater"
+                            model: root.selectedCheck.items || []
+                            delegate: Rectangle {
+                                id: ruleCard
+                                required property var modelData
+                                required property int index
+                                property var rule: modelData
+                                property bool removed: root.ruleIsRemoved(rule.key)
+                                Layout.fillWidth: true
+                                implicitHeight: ruleLayout.implicitHeight + 28
+                                radius: 9
+                                color: FluentTheme.surface
+                                border.width: 1
+                                border.color: removed ? "#A7D7AA" : FluentTheme.stroke
+
+                                ColumnLayout {
+                                    id: ruleLayout
+                                    anchors.fill: parent
+                                    anchors.margins: 14
+                                    spacing: 8
+
+                                    FluentText {
+                                        Layout.fillWidth: true
+                                        text: ruleCard.rule.title || ruleCard.rule.key
+                                        color: FluentTheme.textPrimary
+                                        font.family: FluentTheme.fontFamily
+                                        font.pixelSize: 14
+                                        font.weight: Font.DemiBold
+                                        wrapMode: Text.WordWrap
+                                    }
+                                    FluentText {
+                                        Layout.fillWidth: true
+                                        text: ruleCard.rule.description || "Описание правила отсутствует."
+                                        color: FluentTheme.textSecondary
+                                        font.family: FluentTheme.fontFamily
+                                        font.pixelSize: 12
+                                        wrapMode: Text.WordWrap
+                                    }
+
+                                    Repeater {
+                                        model: [
+                                            { label: "Внутреннее имя", value: ruleCard.rule.key },
+                                            { label: "Профиль", value: ruleCard.rule.profile },
+                                            { label: "Программа", value: ruleCard.rule.program },
+                                            { label: "Служба", value: ruleCard.rule.service },
+                                            { label: "Протокол", value: ruleCard.rule.protocol },
+                                            { label: "Локальный порт", value: ruleCard.rule.local_port },
+                                            { label: "Удалённый порт", value: ruleCard.rule.remote_port },
+                                            { label: "Локальный адрес", value: ruleCard.rule.local_address },
+                                            { label: "Удалённый адрес", value: ruleCard.rule.remote_address }
+                                        ]
+                                        delegate: RowLayout {
+                                            required property var modelData
+                                            visible: modelData.value !== undefined
+                                                && String(modelData.value).length > 0
+                                            Layout.fillWidth: true
+                                            spacing: 8
+                                            FluentText {
+                                                Layout.preferredWidth: 112
+                                                text: modelData.label
+                                                color: FluentTheme.textSecondary
+                                                font.family: FluentTheme.fontFamily
+                                                font.pixelSize: 11
+                                            }
+                                            FluentText {
+                                                Layout.fillWidth: true
+                                                text: modelData.value || ""
+                                                color: FluentTheme.textPrimary
+                                                font.family: FluentTheme.fontFamily
+                                                font.pixelSize: 11
+                                                wrapMode: Text.WrapAnywhere
+                                            }
+                                        }
+                                    }
+
+                                    Button {
+                                        id: removeRuleButton
+                                        objectName: "firewallRuleRemoveButton"
+                                        Layout.alignment: Qt.AlignRight
+                                        Layout.preferredHeight: 36
+                                        enabled: controller && !ruleCard.removed
+                                            && !(controller.busy
+                                                 && controller.activeRuleKey === ruleCard.rule.key)
+                                        text: ruleCard.removed ? "Удалено"
+                                            : controller && controller.busy
+                                              && controller.activeRuleKey === ruleCard.rule.key
+                                                ? "Удаляется…" : "Удалить правило"
+                                        onClicked: {
+                                            root.pendingRule = ruleCard.rule
+                                            confirmationPopup.open()
+                                        }
+                                        contentItem: FluentText {
+                                            text: removeRuleButton.text
+                                            color: removeRuleButton.enabled ? "white" : FluentTheme.disabledText
+                                            font.family: FluentTheme.fontFamily
+                                            font.pixelSize: 12
+                                            font.weight: Font.DemiBold
+                                            horizontalAlignment: Text.AlignHCenter
+                                            verticalAlignment: Text.AlignVCenter
+                                        }
+                                        background: Rectangle {
+                                            implicitWidth: 142
+                                            radius: 6
+                                            color: removeRuleButton.enabled
+                                                ? (removeRuleButton.pressed ? "#8E1A10"
+                                                   : removeRuleButton.hovered ? "#B42318" : "#C42B1C")
+                                                : FluentTheme.disabledSurface
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 18
+                        Layout.rightMargin: 18
+                        visible: controller && controller.actionState !== "idle"
+                        implicitHeight: actionText.implicitHeight + 26
+                        radius: 8
+                        color: controller && controller.actionState === "succeeded"
+                            ? "#E8F5EA" : controller && controller.actionState === "failed"
+                              ? "#FDE7E9" : FluentTheme.surfaceInset
+                        border.width: 1
+                        border.color: controller && controller.actionState === "succeeded"
+                            ? "#A7D7AA" : controller && controller.actionState === "failed"
+                              ? "#E8A5AA" : FluentTheme.stroke
+                        FluentText {
+                            id: actionText
+                            anchors.fill: parent
+                            anchors.margins: 13
+                            text: controller && controller.actionMessage
+                                ? controller.actionMessage : ""
+                            color: controller && controller.actionState === "failed"
+                                ? "#C42B1C" : FluentTheme.textPrimary
+                            font.family: FluentTheme.fontFamily
+                            font.pixelSize: 12
+                            wrapMode: Text.WordWrap
+                        }
+                    }
+
+                    FluentText {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 18
+                        Layout.rightMargin: 18
+                        visible: controller && controller.actionState === "succeeded"
+                        text: "Повторите диагностику, чтобы обновить итоговый список."
+                        color: FluentTheme.textSecondary
+                        font.family: FluentTheme.fontFamily
+                        font.pixelSize: 12
+                        wrapMode: Text.WordWrap
+                    }
+
+                    Item { Layout.preferredHeight: 8 }
+                }
+            }
+        }
+    }
+
+    Popup {
+        id: confirmationPopup
+        objectName: "firewallRuleConfirmation"
+        parent: root
+        x: Math.round((root.width - width) / 2)
+        y: Math.round((root.height - height) / 2)
+        width: Math.min(430, root.width - 32)
+        height: confirmationLayout.implicitHeight + 36
+        modal: true
+        dim: true
+        padding: 18
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        Overlay.modal: Rectangle { color: "#66000000" }
+        background: Rectangle {
+            radius: 10
+            color: FluentTheme.surface
+            border.width: 1
+            border.color: FluentTheme.stroke
+        }
+
+        contentItem: ColumnLayout {
+            id: confirmationLayout
+            spacing: 12
+            FluentText {
+                Layout.fillWidth: true
+                text: "Удалить правило Windows Firewall?"
+                color: FluentTheme.textPrimary
+                font.family: FluentTheme.fontFamily
+                font.pixelSize: 17
+                font.weight: Font.DemiBold
+                wrapMode: Text.WordWrap
+            }
+            FluentText {
+                id: confirmationText
+                objectName: "firewallRuleConfirmationText"
+                Layout.fillWidth: true
+                text: "Будет удалено правило «" + (root.pendingRule.title || "Без названия")
+                    + "».\nВнутреннее имя: " + (root.pendingRule.key || "")
+                color: FluentTheme.textSecondary
+                font.family: FluentTheme.fontFamily
+                font.pixelSize: 12
+                wrapMode: Text.WrapAnywhere
+            }
+            FluentText {
+                Layout.fillWidth: true
+                text: "Перед удалением текущая политика будет экспортирована в резервный файл."
+                color: FluentTheme.textSecondary
+                font.family: FluentTheme.fontFamily
+                font.pixelSize: 12
+                wrapMode: Text.WordWrap
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.topMargin: 4
+                spacing: 8
+                Item { Layout.fillWidth: true }
+                Button {
+                    id: cancelRemovalButton
+                    text: "Отмена"
+                    onClicked: confirmationPopup.close()
+                    background: Rectangle {
+                        implicitWidth: 92
+                        implicitHeight: 36
+                        radius: 6
+                        color: cancelRemovalButton.pressed ? FluentTheme.selected
+                            : cancelRemovalButton.hovered ? FluentTheme.hover : FluentTheme.surface
+                        border.width: 1
+                        border.color: FluentTheme.stroke
+                    }
+                }
+                Button {
+                    id: confirmRemovalButton
+                    objectName: "firewallRuleConfirmButton"
+                    text: "Удалить"
+                    onClicked: {
+                        if (controller && root.pendingRule.key)
+                            controller.removeFirewallRule(root.pendingRule.key)
+                        confirmationPopup.close()
+                    }
+                    contentItem: FluentText {
+                        text: confirmRemovalButton.text
+                        color: "white"
+                        font.family: FluentTheme.fontFamily
+                        font.pixelSize: 12
+                        font.weight: Font.DemiBold
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                    background: Rectangle {
+                        implicitWidth: 98
+                        implicitHeight: 36
+                        radius: 6
+                        color: confirmRemovalButton.pressed ? "#8E1A10"
+                            : confirmRemovalButton.hovered ? "#B42318" : "#C42B1C"
+                    }
+                }
+            }
         }
     }
 }

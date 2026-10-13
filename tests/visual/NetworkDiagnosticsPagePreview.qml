@@ -33,7 +33,12 @@ ApplicationWindow {
               summary: "Основной маршрут использует активный Wi-Fi адаптер.", details: [] },
             { id: "firewall", title: "Windows Firewall", status: "attention",
               summary: "Найдены разрешающие входящие правила сторонних программ.",
-              details: ["Local TCP 8080", "Remote Assistance"] }
+              details: ["Local TCP 8080", "Remote Assistance"],
+              items: [{ key: "{8C3D87D8-DEMO}", title: "Example Web Server",
+                        description: "Разрешает входящие подключения тестового сервера.",
+                        profile: "Private", program: "C:/Program Files/Example/server.exe",
+                        service: "Any", protocol: "TCP", local_port: "8080",
+                        remote_port: "Any", local_address: "Any", remote_address: "Any" }] }
         ]
         property int okCount: 4
         property int attentionCount: 2
@@ -41,13 +46,19 @@ ApplicationWindow {
         property bool hasAttention: true
         property bool busy: false
         property bool canStart: true
+        property string actionState: "idle"
+        property string actionMessage: ""
+        property string activeRuleKey: ""
+        property var removedRuleKeys: []
         function startDiagnostics() { return true }
         function copyOutput() { return true }
         function openSessionLog() { return true }
+        function removeFirewallRule(key) { return true }
     }
 
     NetworkDiagnosticsPage {
         anchors.fill: parent
         controller: previewController
+        Component.onCompleted: openCheckDetails(previewController.checks[5])
     }
 }
