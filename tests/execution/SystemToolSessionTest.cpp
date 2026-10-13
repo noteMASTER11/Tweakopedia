@@ -111,6 +111,8 @@ private slots:
         QTRY_COMPARE_WITH_TIMEOUT(stages.size(), 1, 3000);
         QTRY_COMPARE_WITH_TIMEOUT(output.size(), 1, 3000);
         QTRY_COMPARE_WITH_TIMEOUT(finished.size(), 1, 3000);
+        QTRY_VERIFY_WITH_TIMEOUT(backend.closed, 3000);
+        QVERIFY(session.start(SystemToolOperation::Scan));
     }
 
     void reportsUacCancellationAndAllowsRetry()

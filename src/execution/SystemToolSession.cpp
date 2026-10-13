@@ -76,6 +76,11 @@ bool SystemToolSession::start(SystemToolOperation operation)
         touchActivity();
         resultReceived_ = true;
         emit finished(result);
+        QTimer::singleShot(0, this, [this] {
+            if (!active_ || !resultReceived_) return;
+            if (launchSession_.started) launcher_.close(launchSession_);
+            resetSession(false);
+        });
     });
     connect(server_.get(), &ExecutorServer::clientRejected, this,
             [this](const QString& code) {
