@@ -327,6 +327,13 @@ target_link_libraries(WindowsRegistryBackendTest
 
 add_test(NAME WindowsRegistryBackend COMMAND WindowsRegistryBackendTest)
 
+add_executable(WindowsLocalVolumeProviderTest
+    platform/WindowsLocalVolumeProviderTest.cpp
+)
+target_link_libraries(WindowsLocalVolumeProviderTest PRIVATE
+    Qt6::Test TweakopediaPlatform)
+add_test(NAME WindowsLocalVolumeProvider COMMAND WindowsLocalVolumeProviderTest)
+
 add_executable(TweakQueueTest
     planning/TweakQueueTest.cpp
     fakes/FakeRegistryBackend.cpp

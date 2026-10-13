@@ -5,6 +5,8 @@ add_library(TweakopediaPlatform STATIC
     IRegistryBackend.h
     IFeatureStoreBackend.h
     ISystemProfileProvider.h
+    ILocalVolumeProvider.h
+    LocalVolume.h
     IScheduledTaskBackend.h
     WindowsAppxPackageProvider.cpp
     WindowsAppxPackageProvider.h
@@ -24,6 +26,8 @@ add_library(TweakopediaPlatform STATIC
     WindowsSystemProfileProvider.h
     WindowsSystemOverviewProvider.cpp
     WindowsSystemOverviewProvider.h
+    WindowsLocalVolumeProvider.cpp
+    WindowsLocalVolumeProvider.h
 )
 
 target_include_directories(TweakopediaPlatform
