@@ -39,6 +39,12 @@ private slots:
                                       {u"Volume: C:"_s}));
         fileSystemWriter.close();
         QVERIFY(fileSystemWriter.path().contains(u"Tools/FileSystemCheck"_s));
+
+        SystemToolLogWriter networkWriter;
+        QVERIFY(networkWriter.open(root.path(), SystemToolKind::NetworkDiagnostics,
+                                   SystemToolOperation::Diagnose, {}));
+        networkWriter.close();
+        QVERIFY(networkWriter.path().contains(u"Tools/NetworkDiagnostics"_s));
     }
 
     void reportsDirectoryCreationFailure()

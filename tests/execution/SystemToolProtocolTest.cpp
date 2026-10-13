@@ -34,11 +34,26 @@ private slots:
         QCOMPARE(decodedFileSystemRequest.value->operation, SystemToolOperation::Check);
         QCOMPARE(decodedFileSystemRequest.value->target, u"C:"_s);
 
+        const SystemToolRequest networkRequest{
+            id, SystemToolKind::NetworkDiagnostics, SystemToolOperation::Diagnose, {}};
+        const auto decodedNetworkRequest = SystemToolProtocol::decodeRequest(
+            SystemToolProtocol::encode(networkRequest));
+        QVERIFY(decodedNetworkRequest.value.has_value());
+        QCOMPARE(decodedNetworkRequest.value->tool, SystemToolKind::NetworkDiagnostics);
+        QCOMPARE(decodedNetworkRequest.value->operation, SystemToolOperation::Diagnose);
+        QVERIFY(decodedNetworkRequest.value->target.isEmpty());
+
         const SystemToolStageEvent stage{id, SystemToolStage::CheckHealth};
         const auto decodedStage = SystemToolProtocol::decodeStage(
             SystemToolProtocol::encode(stage));
         QVERIFY(decodedStage.value.has_value());
         QCOMPARE(decodedStage.value->stage, SystemToolStage::CheckHealth);
+
+        const SystemToolStageEvent networkStage{id, SystemToolStage::CheckNetworkDns};
+        const auto decodedNetworkStage = SystemToolProtocol::decodeStage(
+            SystemToolProtocol::encode(networkStage));
+        QVERIFY(decodedNetworkStage.value.has_value());
+        QCOMPARE(decodedNetworkStage.value->stage, SystemToolStage::CheckNetworkDns);
 
         const SystemToolOutputEvent output{id, 42, u"hello\n"_s};
         const auto decodedOutput = SystemToolProtocol::decodeOutput(
@@ -59,6 +74,7 @@ private slots:
             .exitCode = 0,
             .outcome = SystemToolOutcome::Healthy,
             .logPath = u"C:/logs/scan.log"_s,
+            .details = {{u"ok_count"_s, 6}},
         };
         const auto decodedResult = SystemToolProtocol::decodeResult(
             SystemToolProtocol::encode(result));
@@ -66,6 +82,7 @@ private slots:
         QCOMPARE(decodedResult.value->status, SystemToolResultStatus::Completed);
         QCOMPARE(decodedResult.value->outcome, SystemToolOutcome::Healthy);
         QCOMPARE(decodedResult.value->logPath, result.logPath);
+        QCOMPARE(decodedResult.value->details, result.details);
     }
 
     void rejectsMalformedMessages()
@@ -84,6 +101,11 @@ private slots:
         QVERIFY(!SystemToolProtocol::decodeRequest(request).value.has_value());
         request.insert(u"operation"_s, u"scan"_s);
         request.insert(u"request_id"_s, u"not-a-uuid"_s);
+        QVERIFY(!SystemToolProtocol::decodeRequest(request).value.has_value());
+        request = SystemToolProtocol::encode(SystemToolRequest{
+            QUuid::createUuid(), SystemToolKind::NetworkDiagnostics,
+            SystemToolOperation::Diagnose, {}});
+        request.insert(u"target"_s, u"user supplied"_s);
         QVERIFY(!SystemToolProtocol::decodeRequest(request).value.has_value());
 
         QJsonObject stage{{u"type"_s, u"tool_stage"_s}, {u"request_id"_s, id},

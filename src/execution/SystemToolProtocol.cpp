@@ -35,6 +35,7 @@ std::optional<SystemToolKind> tool(const QString& value)
 {
     if (value == u"component_store") return SystemToolKind::ComponentStore;
     if (value == u"file_system") return SystemToolKind::FileSystem;
+    if (value == u"network_diagnostics") return SystemToolKind::NetworkDiagnostics;
     return std::nullopt;
 }
 
@@ -43,6 +44,7 @@ std::optional<SystemToolOperation> operation(const QString& value)
     if (value == u"scan") return SystemToolOperation::Scan;
     if (value == u"restore") return SystemToolOperation::Restore;
     if (value == u"check") return SystemToolOperation::Check;
+    if (value == u"diagnose") return SystemToolOperation::Diagnose;
     return std::nullopt;
 }
 
@@ -53,6 +55,12 @@ std::optional<SystemToolStage> stage(const QString& value)
     if (value == u"restore_health") return SystemToolStage::RestoreHealth;
     if (value == u"verify_restore") return SystemToolStage::VerifyRestore;
     if (value == u"check_file_system") return SystemToolStage::CheckFileSystem;
+    if (value == u"collect_network_adapters") return SystemToolStage::CollectNetworkAdapters;
+    if (value == u"check_network_dns") return SystemToolStage::CheckNetworkDns;
+    if (value == u"check_network_proxy") return SystemToolStage::CheckNetworkProxy;
+    if (value == u"check_network_hosts") return SystemToolStage::CheckNetworkHosts;
+    if (value == u"check_network_routes") return SystemToolStage::CheckNetworkRoutes;
+    if (value == u"check_network_firewall") return SystemToolStage::CheckNetworkFirewall;
     return std::nullopt;
 }
 
@@ -86,9 +94,13 @@ bool validRequest(SystemToolKind kind, SystemToolOperation operation, const QStr
             && (operation == SystemToolOperation::Scan
                 || operation == SystemToolOperation::Restore);
     }
-    static const QRegularExpression driveTarget(u"^[A-Z]:$"_s);
-    return operation == SystemToolOperation::Check
-        && driveTarget.match(target).hasMatch();
+    if (kind == SystemToolKind::FileSystem) {
+        static const QRegularExpression driveTarget(u"^[A-Z]:$"_s);
+        return operation == SystemToolOperation::Check
+            && driveTarget.match(target).hasMatch();
+    }
+    return kind == SystemToolKind::NetworkDiagnostics
+        && operation == SystemToolOperation::Diagnose && target.isEmpty();
 }
 
 } // namespace
@@ -134,7 +146,8 @@ QJsonObject SystemToolProtocol::encode(const SystemToolResult& value)
             {u"outcome"_s, outcomeName(value.outcome)},
             {u"log_path"_s, value.logPath},
             {u"code"_s, value.code},
-            {u"message"_s, value.message}};
+            {u"message"_s, value.message},
+            {u"details"_s, value.details}};
 }
 
 SystemToolDecodeResult<SystemToolRequest> SystemToolProtocol::decodeRequest(
@@ -206,10 +219,12 @@ SystemToolDecodeResult<SystemToolResult> SystemToolProtocol::decodeResult(
     const QJsonObject& object)
 {
     if (!hasOnly(object, {u"type"_s, u"request_id"_s, u"status"_s, u"exit_code"_s,
-                          u"outcome"_s, u"log_path"_s, u"code"_s, u"message"_s})
+                          u"outcome"_s, u"log_path"_s, u"code"_s, u"message"_s,
+                          u"details"_s})
         || object.value(u"type"_s).toString() != u"tool_result"_s
         || !object.value(u"exit_code"_s).isDouble()
-        || !object.value(u"log_path"_s).isString()) {
+        || !object.value(u"log_path"_s).isString()
+        || !object.value(u"details"_s).isObject()) {
         return failure<SystemToolResult>(u"tool_result.invalid"_s);
     }
     const auto id = requestId(object);
@@ -226,13 +241,18 @@ SystemToolDecodeResult<SystemToolResult> SystemToolProtocol::decodeResult(
         .logPath = object.value(u"log_path"_s).toString(),
         .code = object.value(u"code"_s).toString(),
         .message = object.value(u"message"_s).toString(),
+        .details = object.value(u"details"_s).toObject(),
     }};
 }
 
 QString SystemToolProtocol::toolName(SystemToolKind value)
 {
-    return value == SystemToolKind::ComponentStore
-        ? u"component_store"_s : u"file_system"_s;
+    switch (value) {
+    case SystemToolKind::ComponentStore: return u"component_store"_s;
+    case SystemToolKind::FileSystem: return u"file_system"_s;
+    case SystemToolKind::NetworkDiagnostics: return u"network_diagnostics"_s;
+    }
+    return {};
 }
 
 QString SystemToolProtocol::operationName(SystemToolOperation value)
@@ -241,6 +261,7 @@ QString SystemToolProtocol::operationName(SystemToolOperation value)
     case SystemToolOperation::Scan: return u"scan"_s;
     case SystemToolOperation::Restore: return u"restore"_s;
     case SystemToolOperation::Check: return u"check"_s;
+    case SystemToolOperation::Diagnose: return u"diagnose"_s;
     }
     return {};
 }
@@ -253,6 +274,12 @@ QString SystemToolProtocol::stageName(SystemToolStage value)
     case SystemToolStage::RestoreHealth: return u"restore_health"_s;
     case SystemToolStage::VerifyRestore: return u"verify_restore"_s;
     case SystemToolStage::CheckFileSystem: return u"check_file_system"_s;
+    case SystemToolStage::CollectNetworkAdapters: return u"collect_network_adapters"_s;
+    case SystemToolStage::CheckNetworkDns: return u"check_network_dns"_s;
+    case SystemToolStage::CheckNetworkProxy: return u"check_network_proxy"_s;
+    case SystemToolStage::CheckNetworkHosts: return u"check_network_hosts"_s;
+    case SystemToolStage::CheckNetworkRoutes: return u"check_network_routes"_s;
+    case SystemToolStage::CheckNetworkFirewall: return u"check_network_firewall"_s;
     }
     return {};
 }

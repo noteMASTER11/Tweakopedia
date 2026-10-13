@@ -8,14 +8,20 @@
 
 namespace tweakopedia::execution {
 
-enum class SystemToolKind { ComponentStore, FileSystem };
-enum class SystemToolOperation { Scan, Restore, Check };
+enum class SystemToolKind { ComponentStore, FileSystem, NetworkDiagnostics };
+enum class SystemToolOperation { Scan, Restore, Check, Diagnose };
 enum class SystemToolStage {
     ScanHealth,
     CheckHealth,
     RestoreHealth,
     VerifyRestore,
     CheckFileSystem,
+    CollectNetworkAdapters,
+    CheckNetworkDns,
+    CheckNetworkProxy,
+    CheckNetworkHosts,
+    CheckNetworkRoutes,
+    CheckNetworkFirewall,
 };
 enum class SystemToolOutcome {
     Healthy,
@@ -59,6 +65,7 @@ struct SystemToolResult {
     QString logPath;
     QString code;
     QString message;
+    QJsonObject details;
 };
 
 template<typename T>

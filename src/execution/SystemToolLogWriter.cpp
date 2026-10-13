@@ -16,8 +16,12 @@ bool SystemToolLogWriter::open(
 {
     close();
     error_.clear();
-    const auto toolDirectory = tool == SystemToolKind::ComponentStore
-        ? u"SystemIntegrity"_s : u"FileSystemCheck"_s;
+    QString toolDirectory;
+    switch (tool) {
+    case SystemToolKind::ComponentStore: toolDirectory = u"SystemIntegrity"_s; break;
+    case SystemToolKind::FileSystem: toolDirectory = u"FileSystemCheck"_s; break;
+    case SystemToolKind::NetworkDiagnostics: toolDirectory = u"NetworkDiagnostics"_s; break;
+    }
     const auto directory = QDir(logsRoot).filePath(u"Tools/"_s + toolDirectory);
     if (!QDir{}.mkpath(directory)) {
         error_ = u"Не удалось создать каталог журнала инструмента."_s;
