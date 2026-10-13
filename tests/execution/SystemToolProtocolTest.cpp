@@ -1,0 +1,91 @@
+#include "execution/SystemToolProtocol.h"
+
+#include <QJsonObject>
+#include <QtTest/QTest>
+
+using namespace tweakopedia::execution;
+using namespace Qt::StringLiterals;
+
+class SystemToolProtocolTest final : public QObject
+{
+    Q_OBJECT
+
+private slots:
+    void roundTripsKnownMessages()
+    {
+        const auto id = QUuid::createUuid();
+
+        const SystemToolRequest request{id, SystemToolOperation::Scan};
+        const auto decodedRequest = SystemToolProtocol::decodeRequest(
+            SystemToolProtocol::encode(request));
+        QVERIFY(decodedRequest.value.has_value());
+        QCOMPARE(decodedRequest.value->requestId, id);
+        QCOMPARE(decodedRequest.value->operation, SystemToolOperation::Scan);
+
+        const SystemToolStageEvent stage{id, SystemToolStage::CheckHealth};
+        const auto decodedStage = SystemToolProtocol::decodeStage(
+            SystemToolProtocol::encode(stage));
+        QVERIFY(decodedStage.value.has_value());
+        QCOMPARE(decodedStage.value->stage, SystemToolStage::CheckHealth);
+
+        const SystemToolOutputEvent output{id, 42, u"hello\n"_s};
+        const auto decodedOutput = SystemToolProtocol::decodeOutput(
+            SystemToolProtocol::encode(output));
+        QVERIFY(decodedOutput.value.has_value());
+        QCOMPARE(decodedOutput.value->sequence, 42);
+        QCOMPARE(decodedOutput.value->text, u"hello\n"_s);
+
+        const SystemToolProgressEvent progress{id, SystemToolStage::ScanHealth, 87};
+        const auto decodedProgress = SystemToolProtocol::decodeProgress(
+            SystemToolProtocol::encode(progress));
+        QVERIFY(decodedProgress.value.has_value());
+        QCOMPARE(decodedProgress.value->percent, 87);
+
+        const SystemToolResult result{
+            .requestId = id,
+            .status = SystemToolResultStatus::Completed,
+            .exitCode = 0,
+            .health = ComponentStoreHealth::Healthy,
+            .logPath = u"C:/logs/scan.log"_s,
+        };
+        const auto decodedResult = SystemToolProtocol::decodeResult(
+            SystemToolProtocol::encode(result));
+        QVERIFY(decodedResult.value.has_value());
+        QCOMPARE(decodedResult.value->status, SystemToolResultStatus::Completed);
+        QCOMPARE(decodedResult.value->health, ComponentStoreHealth::Healthy);
+        QCOMPARE(decodedResult.value->logPath, result.logPath);
+    }
+
+    void rejectsMalformedMessages()
+    {
+        const auto id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+
+        auto request = SystemToolProtocol::encode(
+            SystemToolRequest{QUuid::createUuid(), SystemToolOperation::Scan});
+        request.insert(u"operation"_s, u"arbitrary.command"_s);
+        QVERIFY(!SystemToolProtocol::decodeRequest(request).value.has_value());
+        request.insert(u"operation"_s, u"scan"_s);
+        request.insert(u"request_id"_s, u"not-a-uuid"_s);
+        QVERIFY(!SystemToolProtocol::decodeRequest(request).value.has_value());
+
+        QJsonObject stage{{u"type"_s, u"tool_stage"_s}, {u"request_id"_s, id},
+                          {u"stage"_s, u"unknown"_s}};
+        QVERIFY(!SystemToolProtocol::decodeStage(stage).value.has_value());
+
+        QJsonObject output{{u"type"_s, u"tool_output"_s}, {u"request_id"_s, id},
+                           {u"sequence"_s, -1}, {u"text"_s, u"x"_s}};
+        QVERIFY(!SystemToolProtocol::decodeOutput(output).value.has_value());
+
+        QJsonObject progress{{u"type"_s, u"tool_progress"_s}, {u"request_id"_s, id},
+                             {u"stage"_s, u"scan_health"_s}, {u"percent"_s, 101}};
+        QVERIFY(!SystemToolProtocol::decodeProgress(progress).value.has_value());
+
+        QJsonObject result{{u"type"_s, u"tool_result"_s}, {u"request_id"_s, id},
+                           {u"status"_s, u"completed"_s}, {u"exit_code"_s, 0},
+                           {u"health"_s, u"invented"_s}, {u"log_path"_s, u"x"_s}};
+        QVERIFY(!SystemToolProtocol::decodeResult(result).value.has_value());
+    }
+};
+
+QTEST_GUILESS_MAIN(SystemToolProtocolTest)
+#include "SystemToolProtocolTest.moc"

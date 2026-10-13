@@ -1,0 +1,3 @@
+Deployment Image Servicing and Management tool
+No component store corruption detected.
+The operation completed successfully.

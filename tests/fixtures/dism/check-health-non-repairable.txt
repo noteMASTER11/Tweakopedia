@@ -1,0 +1,3 @@
+Deployment Image Servicing and Management tool
+The component store cannot be repaired.
+The operation completed successfully.

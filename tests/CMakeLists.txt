@@ -422,6 +422,14 @@ target_link_libraries(ExecutionProtocolTest
 
 add_test(NAME ExecutionProtocol COMMAND ExecutionProtocolTest)
 
+add_executable(SystemToolProtocolTest execution/SystemToolProtocolTest.cpp)
+target_link_libraries(SystemToolProtocolTest PRIVATE Qt6::Test TweakopediaExecution)
+add_test(NAME SystemToolProtocol COMMAND SystemToolProtocolTest)
+
+add_executable(DismOutputParserTest execution/DismOutputParserTest.cpp)
+target_link_libraries(DismOutputParserTest PRIVATE Qt6::Test TweakopediaExecution)
+add_test(NAME DismOutputParser COMMAND DismOutputParserTest)
+
 add_executable(PlanValidatorTest
     execution/PlanValidatorTest.cpp
 )

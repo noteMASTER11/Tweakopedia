@@ -9,6 +9,10 @@ add_library(TweakopediaExecution STATIC
     AppxPackageExecutor.h
     ExecutionProtocol.cpp
     ExecutionProtocol.h
+    SystemToolProtocol.cpp
+    SystemToolProtocol.h
+    DismOutputParser.cpp
+    DismOutputParser.h
     ExecutorClient.cpp
     ExecutorClient.h
     ExecutorLauncher.cpp
