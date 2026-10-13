@@ -60,8 +60,10 @@ private slots:
         QCOMPARE(invocation.arguments.first(5), QStringList({
             u"-NoLogo"_s, u"-NoProfile"_s, u"-NonInteractive"_s,
             u"-ExecutionPolicy"_s, u"Bypass"_s}));
-        QCOMPARE(invocation.arguments.at(5), u"-EncodedCommand"_s);
-        QVERIFY(!invocation.arguments.at(6).isEmpty());
+        QCOMPARE(invocation.arguments.at(5), u"-OutputFormat"_s);
+        QCOMPARE(invocation.arguments.at(6), u"Text"_s);
+        QCOMPARE(invocation.arguments.at(7), u"-EncodedCommand"_s);
+        QVERIFY(!invocation.arguments.at(8).isEmpty());
 
         runner.emitOutput(0, "Network diagnostics\n");
         const auto stageMarker = marker({{u"type"_s, u"stage"_s},
@@ -114,6 +116,74 @@ private slots:
         QCOMPARE(result.outcome, SystemToolOutcome::Incomplete);
         QCOMPARE(result.details.value(u"checks"_s).toArray().size(), 6);
         QCOMPARE(result.details.value(u"unavailable_count"_s).toInt(), 5);
+    }
+
+    void exposesBoundedStructuredFirewallFindings()
+    {
+        QTemporaryDir logs;
+        FakeDismProcessRunner runner;
+        NetworkDiagnosticsWorkflow workflow(runner, logs.path());
+        QSignalSpy finished(&workflow, &NetworkDiagnosticsWorkflow::finished);
+        QVERIFY(workflow.start({QUuid::createUuid(), SystemToolKind::NetworkDiagnostics,
+                                SystemToolOperation::Diagnose, {}}));
+
+        auto firewall = check(u"firewall"_s, u"Windows Firewall"_s,
+                              u"attention"_s, u"Найдено правило"_s);
+        firewall.insert(u"items"_s, QJsonArray{
+            QJsonObject{{u"key"_s, u"{RULE-ID}"_s},
+                        {u"title"_s, u"Разрешение для приложения"_s},
+                        {u"program"_s, u"C:\\Program Files\\Example\\app.exe"_s},
+                        {u"protocol"_s, u"TCP"_s},
+                        {u"local_port"_s, u"8080"_s},
+                        {u"unknown"_s, u"не должно сохраняться"_s}},
+            QJsonObject{{u"key"_s, QString(513, u'x')},
+                        {u"title"_s, u"Слишком длинный ключ"_s}},
+            QJsonObject{{u"title"_s, u"Нет ключа"_s}},
+        });
+        runner.emitOutput(0, marker(firewall));
+        runner.finish(0, {.termination = DismProcessTermination::Normal, .exitCode = 0});
+
+        const auto result = qvariant_cast<SystemToolResult>(finished.first().first());
+        const auto checks = result.details.value(u"checks"_s).toArray();
+        QJsonObject savedFirewall;
+        for (const auto& value : checks) {
+            if (value.toObject().value(u"id"_s).toString() == u"firewall"_s)
+                savedFirewall = value.toObject();
+        }
+        const auto items = savedFirewall.value(u"items"_s).toArray();
+        QCOMPARE(items.size(), 1);
+        const auto saved = items.first().toObject();
+        QCOMPARE(saved.value(u"key"_s).toString(), u"{RULE-ID}"_s);
+        QCOMPARE(saved.value(u"local_port"_s).toString(), u"8080"_s);
+        QVERIFY(!saved.contains(u"unknown"_s));
+    }
+
+    void recoversMarkerEmbeddedInClixmlAndHidesSerializedProgress()
+    {
+        QTemporaryDir logs;
+        FakeDismProcessRunner runner;
+        NetworkDiagnosticsWorkflow workflow(runner, logs.path());
+        QSignalSpy output(&workflow, &NetworkDiagnosticsWorkflow::outputReady);
+        QSignalSpy finished(&workflow, &NetworkDiagnosticsWorkflow::finished);
+        QVERIFY(workflow.start({QUuid::createUuid(), SystemToolKind::NetworkDiagnostics,
+                                SystemToolOperation::Diagnose, {}}));
+
+        runner.emitOutput(0, "#< CLIXML\n");
+        const auto embedded = QByteArray("<Objs Version=\"1.1.0.1\"><Obj>")
+            + marker(check(u"adapters"_s, u"Сетевые адаптеры"_s,
+                           u"ok"_s, u"Маркер восстановлен"_s)).trimmed()
+            + QByteArray("</Obj></Objs>\n");
+        runner.emitOutput(0, embedded);
+        runner.finish(0, {.termination = DismProcessTermination::Normal, .exitCode = 0});
+
+        QString displayed;
+        for (const auto& event : output) displayed += event.at(1).toString();
+        QVERIFY(!displayed.contains(u"CLIXML"_s));
+        QVERIFY(!displayed.contains(u"<Objs"_s));
+        const auto result = qvariant_cast<SystemToolResult>(finished.first().first());
+        const auto first = result.details.value(u"checks"_s).toArray().first().toObject();
+        QCOMPARE(first.value(u"status"_s).toString(), u"ok"_s);
+        QCOMPARE(first.value(u"summary"_s).toString(), u"Маркер восстановлен"_s);
     }
 
     void rejectsWrongRequestAndReportsProcessFailure()

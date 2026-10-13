@@ -8,6 +8,7 @@ inline QString networkDiagnosticsPowerShellScript()
 {
     return QStringLiteral(R"PS(
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $marker = '@@TWEAKOPEDIA@@'
 
@@ -22,10 +23,14 @@ function Run-Check([string]$Id, [string]$Title, [scriptblock]$Body) {
     try {
         $result = & $Body
         $details = @($result.Details | Select-Object -First 32 | ForEach-Object { ([string]$_).Substring(0, [Math]::Min(([string]$_).Length, 512)) })
+        $items = @()
+        if ($result.PSObject.Properties.Name -contains 'Items') {
+            $items = @($result.Items | Select-Object -First 64)
+        }
         Emit-Object ([ordered]@{
             type = 'check'; id = $Id; title = $Title
             status = [string]$result.Status; summary = [string]$result.Summary
-            details = $details
+            details = $details; items = $items
         })
         Write-Output ([string]$result.Summary)
         $details | ForEach-Object { Write-Output ("  {0}" -f $_) }
@@ -33,7 +38,7 @@ function Run-Check([string]$Id, [string]$Title, [scriptblock]$Body) {
         $summary = 'Не удалось выполнить проверку: ' + $_.Exception.Message
         Emit-Object ([ordered]@{
             type = 'check'; id = $Id; title = $Title
-            status = 'unavailable'; summary = $summary; details = @()
+            status = 'unavailable'; summary = $summary; details = @(); items = @()
         })
         Write-Output $summary
     }
@@ -127,10 +132,30 @@ Run-Check 'firewall' 'Windows Firewall' {
         Where-Object { [string]::IsNullOrWhiteSpace($_.Group) })
     $details = @($profiles | ForEach-Object { "{0}: включён={1}, вход={2}, выход={3}" -f $_.Name, $_.Enabled, $_.DefaultInboundAction, $_.DefaultOutboundAction })
     $details += @($custom | Select-Object -First 20 | ForEach-Object { 'Входящее разрешение: ' + $_.DisplayName })
+    $items = @($custom | Select-Object -First 64 | ForEach-Object {
+        $rule = $_
+        $application = @($rule | Get-NetFirewallApplicationFilter -ErrorAction SilentlyContinue | Select-Object -First 1)
+        $service = @($rule | Get-NetFirewallServiceFilter -ErrorAction SilentlyContinue | Select-Object -First 1)
+        $port = @($rule | Get-NetFirewallPortFilter -ErrorAction SilentlyContinue | Select-Object -First 1)
+        $address = @($rule | Get-NetFirewallAddressFilter -ErrorAction SilentlyContinue | Select-Object -First 1)
+        [ordered]@{
+            key = [string]$rule.Name
+            title = if ([string]::IsNullOrWhiteSpace([string]$rule.DisplayName)) { [string]$rule.Name } else { [string]$rule.DisplayName }
+            description = [string]$rule.Description
+            profile = [string]$rule.Profile
+            program = [string]$application.Program
+            service = [string]$service.Service
+            protocol = [string]$port.Protocol
+            local_port = [string](@($port.LocalPort) -join ', ')
+            remote_port = [string](@($port.RemotePort) -join ', ')
+            local_address = [string](@($address.LocalAddress) -join ', ')
+            remote_address = [string](@($address.RemoteAddress) -join ', ')
+        }
+    })
     if ($disabled.Count -gt 0 -or $custom.Count -gt 0) {
-        [pscustomobject]@{ Status = 'attention'; Summary = "Отключённых профилей: $($disabled.Count), пользовательских входящих разрешений: $($custom.Count)"; Details = $details }
+        [pscustomobject]@{ Status = 'attention'; Summary = "Отключённых профилей: $($disabled.Count), пользовательских входящих разрешений: $($custom.Count)"; Details = $details; Items = $items }
     } else {
-        [pscustomobject]@{ Status = 'ok'; Summary = 'Профили включены, пользовательских входящих разрешений нет'; Details = $details }
+        [pscustomobject]@{ Status = 'ok'; Summary = 'Профили включены, пользовательских входящих разрешений нет'; Details = $details; Items = @() }
     }
 }
 )PS");

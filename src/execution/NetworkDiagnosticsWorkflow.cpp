@@ -16,6 +16,7 @@ namespace tweakopedia::execution {
 namespace {
 
 constexpr QLatin1StringView markerPrefix{"@@TWEAKOPEDIA@@"};
+constexpr qsizetype maximumLineBuffer = 2 * 1024 * 1024;
 
 struct CheckDefinition {
     const char16_t* id;
@@ -64,6 +65,72 @@ QString boundedString(const QJsonValue& value, const qsizetype maximum)
     return value.isString() ? value.toString().left(maximum) : QString{};
 }
 
+QJsonObject markerObjectInLine(const QString& line)
+{
+    const auto markerIndex = line.indexOf(markerPrefix);
+    if (markerIndex < 0) return {};
+    const auto jsonStart = markerIndex + markerPrefix.size();
+    if (jsonStart >= line.size() || line.at(jsonStart) != u'{') return {};
+    bool inString{};
+    bool escaped{};
+    int depth{};
+    for (auto index = jsonStart; index < line.size(); ++index) {
+        const auto character = line.at(index);
+        if (inString) {
+            if (escaped) escaped = false;
+            else if (character == u'\\') escaped = true;
+            else if (character == u'"') inString = false;
+            continue;
+        }
+        if (character == u'"') inString = true;
+        else if (character == u'{') ++depth;
+        else if (character == u'}' && --depth == 0) {
+            QJsonParseError error;
+            const auto document = QJsonDocument::fromJson(
+                line.sliced(jsonStart, index - jsonStart + 1).toUtf8(), &error);
+            return error.error == QJsonParseError::NoError && document.isObject()
+                ? document.object() : QJsonObject{};
+        }
+    }
+    return {};
+}
+
+bool isSerializedProgress(const QString& line)
+{
+    const auto trimmed = line.trimmed();
+    return trimmed.startsWith(u"#< CLIXML"_s)
+        || trimmed.startsWith(u"<Objs"_s)
+        || trimmed.startsWith(u"</Objs"_s)
+        || (trimmed.startsWith(u'<')
+            && trimmed.contains(u"schemas.microsoft.com/powershell/2004/04"_s));
+}
+
+QJsonArray boundedFirewallItems(const QJsonValue& value)
+{
+    QJsonArray result;
+    if (!value.isArray()) return result;
+    constexpr const char16_t* fields[] = {
+        u"key", u"title", u"description", u"profile", u"program", u"service",
+        u"protocol", u"local_port", u"remote_port", u"local_address", u"remote_address",
+    };
+    const auto source = value.toArray();
+    for (qsizetype index = 0; index < source.size() && index < 64; ++index) {
+        if (!source.at(index).isObject()) continue;
+        const auto object = source.at(index).toObject();
+        const auto key = boundedString(object.value(u"key"_s), 512);
+        if (key.isEmpty() || object.value(u"key"_s).toString().size() > 512) continue;
+        QJsonObject item{{u"key"_s, key}};
+        for (const auto* field : fields) {
+            const QString name(field);
+            if (name == u"key"_s) continue;
+            const auto text = boundedString(object.value(name), 1024);
+            if (!text.isEmpty()) item.insert(name, text);
+        }
+        result.append(item);
+    }
+    return result;
+}
+
 } // namespace
 
 NetworkDiagnosticsWorkflow::NetworkDiagnosticsWorkflow(
@@ -100,12 +167,14 @@ bool NetworkDiagnosticsWorkflow::start(const SystemToolRequest& request)
     const QStringList arguments{
         u"-NoLogo"_s, u"-NoProfile"_s, u"-NonInteractive"_s,
         u"-ExecutionPolicy"_s, u"Bypass"_s,
+        u"-OutputFormat"_s, u"Text"_s,
         u"-EncodedCommand"_s, encodedScript(),
     };
     const auto executable = powerShellPath();
     log_.appendCommand(u"powershell.exe"_s,
                        {u"-NoLogo"_s, u"-NoProfile"_s, u"-NonInteractive"_s,
                         u"-ExecutionPolicy"_s, u"Bypass"_s,
+                        u"-OutputFormat"_s, u"Text"_s,
                         u"-EncodedCommand"_s, u"<embedded>"_s});
     emit outputReady(request.requestId, u"> Диагностика сети PowerShell\n"_s);
     if (!runner_->start(
@@ -142,20 +211,16 @@ void NetworkDiagnosticsWorkflow::consumeText(const QString& text)
         if (line.endsWith(u'\r')) line.chop(1);
         processLine(std::move(line));
     }
+    if (lineBuffer_.size() > maximumLineBuffer)
+        lineBuffer_ = lineBuffer_.right(maximumLineBuffer);
 }
 
 void NetworkDiagnosticsWorkflow::processLine(QString line)
 {
-    if (!line.startsWith(markerPrefix)) {
+    const auto marker = markerObjectInLine(line);
+    if (!marker.isEmpty()) processMarker(marker);
+    if (marker.isEmpty() && !isSerializedProgress(line))
         emit outputReady(request_.requestId, line + u'\n');
-        return;
-    }
-    QJsonParseError error;
-    const auto document = QJsonDocument::fromJson(
-        line.sliced(markerPrefix.size()).toUtf8(), &error);
-    if (error.error == QJsonParseError::NoError && document.isObject()) {
-        processMarker(document.object());
-    }
 }
 
 void NetworkDiagnosticsWorkflow::processMarker(const QJsonObject& marker)
@@ -180,13 +245,16 @@ void NetworkDiagnosticsWorkflow::processMarker(const QJsonObject& marker)
         const auto text = boundedString(sourceDetails.at(index), 512);
         if (!text.isEmpty()) details.append(text);
     }
-    checks_.append(QJsonObject{
+    QJsonObject check{
         {u"id"_s, id},
         {u"title"_s, boundedString(marker.value(u"title"_s), 80)},
         {u"status"_s, status},
         {u"summary"_s, boundedString(marker.value(u"summary"_s), 300)},
         {u"details"_s, details},
-    });
+    };
+    if (id == u"firewall"_s)
+        check.insert(u"items"_s, boundedFirewallItems(marker.value(u"items"_s)));
+    checks_.append(check);
 }
 
 void NetworkDiagnosticsWorkflow::processFinished(DismProcessResult result)
