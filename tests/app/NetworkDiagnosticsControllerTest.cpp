@@ -43,6 +43,25 @@ QJsonObject diagnosticDetails()
     };
 }
 
+QJsonObject diagnosticDetailsWithFirewallRule()
+{
+    auto details = diagnosticDetails();
+    auto checks = details.value(u"checks"_s).toArray();
+    checks.append(QJsonObject{
+        {u"id"_s, u"firewall"_s}, {u"title"_s, u"Windows Firewall"_s},
+        {u"status"_s, u"attention"_s}, {u"summary"_s, u"Найдено правило"_s},
+        {u"details"_s, QJsonArray{u"Входящее разрешение"_s}},
+        {u"items"_s, QJsonArray{
+            QJsonObject{{u"key"_s, u"{RULE-ID}"_s},
+                        {u"title"_s, u"Тестовое правило"_s},
+                        {u"protocol"_s, u"TCP"_s},
+                        {u"local_port"_s, u"8080"_s}}}},
+    });
+    details.insert(u"checks"_s, checks);
+    details.insert(u"attention_count"_s, 2);
+    return details;
+}
+
 } // namespace
 
 class NetworkDiagnosticsControllerTest final : public QObject
@@ -174,6 +193,112 @@ private slots:
                               .details = diagnosticDetails()});
         QVERIFY(!controller.busy());
         QCOMPARE(controller.state(), u"healthy"_s);
+    }
+
+    void removesOnlyRuleFromLatestStructuredResultAndKeepsChecks()
+    {
+        tests::FakeSystemToolRunner runner;
+        FakeDesktopServices desktop;
+        app::NetworkDiagnosticsController controller(runner, desktop);
+        QVERIFY(controller.startDiagnostics());
+        const auto diagnosticsId = QUuid::createUuid();
+        emit runner.stageChanged(
+            {diagnosticsId, execution::SystemToolStage::CollectNetworkAdapters});
+        emit runner.finished({.requestId = diagnosticsId,
+                              .status = execution::SystemToolResultStatus::Completed,
+                              .outcome = execution::SystemToolOutcome::IssuesFound,
+                              .details = diagnosticDetailsWithFirewallRule()});
+        const auto checksBefore = controller.checks();
+
+        QVERIFY(!controller.removeFirewallRule(u"missing"_s));
+        QCOMPARE(runner.startCalls, 1);
+        QCOMPARE(controller.actionState(), u"failed"_s);
+        QVERIFY(controller.removeFirewallRule(u"{RULE-ID}"_s));
+        QCOMPARE(runner.lastTool, execution::SystemToolKind::NetworkDiagnostics);
+        QCOMPARE(runner.lastOperation,
+                 execution::SystemToolOperation::RemoveFirewallRule);
+        QCOMPARE(runner.lastTarget, u"{RULE-ID}"_s);
+        QCOMPARE(controller.actionState(), u"awaiting_elevation"_s);
+        QCOMPARE(controller.checks(), checksBefore);
+
+        const auto removalId = QUuid::createUuid();
+        emit runner.stageChanged(
+            {removalId, execution::SystemToolStage::RemoveNetworkFirewallRule});
+        QCOMPARE(controller.actionState(), u"running"_s);
+        QCOMPARE(controller.activeRuleKey(), u"{RULE-ID}"_s);
+        emit runner.finished({.requestId = removalId,
+                              .status = execution::SystemToolResultStatus::Completed,
+                              .outcome = execution::SystemToolOutcome::Healthy,
+                              .message = u"Правило удалено"_s,
+                              .details = {{u"rule_key"_s, u"{RULE-ID}"_s}}});
+
+        QCOMPARE(controller.actionState(), u"succeeded"_s);
+        QVERIFY(controller.actionMessage().contains(u"удалено"_s));
+        QVERIFY(controller.removedRuleKeys().contains(u"{RULE-ID}"_s));
+        QCOMPARE(controller.checks(), checksBefore);
+    }
+
+    void ignoresForeignRemovalResultAndReportsTypedFailure()
+    {
+        tests::FakeSystemToolRunner runner;
+        FakeDesktopServices desktop;
+        app::NetworkDiagnosticsController controller(runner, desktop);
+        QVERIFY(controller.startDiagnostics());
+        const auto diagnosticsId = QUuid::createUuid();
+        emit runner.stageChanged(
+            {diagnosticsId, execution::SystemToolStage::CollectNetworkAdapters});
+        emit runner.finished({.requestId = diagnosticsId,
+                              .status = execution::SystemToolResultStatus::Completed,
+                              .outcome = execution::SystemToolOutcome::IssuesFound,
+                              .details = diagnosticDetailsWithFirewallRule()});
+
+        QVERIFY(controller.removeFirewallRule(u"{RULE-ID}"_s));
+        const auto removalId = QUuid::createUuid();
+        emit runner.stageChanged(
+            {removalId, execution::SystemToolStage::RemoveNetworkFirewallRule});
+        emit runner.finished({.requestId = QUuid::createUuid(),
+                              .status = execution::SystemToolResultStatus::Completed,
+                              .outcome = execution::SystemToolOutcome::Healthy});
+        QVERIFY(controller.busy());
+        QCOMPARE(controller.actionState(), u"running"_s);
+
+        emit runner.finished({.requestId = removalId,
+                              .status = execution::SystemToolResultStatus::Failed,
+                              .code = u"firewall_rule.remove_failed"_s,
+                              .message = u"Экспорт не выполнен"_s});
+        QVERIFY(!controller.busy());
+        QCOMPARE(controller.actionState(), u"failed"_s);
+        QCOMPARE(controller.actionMessage(), u"Экспорт не выполнен"_s);
+        QVERIFY(controller.removedRuleKeys().isEmpty());
+        QVERIFY(!controller.checks().isEmpty());
+    }
+
+    void newDiagnosticsClearsCompletedActionState()
+    {
+        tests::FakeSystemToolRunner runner;
+        FakeDesktopServices desktop;
+        app::NetworkDiagnosticsController controller(runner, desktop);
+        QVERIFY(controller.startDiagnostics());
+        const auto diagnosticsId = QUuid::createUuid();
+        emit runner.stageChanged(
+            {diagnosticsId, execution::SystemToolStage::CollectNetworkAdapters});
+        emit runner.finished({.requestId = diagnosticsId,
+                              .status = execution::SystemToolResultStatus::Completed,
+                              .outcome = execution::SystemToolOutcome::IssuesFound,
+                              .details = diagnosticDetailsWithFirewallRule()});
+        QVERIFY(controller.removeFirewallRule(u"{RULE-ID}"_s));
+        const auto removalId = QUuid::createUuid();
+        emit runner.stageChanged(
+            {removalId, execution::SystemToolStage::RemoveNetworkFirewallRule});
+        emit runner.finished({.requestId = removalId,
+                              .status = execution::SystemToolResultStatus::Completed,
+                              .outcome = execution::SystemToolOutcome::Healthy,
+                              .details = {{u"rule_key"_s, u"{RULE-ID}"_s}}});
+        QCOMPARE(controller.actionState(), u"succeeded"_s);
+
+        QVERIFY(controller.startDiagnostics());
+        QCOMPARE(controller.actionState(), u"idle"_s);
+        QVERIFY(controller.removedRuleKeys().isEmpty());
     }
 };
 

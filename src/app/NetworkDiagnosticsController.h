@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QUuid>
 #include <QVariantList>
+#include <QStringList>
 
 namespace tweakopedia::app {
 
@@ -26,6 +27,10 @@ class NetworkDiagnosticsController final : public QObject
     Q_PROPERTY(bool hasAttention READ hasAttention NOTIFY changed)
     Q_PROPERTY(bool busy READ busy NOTIFY changed)
     Q_PROPERTY(bool canStart READ canStart NOTIFY changed)
+    Q_PROPERTY(QString actionState READ actionState NOTIFY changed)
+    Q_PROPERTY(QString actionMessage READ actionMessage NOTIFY changed)
+    Q_PROPERTY(QString activeRuleKey READ activeRuleKey NOTIFY changed)
+    Q_PROPERTY(QStringList removedRuleKeys READ removedRuleKeys NOTIFY changed)
 
 public:
     explicit NetworkDiagnosticsController(
@@ -47,8 +52,13 @@ public:
     [[nodiscard]] bool hasAttention() const;
     [[nodiscard]] bool busy() const;
     [[nodiscard]] bool canStart() const;
+    [[nodiscard]] QString actionState() const;
+    [[nodiscard]] QString actionMessage() const;
+    [[nodiscard]] QString activeRuleKey() const;
+    [[nodiscard]] QStringList removedRuleKeys() const;
 
     Q_INVOKABLE bool startDiagnostics();
+    Q_INVOKABLE bool removeFirewallRule(const QString& key);
     Q_INVOKABLE bool copyOutput();
     Q_INVOKABLE bool openSessionLog();
 
@@ -62,6 +72,10 @@ private:
     void handleResult(const execution::SystemToolResult& result);
     void handleFailure(const QString& code, const QString& message);
     void trimOutput();
+    [[nodiscard]] bool hasFirewallRule(const QString& key) const;
+    void clearActionState();
+
+    enum class ActiveOperation { None, Diagnostics, RemoveFirewallRule };
 
     execution::ISystemToolRunner* runner_{};
     ISystemIntegrityDesktopServices* desktopServices_{};
@@ -79,6 +93,11 @@ private:
     bool busy_{};
     bool pendingNewSession_{};
     QUuid activeRequestId_;
+    ActiveOperation activeOperation_{ActiveOperation::None};
+    QString actionState_{QStringLiteral("idle")};
+    QString actionMessage_;
+    QString activeRuleKey_;
+    QStringList removedRuleKeys_;
 };
 
 } // namespace tweakopedia::app

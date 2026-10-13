@@ -10,7 +10,7 @@ namespace {
 constexpr qsizetype kMaximumOutputBytes = 2 * 1024 * 1024;
 const auto kTruncationMarker = QByteArray("[Начало вывода удалено из экранного буфера]\n");
 
-bool isNetworkStage(execution::SystemToolStage stage)
+bool isNetworkDiagnosticStage(execution::SystemToolStage stage)
 {
     switch (stage) {
     case execution::SystemToolStage::CollectNetworkAdapters:
@@ -52,9 +52,16 @@ NetworkDiagnosticsController::NetworkDiagnosticsController(
         busy_ = false;
         pendingNewSession_ = false;
         activeRequestId_ = QUuid{};
-        state_ = u"idle"_s;
-        stageText_ = message;
-        errorCode_ = u"launch.cancelled"_s;
+        if (activeOperation_ == ActiveOperation::RemoveFirewallRule) {
+            actionState_ = u"idle"_s;
+            actionMessage_ = message;
+            activeRuleKey_.clear();
+        } else {
+            state_ = u"idle"_s;
+            stageText_ = message;
+            errorCode_ = u"launch.cancelled"_s;
+        }
+        activeOperation_ = ActiveOperation::None;
         emit changed();
     });
     connect(runner_, &execution::ISystemToolRunner::stageChanged,
@@ -81,13 +88,19 @@ int NetworkDiagnosticsController::unavailableCount() const { return unavailableC
 bool NetworkDiagnosticsController::hasAttention() const { return attentionCount_ > 0; }
 bool NetworkDiagnosticsController::busy() const { return busy_; }
 bool NetworkDiagnosticsController::canStart() const { return !busy_; }
+QString NetworkDiagnosticsController::actionState() const { return actionState_; }
+QString NetworkDiagnosticsController::actionMessage() const { return actionMessage_; }
+QString NetworkDiagnosticsController::activeRuleKey() const { return activeRuleKey_; }
+QStringList NetworkDiagnosticsController::removedRuleKeys() const { return removedRuleKeys_; }
 
 bool NetworkDiagnosticsController::startDiagnostics()
 {
     if (!canStart()) return false;
+    clearActionState();
     busy_ = true;
     pendingNewSession_ = true;
     activeRequestId_ = QUuid{};
+    activeOperation_ = ActiveOperation::Diagnostics;
     state_ = u"awaiting_elevation"_s;
     stageText_ = u"Ожидание подтверждения прав администратора"_s;
     emit changed();
@@ -96,6 +109,33 @@ bool NetworkDiagnosticsController::startDiagnostics()
         return true;
     }
     if (busy_) handleFailure(u"launch.failed"_s, u"Не удалось запустить исполнительный процесс."_s);
+    return false;
+}
+
+bool NetworkDiagnosticsController::removeFirewallRule(const QString& key)
+{
+    if (!canStart()) return false;
+    if (!hasFirewallRule(key)) {
+        actionState_ = u"failed"_s;
+        actionMessage_ = u"Выбранное правило отсутствует в последнем результате диагностики."_s;
+        activeRuleKey_.clear();
+        emit changed();
+        return false;
+    }
+    busy_ = true;
+    pendingNewSession_ = false;
+    activeRequestId_ = QUuid{};
+    activeOperation_ = ActiveOperation::RemoveFirewallRule;
+    activeRuleKey_ = key;
+    actionState_ = u"awaiting_elevation"_s;
+    actionMessage_ = u"Ожидание подтверждения прав администратора"_s;
+    emit changed();
+    if (runner_->start(execution::SystemToolKind::NetworkDiagnostics,
+                       execution::SystemToolOperation::RemoveFirewallRule, key)) {
+        return true;
+    }
+    if (busy_) handleFailure(u"launch.failed"_s,
+                             u"Не удалось запустить удаление правила."_s);
     return false;
 }
 
@@ -136,7 +176,20 @@ void NetworkDiagnosticsController::beginConfirmedSession()
 
 void NetworkDiagnosticsController::handleStage(const execution::SystemToolStageEvent& event)
 {
-    if (!busy_ || !isNetworkStage(event.stage)) return;
+    if (!busy_) return;
+    const auto removalStage = event.stage
+        == execution::SystemToolStage::RemoveNetworkFirewallRule;
+    if (activeOperation_ == ActiveOperation::RemoveFirewallRule) {
+        if (!removalStage) return;
+        if (activeRequestId_.isNull()) activeRequestId_ = event.requestId;
+        else if (event.requestId != activeRequestId_) return;
+        actionState_ = u"running"_s;
+        actionMessage_ = u"Создаётся резервная копия и удаляется выбранное правило"_s;
+        emit changed();
+        return;
+    }
+    if (activeOperation_ != ActiveOperation::Diagnostics
+        || !isNetworkDiagnosticStage(event.stage)) return;
     if (activeRequestId_.isNull()) activeRequestId_ = event.requestId;
     else if (event.requestId != activeRequestId_) return;
     beginConfirmedSession();
@@ -158,8 +211,30 @@ void NetworkDiagnosticsController::handleResult(const execution::SystemToolResul
 {
     if (!busy_) return;
     if (!activeRequestId_.isNull() && result.requestId != activeRequestId_) return;
+    if (activeOperation_ == ActiveOperation::RemoveFirewallRule) {
+        busy_ = false;
+        activeOperation_ = ActiveOperation::None;
+        activeRequestId_ = QUuid{};
+        sessionLogPath_ = result.logPath;
+        if (result.status == execution::SystemToolResultStatus::Completed) {
+            actionState_ = u"succeeded"_s;
+            actionMessage_ = result.message.isEmpty()
+                ? u"Правило Windows Firewall удалено."_s : result.message;
+            if (!removedRuleKeys_.contains(activeRuleKey_))
+                removedRuleKeys_.append(activeRuleKey_);
+        } else {
+            actionState_ = u"failed"_s;
+            actionMessage_ = result.message.isEmpty()
+                ? u"Не удалось удалить выбранное правило Windows Firewall."_s
+                : result.message;
+        }
+        emit changed();
+        return;
+    }
+    if (activeOperation_ != ActiveOperation::Diagnostics) return;
     beginConfirmedSession();
     busy_ = false;
+    activeOperation_ = ActiveOperation::None;
     pendingNewSession_ = false;
     activeRequestId_ = QUuid{};
     stageText_.clear();
@@ -210,12 +285,41 @@ void NetworkDiagnosticsController::handleFailure(const QString& code, const QStr
     busy_ = false;
     pendingNewSession_ = false;
     activeRequestId_ = QUuid{};
+    if (activeOperation_ == ActiveOperation::RemoveFirewallRule) {
+        activeOperation_ = ActiveOperation::None;
+        actionState_ = u"failed"_s;
+        actionMessage_ = message;
+        emit changed();
+        return;
+    }
+    activeOperation_ = ActiveOperation::None;
     state_ = u"failed"_s;
     stageText_.clear();
     resultTitle_ = u"Диагностика не выполнена"_s;
     resultDescription_ = message;
     errorCode_ = code;
     emit changed();
+}
+
+bool NetworkDiagnosticsController::hasFirewallRule(const QString& key) const
+{
+    if (key.isEmpty()) return false;
+    for (const auto& checkValue : checks_) {
+        const auto check = checkValue.toMap();
+        if (check.value(u"id"_s).toString() != u"firewall"_s) continue;
+        for (const auto& itemValue : check.value(u"items"_s).toList()) {
+            if (itemValue.toMap().value(u"key"_s).toString() == key) return true;
+        }
+    }
+    return false;
+}
+
+void NetworkDiagnosticsController::clearActionState()
+{
+    actionState_ = u"idle"_s;
+    actionMessage_.clear();
+    activeRuleKey_.clear();
+    removedRuleKeys_.clear();
 }
 
 void NetworkDiagnosticsController::trimOutput()
