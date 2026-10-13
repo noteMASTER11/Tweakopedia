@@ -551,6 +551,16 @@ add_executable(SystemOverviewPresenterTest app/SystemOverviewPresenterTest.cpp)
 target_link_libraries(SystemOverviewPresenterTest PRIVATE Qt6::Test TweakopediaApp)
 add_test(NAME SystemOverviewPresenter COMMAND SystemOverviewPresenterTest)
 
+add_executable(SystemIntegrityControllerTest
+    app/SystemIntegrityControllerTest.cpp
+    fakes/FakeSystemToolRunner.cpp
+    fakes/FakeSystemToolRunner.h
+)
+target_include_directories(SystemIntegrityControllerTest PRIVATE ${PROJECT_SOURCE_DIR}/tests)
+target_link_libraries(SystemIntegrityControllerTest PRIVATE
+    Qt6::Test TweakopediaApp TweakopediaExecution)
+add_test(NAME SystemIntegrityController COMMAND SystemIntegrityControllerTest)
+
 add_executable(TweakListModelTest app/TweakListModelTest.cpp)
 target_compile_definitions(TweakListModelTest PRIVATE
     TWEAKOPEDIA_TEST_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content/tweaks"

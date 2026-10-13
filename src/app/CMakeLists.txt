@@ -17,6 +17,9 @@ add_library(TweakopediaApp STATIC
     SessionLogger.h
     SettingsController.cpp
     SettingsController.h
+    ISystemIntegrityDesktopServices.h
+    SystemIntegrityController.cpp
+    SystemIntegrityController.h
     SystemOverviewPresenter.cpp
     SystemOverviewPresenter.h
     TweakListModel.cpp
@@ -37,4 +40,5 @@ target_link_libraries(TweakopediaApp PUBLIC
     TweakopediaPersistence
     TweakopediaPlanning
     TweakopediaStartup
+    TweakopediaExecution
 )
