@@ -54,12 +54,13 @@ private slots:
         QVERIFY(invocation.arguments.contains(u"-OutputFormat"_s));
         const auto script = decodedPowerShell(invocation.arguments);
         QVERIFY(script.contains(u"advfirewall export"_s));
-        QVERIFY(script.contains(u"Get-NetFirewallRule -Name"_s));
-        QVERIFY(script.contains(u"Remove-NetFirewallRule -Name"_s));
+        QVERIFY(script.contains(u"Where-Object { $_.Name -ceq $ruleName }"_s));
+        QVERIFY(script.contains(u"$rules[0] | Remove-NetFirewallRule"_s));
+        QVERIFY(!script.contains(u"Remove-NetFirewallRule -Name $ruleName"_s));
         QVERIFY(script.contains(QString::fromLatin1(key.toUtf8().toBase64())));
         QVERIFY(!script.contains(key));
         QVERIFY(script.indexOf(u"advfirewall export"_s)
-                < script.indexOf(u"Remove-NetFirewallRule -Name"_s));
+                < script.indexOf(u"$rules[0] | Remove-NetFirewallRule"_s));
 
         runner.emitOutput(0, "Rule removed\n");
         runner.finish(0, {.termination = DismProcessTermination::Normal, .exitCode = 0});

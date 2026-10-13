@@ -43,14 +43,14 @@ if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $backupPath -PathType L
     throw 'Не удалось экспортировать текущую политику Windows Firewall.'
 }
 
-$rules = @(Get-NetFirewallRule -Name $ruleName -ErrorAction Stop)
+$rules = @(Get-NetFirewallRule -ErrorAction Stop | Where-Object { $_.Name -ceq $ruleName })
 if ($rules.Count -ne 1) {
     throw ("Ожидалось одно правило с указанным внутренним именем, найдено: {0}." -f $rules.Count)
 }
 
 Write-Output ("Удаление правила: {0}" -f $rules[0].DisplayName)
-Remove-NetFirewallRule -Name $ruleName -Confirm:$false -ErrorAction Stop
-if (Get-NetFirewallRule -Name $ruleName -ErrorAction SilentlyContinue) {
+$rules[0] | Remove-NetFirewallRule -Confirm:$false -ErrorAction Stop
+if (Get-NetFirewallRule -ErrorAction SilentlyContinue | Where-Object { $_.Name -ceq $ruleName }) {
     throw 'Правило по-прежнему найдено после команды удаления.'
 }
 Write-Output 'Правило Windows Firewall удалено.'

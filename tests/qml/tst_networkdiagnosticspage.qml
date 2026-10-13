@@ -201,5 +201,28 @@ TestCase {
         compare(fakeController.lastRemovedRule, "{RULE-ID}")
     }
 
+    function test_firewallActionsAreLockedWhileAnotherActionRuns() {
+        fakeController.checks = [
+            { id: "firewall", title: "Windows Firewall", status: "attention",
+              summary: "Найдены правила", details: [],
+              items: [
+                  { key: "rule-one", title: "Первое правило" },
+                  { key: "rule-two", title: "Второе правило" }
+              ] }
+        ]
+        fakeController.busy = true
+        fakeController.actionState = "running"
+        fakeController.activeRuleKey = "rule-one"
+        const page = createTemporaryObject(pageComponent, this)
+        mouseClick(findChild(page, "networkDiagnosticsCheckCard_firewall"))
+        const repeater = findChild(page, "firewallRuleRepeater")
+        tryCompare(repeater, "count", 2)
+        for (let i = 0; i < 2; ++i) {
+            const button = findChild(repeater.itemAt(i), "firewallRuleRemoveButton")
+            verify(button)
+            verify(!button.enabled)
+        }
+    }
+
     Component { id: signalSpy; SignalSpy {} }
 }

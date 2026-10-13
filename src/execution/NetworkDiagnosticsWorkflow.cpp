@@ -118,7 +118,8 @@ QJsonArray boundedFirewallItems(const QJsonValue& value)
         if (!source.at(index).isObject()) continue;
         const auto object = source.at(index).toObject();
         const auto key = boundedString(object.value(u"key"_s), 512);
-        if (key.isEmpty() || object.value(u"key"_s).toString().size() > 512) continue;
+        if (key.isEmpty() || object.value(u"key"_s).toString().size() > 512
+            || key.contains(QChar{}) || key.contains(u'\r') || key.contains(u'\n')) continue;
         QJsonObject item{{u"key"_s, key}};
         for (const auto* field : fields) {
             const QString name(field);

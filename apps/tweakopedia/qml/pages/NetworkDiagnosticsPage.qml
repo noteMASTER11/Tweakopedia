@@ -907,9 +907,7 @@ Page {
                                         objectName: "firewallRuleRemoveButton"
                                         Layout.alignment: Qt.AlignRight
                                         Layout.preferredHeight: 36
-                                        enabled: controller && !ruleCard.removed
-                                            && !(controller.busy
-                                                 && controller.activeRuleKey === ruleCard.rule.key)
+                                        enabled: controller && !controller.busy && !ruleCard.removed
                                         text: ruleCard.removed ? "Удалено"
                                             : controller && controller.busy
                                               && controller.activeRuleKey === ruleCard.rule.key

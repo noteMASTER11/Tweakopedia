@@ -138,6 +138,8 @@ private slots:
                         {u"unknown"_s, u"не должно сохраняться"_s}},
             QJsonObject{{u"key"_s, QString(513, u'x')},
                         {u"title"_s, u"Слишком длинный ключ"_s}},
+            QJsonObject{{u"key"_s, u"line\nbreak"_s},
+                        {u"title"_s, u"Управляющий символ"_s}},
             QJsonObject{{u"title"_s, u"Нет ключа"_s}},
         });
         runner.emitOutput(0, marker(firewall));
