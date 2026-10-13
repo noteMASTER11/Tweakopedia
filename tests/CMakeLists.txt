@@ -598,6 +598,16 @@ target_link_libraries(FileSystemCheckControllerTest PRIVATE
     Qt6::Test TweakopediaApp TweakopediaExecution TweakopediaPlatform)
 add_test(NAME FileSystemCheckController COMMAND FileSystemCheckControllerTest)
 
+add_executable(NetworkDiagnosticsControllerTest
+    app/NetworkDiagnosticsControllerTest.cpp
+    fakes/FakeSystemToolRunner.cpp
+    fakes/FakeSystemToolRunner.h
+)
+target_include_directories(NetworkDiagnosticsControllerTest PRIVATE ${PROJECT_SOURCE_DIR}/tests)
+target_link_libraries(NetworkDiagnosticsControllerTest PRIVATE
+    Qt6::Test TweakopediaApp TweakopediaExecution)
+add_test(NAME NetworkDiagnosticsController COMMAND NetworkDiagnosticsControllerTest)
+
 add_executable(TweakListModelTest app/TweakListModelTest.cpp)
 target_compile_definitions(TweakListModelTest PRIVATE
     TWEAKOPEDIA_TEST_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content/tweaks"

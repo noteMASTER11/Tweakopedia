@@ -1,5 +1,6 @@
 #include "app/AppController.h"
 #include "app/FileSystemCheckController.h"
+#include "app/NetworkDiagnosticsController.h"
 #include "app/SessionLogger.h"
 #include "app/SettingsController.h"
 #include "app/SystemIntegrityController.h"
@@ -620,6 +621,8 @@ int main(int argc, char* argv[])
     platform::WindowsLocalVolumeProvider localVolumeProvider;
     app::FileSystemCheckController fileSystemCheckController(
         localVolumeProvider, systemToolSession, systemIntegrityServices);
+    app::NetworkDiagnosticsController networkDiagnosticsController(
+        systemToolSession, systemIntegrityServices);
 
     DesktopServices services(runtimeRoot, dataRootOverride);
     app::AppController controller(services);
@@ -638,6 +641,8 @@ int main(int argc, char* argv[])
         u"systemIntegrityController"_s, &systemIntegrityController);
     engine.rootContext()->setContextProperty(
         u"fileSystemCheckController"_s, &fileSystemCheckController);
+    engine.rootContext()->setContextProperty(
+        u"networkDiagnosticsController"_s, &networkDiagnosticsController);
     engine.rootContext()->setContextProperty(u"startupManaged"_s, startupClient.has_value());
     reportStartup(startup::StartupStage::Interface);
     engine.load(QUrl(u"qrc:/qml/Main.qml"_s));

@@ -11,6 +11,8 @@ add_library(TweakopediaApp STATIC
     EncyclopediaTreeModel.h
     FileSystemCheckController.cpp
     FileSystemCheckController.h
+    NetworkDiagnosticsController.cpp
+    NetworkDiagnosticsController.h
     HistoryListModel.cpp
     HistoryListModel.h
     QueueListModel.cpp
