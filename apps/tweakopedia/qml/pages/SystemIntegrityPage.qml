@@ -208,6 +208,36 @@ Page {
                         to: 100
                         value: controller && controller.progressKnown ? controller.progress : 0
                         indeterminate: controller && controller.busy && !controller.progressKnown
+
+                        background: Rectangle {
+                            implicitHeight: 5
+                            radius: 2.5
+                            color: FluentTheme.surfaceInset
+                        }
+                        contentItem: Item {
+                            implicitHeight: 5
+                            clip: true
+
+                            Rectangle {
+                                id: progressFill
+                                height: parent.height
+                                width: progressBar.indeterminate
+                                    ? Math.max(42, parent.width * 0.28)
+                                    : parent.width * progressBar.visualPosition
+                                radius: 2.5
+                                color: FluentTheme.accent
+                                x: progressBar.indeterminate ? -width : 0
+
+                                NumberAnimation on x {
+                                    running: progressBar.indeterminate
+                                    loops: Animation.Infinite
+                                    from: -progressFill.width
+                                    to: progressFill.parent ? progressFill.parent.width : 0
+                                    duration: 1100
+                                    easing.type: Easing.InOutCubic
+                                }
+                            }
+                        }
                     }
 
                     FluentText {

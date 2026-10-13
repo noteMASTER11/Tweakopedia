@@ -98,6 +98,14 @@ try {
         -or -not (Test-Path -LiteralPath $manifest -PathType Leaf)) {
         throw 'Runtime не содержит marker или manifest.'
     }
+    foreach ($requiredRuntimeFile in @('Tweakopedia.App.exe', 'Tweakopedia.Executor.exe')) {
+        if (-not (Test-Path -LiteralPath (Join-Path $currentRuntime $requiredRuntimeFile) -PathType Leaf)) {
+            throw "Извлечённый runtime не содержит $requiredRuntimeFile."
+        }
+    }
+    if (@(Get-ChildItem -LiteralPath $packageRoot -Filter '*.dll' -File).Count -ne 0) {
+        throw 'Рядом с EXE-контейнером обнаружены незапакованные DLL.'
+    }
     $markerTime = (Get-Item -LiteralPath $marker).LastWriteTimeUtc.Ticks
     Invoke-ContainerSelfCheck
     if ((Get-Item -LiteralPath $marker).LastWriteTimeUtc.Ticks -ne $markerTime) {
