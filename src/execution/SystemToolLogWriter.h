@@ -12,6 +12,7 @@ class SystemToolLogWriter final
 public:
     [[nodiscard]] bool open(
         const QString& logsRoot,
+        SystemToolKind tool,
         SystemToolOperation operation,
         const QStringList& metadata);
     void appendCommand(const QString& program, const QStringList& arguments);

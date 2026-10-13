@@ -25,7 +25,10 @@ public:
         QObject* parent = nullptr);
     ~SystemToolSession() override;
 
-    bool start(SystemToolOperation operation) override;
+    bool start(
+        SystemToolKind tool,
+        SystemToolOperation operation,
+        QString target = {}) override;
 
 private:
     void launchFinished();

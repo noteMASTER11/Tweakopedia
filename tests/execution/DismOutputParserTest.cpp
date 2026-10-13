@@ -12,19 +12,19 @@ private slots:
     void recognizesHealthStates_data()
     {
         QTest::addColumn<QByteArray>("output");
-        QTest::addColumn<ComponentStoreHealth>("expected");
+        QTest::addColumn<SystemToolOutcome>("expected");
         QTest::newRow("healthy") << QByteArray("No component store corruption detected.\r\n")
-                                  << ComponentStoreHealth::Healthy;
+                                  << SystemToolOutcome::Healthy;
         QTest::newRow("repairable") << QByteArray("The component store is repairable.\r\n")
-                                     << ComponentStoreHealth::Repairable;
+                                     << SystemToolOutcome::Repairable;
         QTest::newRow("non-repairable") << QByteArray("The component store cannot be repaired.\r\n")
-                                         << ComponentStoreHealth::NonRepairable;
+                                         << SystemToolOutcome::NonRepairable;
     }
 
     void recognizesHealthStates()
     {
         QFETCH(QByteArray, output);
-        QFETCH(ComponentStoreHealth, expected);
+        QFETCH(SystemToolOutcome, expected);
         DismOutputParser parser;
         parser.reset(SystemToolStage::CheckHealth);
         parser.consume(output.first(output.size() / 2));
@@ -37,7 +37,7 @@ private slots:
         DismOutputParser parser;
         parser.reset(SystemToolStage::CheckHealth);
         parser.consume("The operation completed successfully.\r\n");
-        QCOMPARE(parser.health(), ComponentStoreHealth::Unknown);
+        QCOMPARE(parser.health(), SystemToolOutcome::Unknown);
     }
 
     void extractsSplitMonotonicProgressAndResetsPerStage()
@@ -53,7 +53,7 @@ private slots:
 
         parser.reset(SystemToolStage::CheckHealth);
         QCOMPARE(parser.progress(), -1);
-        QCOMPARE(parser.health(), ComponentStoreHealth::Unknown);
+        QCOMPARE(parser.health(), SystemToolOutcome::Unknown);
     }
 };
 

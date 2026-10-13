@@ -228,7 +228,8 @@ private slots:
         QTRY_COMPARE_WITH_TIMEOUT(authenticated.size(), 1, 3000);
 
         const execution::SystemToolRequest request{
-            QUuid::createUuid(), execution::SystemToolOperation::Scan};
+            QUuid::createUuid(), execution::SystemToolKind::ComponentStore,
+            execution::SystemToolOperation::Scan, {}};
         QVERIFY(server.sendToolRequest(request));
         QTRY_COMPARE_WITH_TIMEOUT(requestReceived.size(), 1, 3000);
         QCOMPARE(qvariant_cast<execution::SystemToolRequest>(
@@ -243,7 +244,7 @@ private slots:
             .requestId = request.requestId,
             .status = execution::SystemToolResultStatus::Completed,
             .exitCode = 0,
-            .health = execution::ComponentStoreHealth::Healthy,
+            .outcome = execution::SystemToolOutcome::Healthy,
             .logPath = u"C:/logs/tool.log"_s,
         }));
 
@@ -273,7 +274,8 @@ private slots:
         QTRY_COMPARE_WITH_TIMEOUT(authenticated.size(), 1, 3000);
 
         const execution::SystemToolRequest request{
-            QUuid::createUuid(), execution::SystemToolOperation::Scan};
+            QUuid::createUuid(), execution::SystemToolKind::ComponentStore,
+            execution::SystemToolOperation::Scan, {}};
         QVERIFY(server.sendToolRequest(request));
         QVERIFY(client.sendToolStage(
             {QUuid::createUuid(), execution::SystemToolStage::ScanHealth}));
@@ -306,16 +308,19 @@ private slots:
         QTRY_COMPARE_WITH_TIMEOUT(authenticated.size(), 1, 5000);
 
         const execution::SystemToolRequest request{
-            QUuid::createUuid(), execution::SystemToolOperation::Scan};
+            QUuid::createUuid(), execution::SystemToolKind::ComponentStore,
+            execution::SystemToolOperation::Scan, {}};
         QVERIFY(server.sendToolRequest(request));
         QTRY_COMPARE_WITH_TIMEOUT(stages.size(), 2, 5000);
         QTRY_VERIFY_WITH_TIMEOUT(output.size() >= 2, 5000);
         QTRY_COMPARE_WITH_TIMEOUT(result.size(), 1, 5000);
         const auto typed = qvariant_cast<execution::SystemToolResult>(result.first().first());
         QCOMPARE(typed.status, execution::SystemToolResultStatus::Completed);
-        QCOMPARE(typed.health, execution::ComponentStoreHealth::Healthy);
+        QCOMPARE(typed.outcome, execution::SystemToolOutcome::Healthy);
         QVERIFY(QFileInfo::exists(typed.logPath));
-        QVERIFY(process.waitForFinished(5000));
+        if (process.state() != QProcess::NotRunning) {
+            QVERIFY(process.waitForFinished(5000));
+        }
         QCOMPARE(process.exitStatus(), QProcess::NormalExit);
         QCOMPARE(process.exitCode(), 0);
     }

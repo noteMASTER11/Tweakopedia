@@ -29,7 +29,9 @@ private slots:
         QSignalSpy output(&workflow, &SystemIntegrityWorkflow::outputReady);
         QSignalSpy progress(&workflow, &SystemIntegrityWorkflow::progressChanged);
         QSignalSpy finished(&workflow, &SystemIntegrityWorkflow::finished);
-        const SystemToolRequest request{QUuid::createUuid(), SystemToolOperation::Scan};
+        const SystemToolRequest request{QUuid::createUuid(),
+                                        SystemToolKind::ComponentStore,
+                                        SystemToolOperation::Scan, {}};
 
         QVERIFY(workflow.start(request));
         QCOMPARE(runner.invocations.size(), 1);
@@ -54,7 +56,7 @@ private slots:
         QCOMPARE(finished.size(), 1);
         const auto result = qvariant_cast<SystemToolResult>(finished.first().first());
         QCOMPARE(result.status, SystemToolResultStatus::Completed);
-        QCOMPARE(result.health, ComponentStoreHealth::Healthy);
+        QCOMPARE(result.outcome, SystemToolOutcome::Healthy);
         QVERIFY(!result.logPath.isEmpty());
     }
 
@@ -64,7 +66,8 @@ private slots:
         FakeDismProcessRunner runner;
         SystemIntegrityWorkflow workflow(runner, logs.path());
         QSignalSpy finished(&workflow, &SystemIntegrityWorkflow::finished);
-        QVERIFY(workflow.start({QUuid::createUuid(), SystemToolOperation::Restore}));
+        QVERIFY(workflow.start({QUuid::createUuid(), SystemToolKind::ComponentStore,
+                                SystemToolOperation::Restore, {}}));
         QCOMPARE(runner.invocations.at(0).arguments.at(2), u"/RestoreHealth"_s);
         runner.finish(0, {.termination = DismProcessTermination::Normal, .exitCode = 0});
         QCOMPARE(runner.invocations.at(1).arguments.at(2), u"/CheckHealth"_s);
@@ -82,7 +85,8 @@ private slots:
         FakeDismProcessRunner runner;
         SystemIntegrityWorkflow workflow(runner, logs.path());
         QSignalSpy finished(&workflow, &SystemIntegrityWorkflow::finished);
-        QVERIFY(workflow.start({QUuid::createUuid(), SystemToolOperation::Scan}));
+        QVERIFY(workflow.start({QUuid::createUuid(), SystemToolKind::ComponentStore,
+                                SystemToolOperation::Scan, {}}));
         runner.emitOutput(0, "Error: 87\r\n");
         runner.finish(0, {.termination = DismProcessTermination::Normal, .exitCode = 87});
         QCOMPARE(runner.invocations.size(), 1);
@@ -101,7 +105,8 @@ private slots:
         FakeDismProcessRunner runner;
         SystemIntegrityWorkflow workflow(runner, blocker.fileName());
         QSignalSpy finished(&workflow, &SystemIntegrityWorkflow::finished);
-        QVERIFY(!workflow.start({QUuid::createUuid(), SystemToolOperation::Scan}));
+        QVERIFY(!workflow.start({QUuid::createUuid(), SystemToolKind::ComponentStore,
+                                 SystemToolOperation::Scan, {}}));
         QCOMPARE(runner.invocations.size(), 0);
         QCOMPARE(finished.size(), 1);
         QCOMPARE(qvariant_cast<SystemToolResult>(finished.first().first()).code,

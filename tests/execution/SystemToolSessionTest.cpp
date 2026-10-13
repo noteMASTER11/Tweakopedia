@@ -88,8 +88,10 @@ private slots:
         QSignalSpy output(&session, &SystemToolSession::outputReceived);
         QSignalSpy finished(&session, &SystemToolSession::finished);
 
-        QVERIFY(session.start(SystemToolOperation::Scan));
-        QVERIFY(!session.start(SystemToolOperation::Restore));
+        QVERIFY(session.start(SystemToolKind::FileSystem,
+                              SystemToolOperation::Check, u"D:"_s));
+        QVERIFY(!session.start(SystemToolKind::ComponentStore,
+                               SystemToolOperation::Restore, {}));
         QTRY_VERIFY_WITH_TIMEOUT(backend.started, 3000);
         const auto [server, nonce] = connectionArguments(backend.parameters());
         QVERIFY(!server.isEmpty());
@@ -98,6 +100,9 @@ private slots:
         client.connectToServer(server, nonce);
         QTRY_COMPARE_WITH_TIMEOUT(request.size(), 1, 3000);
         const auto typedRequest = qvariant_cast<SystemToolRequest>(request.first().first());
+        QCOMPARE(typedRequest.tool, SystemToolKind::FileSystem);
+        QCOMPARE(typedRequest.operation, SystemToolOperation::Check);
+        QCOMPARE(typedRequest.target, u"D:"_s);
 
         QVERIFY(client.sendToolStage({typedRequest.requestId, SystemToolStage::ScanHealth}));
         QVERIFY(client.sendToolOutput(typedRequest.requestId, u"live output\n"_s));
@@ -105,14 +110,15 @@ private slots:
             .requestId = typedRequest.requestId,
             .status = SystemToolResultStatus::Completed,
             .exitCode = 0,
-            .health = ComponentStoreHealth::Healthy,
+            .outcome = SystemToolOutcome::Healthy,
             .logPath = u"C:/logs/scan.log"_s,
         }));
         QTRY_COMPARE_WITH_TIMEOUT(stages.size(), 1, 3000);
         QTRY_COMPARE_WITH_TIMEOUT(output.size(), 1, 3000);
         QTRY_COMPARE_WITH_TIMEOUT(finished.size(), 1, 3000);
         QTRY_VERIFY_WITH_TIMEOUT(backend.closed, 3000);
-        QVERIFY(session.start(SystemToolOperation::Scan));
+        QVERIFY(session.start(SystemToolKind::ComponentStore,
+                              SystemToolOperation::Scan, {}));
     }
 
     void reportsUacCancellationAndAllowsRetry()
@@ -121,9 +127,11 @@ private slots:
         backend.startResult = {.status = ShellStartStatus::Cancelled};
         SystemToolSession session(backend, u"executor.exe"_s, 10, 5000);
         QSignalSpy cancelled(&session, &SystemToolSession::launchCancelled);
-        QVERIFY(session.start(SystemToolOperation::Scan));
+        QVERIFY(session.start(SystemToolKind::ComponentStore,
+                              SystemToolOperation::Scan, {}));
         QTRY_COMPARE_WITH_TIMEOUT(cancelled.size(), 1, 3000);
-        QVERIFY(session.start(SystemToolOperation::Scan));
+        QVERIFY(session.start(SystemToolKind::ComponentStore,
+                              SystemToolOperation::Scan, {}));
     }
 
     void reportsEarlyExitAndWatchdogTimeout()
@@ -132,14 +140,16 @@ private slots:
         exitedBackend.waitResult = ShellWaitStatus::Exited;
         SystemToolSession exited(exitedBackend, u"executor.exe"_s, 10, 5000);
         QSignalSpy earlyFailure(&exited, &SystemToolSession::failed);
-        QVERIFY(exited.start(SystemToolOperation::Scan));
+        QVERIFY(exited.start(SystemToolKind::ComponentStore,
+                             SystemToolOperation::Scan, {}));
         QTRY_COMPARE_WITH_TIMEOUT(earlyFailure.size(), 1, 3000);
         QCOMPARE(earlyFailure.first().first().toString(), u"launch.exited_early"_s);
 
         SessionShellBackend stuckBackend;
         SystemToolSession stuck(stuckBackend, u"executor.exe"_s, 5, 30);
         QSignalSpy timeout(&stuck, &SystemToolSession::failed);
-        QVERIFY(stuck.start(SystemToolOperation::Scan));
+        QVERIFY(stuck.start(SystemToolKind::ComponentStore,
+                            SystemToolOperation::Scan, {}));
         QTRY_COMPARE_WITH_TIMEOUT(timeout.size(), 1, 3000);
         QCOMPARE(timeout.first().first().toString(), u"tool.timeout"_s);
         QVERIFY(stuckBackend.terminated);

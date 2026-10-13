@@ -33,12 +33,15 @@ SystemToolSession::~SystemToolSession()
     if (launchSession_.started) launcher_.close(launchSession_);
 }
 
-bool SystemToolSession::start(SystemToolOperation operation)
+bool SystemToolSession::start(
+    SystemToolKind tool,
+    SystemToolOperation operation,
+    QString target)
 {
     if (active_ || launchWatcher_.isRunning()) return false;
     active_ = true;
     resultReceived_ = false;
-    request_ = {QUuid::createUuid(), operation};
+    request_ = {QUuid::createUuid(), tool, operation, std::move(target)};
     server_ = std::make_unique<ExecutorServer>();
     const auto serverName = u"tweakopedia-tool-"_s
         + QUuid::createUuid().toString(QUuid::WithoutBraces);

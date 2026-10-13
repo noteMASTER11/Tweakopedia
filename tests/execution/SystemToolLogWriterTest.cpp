@@ -17,7 +17,8 @@ private slots:
         QTemporaryDir root;
         QVERIFY(root.isValid());
         SystemToolLogWriter writer;
-        QVERIFY(writer.open(root.path(), SystemToolOperation::Scan,
+        QVERIFY(writer.open(root.path(), SystemToolKind::ComponentStore,
+                            SystemToolOperation::Scan,
                             {u"Windows: test"_s, u"DISM: test"_s}));
         writer.appendCommand(u"DISM.exe"_s,
                              {u"/Online"_s, u"/Cleanup-Image"_s, u"/ScanHealth"_s, u"/English"_s});
@@ -31,6 +32,13 @@ private slots:
         QVERIFY(bytes.contains("Operation: scan"));
         QVERIFY(bytes.contains("DISM.exe /Online /Cleanup-Image /ScanHealth /English"));
         QVERIFY(bytes.contains("first\rsecond\n"));
+
+        SystemToolLogWriter fileSystemWriter;
+        QVERIFY(fileSystemWriter.open(root.path(), SystemToolKind::FileSystem,
+                                      SystemToolOperation::Check,
+                                      {u"Volume: C:"_s}));
+        fileSystemWriter.close();
+        QVERIFY(fileSystemWriter.path().contains(u"Tools/FileSystemCheck"_s));
     }
 
     void reportsDirectoryCreationFailure()
@@ -42,7 +50,8 @@ private slots:
         blocker.close();
 
         SystemToolLogWriter writer;
-        QVERIFY(!writer.open(blocker.fileName(), SystemToolOperation::Scan, {}));
+        QVERIFY(!writer.open(blocker.fileName(), SystemToolKind::ComponentStore,
+                             SystemToolOperation::Scan, {}));
         QVERIFY(!writer.errorString().isEmpty());
     }
 };

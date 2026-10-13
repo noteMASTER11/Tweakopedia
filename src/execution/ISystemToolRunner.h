@@ -14,7 +14,10 @@ public:
     explicit ISystemToolRunner(QObject* parent = nullptr) : QObject(parent) {}
     ~ISystemToolRunner() override = default;
 
-    virtual bool start(SystemToolOperation operation) = 0;
+    virtual bool start(
+        SystemToolKind tool,
+        SystemToolOperation operation,
+        QString target = {}) = 0;
 
 signals:
     void launchCancelled(const QString& message);

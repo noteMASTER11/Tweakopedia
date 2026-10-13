@@ -14,13 +14,13 @@ public:
     void consume(QByteArrayView chunk);
 
     [[nodiscard]] int progress() const noexcept;
-    [[nodiscard]] ComponentStoreHealth health() const noexcept;
+    [[nodiscard]] SystemToolOutcome health() const noexcept;
 
 private:
     SystemToolStage stage_{SystemToolStage::ScanHealth};
     QByteArray recent_;
     int progress_{-1};
-    ComponentStoreHealth health_{ComponentStoreHealth::Unknown};
+    SystemToolOutcome health_{SystemToolOutcome::Unknown};
 };
 
 } // namespace tweakopedia::execution

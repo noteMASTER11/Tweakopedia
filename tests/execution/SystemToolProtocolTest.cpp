@@ -15,12 +15,24 @@ private slots:
     {
         const auto id = QUuid::createUuid();
 
-        const SystemToolRequest request{id, SystemToolOperation::Scan};
+        const SystemToolRequest request{
+            id, SystemToolKind::ComponentStore, SystemToolOperation::Scan, {}};
         const auto decodedRequest = SystemToolProtocol::decodeRequest(
             SystemToolProtocol::encode(request));
         QVERIFY(decodedRequest.value.has_value());
         QCOMPARE(decodedRequest.value->requestId, id);
+        QCOMPARE(decodedRequest.value->tool, SystemToolKind::ComponentStore);
         QCOMPARE(decodedRequest.value->operation, SystemToolOperation::Scan);
+        QVERIFY(decodedRequest.value->target.isEmpty());
+
+        const SystemToolRequest fileSystemRequest{
+            id, SystemToolKind::FileSystem, SystemToolOperation::Check, u"C:"_s};
+        const auto decodedFileSystemRequest = SystemToolProtocol::decodeRequest(
+            SystemToolProtocol::encode(fileSystemRequest));
+        QVERIFY(decodedFileSystemRequest.value.has_value());
+        QCOMPARE(decodedFileSystemRequest.value->tool, SystemToolKind::FileSystem);
+        QCOMPARE(decodedFileSystemRequest.value->operation, SystemToolOperation::Check);
+        QCOMPARE(decodedFileSystemRequest.value->target, u"C:"_s);
 
         const SystemToolStageEvent stage{id, SystemToolStage::CheckHealth};
         const auto decodedStage = SystemToolProtocol::decodeStage(
@@ -45,14 +57,14 @@ private slots:
             .requestId = id,
             .status = SystemToolResultStatus::Completed,
             .exitCode = 0,
-            .health = ComponentStoreHealth::Healthy,
+            .outcome = SystemToolOutcome::Healthy,
             .logPath = u"C:/logs/scan.log"_s,
         };
         const auto decodedResult = SystemToolProtocol::decodeResult(
             SystemToolProtocol::encode(result));
         QVERIFY(decodedResult.value.has_value());
         QCOMPARE(decodedResult.value->status, SystemToolResultStatus::Completed);
-        QCOMPARE(decodedResult.value->health, ComponentStoreHealth::Healthy);
+        QCOMPARE(decodedResult.value->outcome, SystemToolOutcome::Healthy);
         QCOMPARE(decodedResult.value->logPath, result.logPath);
     }
 
@@ -61,8 +73,14 @@ private slots:
         const auto id = QUuid::createUuid().toString(QUuid::WithoutBraces);
 
         auto request = SystemToolProtocol::encode(
-            SystemToolRequest{QUuid::createUuid(), SystemToolOperation::Scan});
+            SystemToolRequest{QUuid::createUuid(), SystemToolKind::ComponentStore,
+                              SystemToolOperation::Scan, {}});
         request.insert(u"operation"_s, u"arbitrary.command"_s);
+        QVERIFY(!SystemToolProtocol::decodeRequest(request).value.has_value());
+        request = SystemToolProtocol::encode(SystemToolRequest{
+            QUuid::createUuid(), SystemToolKind::FileSystem,
+            SystemToolOperation::Check, u"C:"_s});
+        request.insert(u"target"_s, u"C: /F"_s);
         QVERIFY(!SystemToolProtocol::decodeRequest(request).value.has_value());
         request.insert(u"operation"_s, u"scan"_s);
         request.insert(u"request_id"_s, u"not-a-uuid"_s);
@@ -82,7 +100,7 @@ private slots:
 
         QJsonObject result{{u"type"_s, u"tool_result"_s}, {u"request_id"_s, id},
                            {u"status"_s, u"completed"_s}, {u"exit_code"_s, 0},
-                           {u"health"_s, u"invented"_s}, {u"log_path"_s, u"x"_s}};
+                           {u"outcome"_s, u"invented"_s}, {u"log_path"_s, u"x"_s}};
         QVERIFY(!SystemToolProtocol::decodeResult(result).value.has_value());
     }
 };

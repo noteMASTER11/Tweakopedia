@@ -8,14 +8,30 @@
 
 namespace tweakopedia::execution {
 
-enum class SystemToolOperation { Scan, Restore };
-enum class SystemToolStage { ScanHealth, CheckHealth, RestoreHealth, VerifyRestore };
-enum class ComponentStoreHealth { Healthy, Repairable, NonRepairable, Unknown };
+enum class SystemToolKind { ComponentStore, FileSystem };
+enum class SystemToolOperation { Scan, Restore, Check };
+enum class SystemToolStage {
+    ScanHealth,
+    CheckHealth,
+    RestoreHealth,
+    VerifyRestore,
+    CheckFileSystem,
+};
+enum class SystemToolOutcome {
+    Healthy,
+    Repairable,
+    NonRepairable,
+    IssuesFound,
+    Incomplete,
+    Unknown,
+};
 enum class SystemToolResultStatus { Completed, Failed };
 
 struct SystemToolRequest {
     QUuid requestId;
+    SystemToolKind tool{SystemToolKind::ComponentStore};
     SystemToolOperation operation{SystemToolOperation::Scan};
+    QString target;
 };
 
 struct SystemToolStageEvent {
@@ -39,7 +55,7 @@ struct SystemToolResult {
     QUuid requestId;
     SystemToolResultStatus status{SystemToolResultStatus::Failed};
     int exitCode{-1};
-    ComponentStoreHealth health{ComponentStoreHealth::Unknown};
+    SystemToolOutcome outcome{SystemToolOutcome::Unknown};
     QString logPath;
     QString code;
     QString message;
@@ -71,9 +87,10 @@ public:
     [[nodiscard]] static SystemToolDecodeResult<SystemToolResult> decodeResult(
         const QJsonObject& object);
 
+    [[nodiscard]] static QString toolName(SystemToolKind value);
     [[nodiscard]] static QString operationName(SystemToolOperation value);
     [[nodiscard]] static QString stageName(SystemToolStage value);
-    [[nodiscard]] static QString healthName(ComponentStoreHealth value);
+    [[nodiscard]] static QString outcomeName(SystemToolOutcome value);
 };
 
 } // namespace tweakopedia::execution

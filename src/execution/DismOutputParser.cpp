@@ -13,7 +13,7 @@ void DismOutputParser::reset(SystemToolStage stage)
     stage_ = stage;
     recent_.clear();
     progress_ = -1;
-    health_ = ComponentStoreHealth::Unknown;
+    health_ = SystemToolOutcome::Unknown;
 }
 
 void DismOutputParser::consume(QByteArrayView chunk)
@@ -37,11 +37,11 @@ void DismOutputParser::consume(QByteArrayView chunk)
         return;
     }
     if (recent_.contains("No component store corruption detected.")) {
-        health_ = ComponentStoreHealth::Healthy;
+        health_ = SystemToolOutcome::Healthy;
     } else if (recent_.contains("The component store cannot be repaired.")) {
-        health_ = ComponentStoreHealth::NonRepairable;
+        health_ = SystemToolOutcome::NonRepairable;
     } else if (recent_.contains("The component store is repairable.")) {
-        health_ = ComponentStoreHealth::Repairable;
+        health_ = SystemToolOutcome::Repairable;
     }
 }
 
@@ -50,7 +50,7 @@ int DismOutputParser::progress() const noexcept
     return progress_;
 }
 
-ComponentStoreHealth DismOutputParser::health() const noexcept
+SystemToolOutcome DismOutputParser::health() const noexcept
 {
     return health_;
 }

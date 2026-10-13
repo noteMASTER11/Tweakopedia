@@ -15,6 +15,7 @@ QString stateForStage(execution::SystemToolStage stage)
     case execution::SystemToolStage::CheckHealth: return u"checking"_s;
     case execution::SystemToolStage::RestoreHealth: return u"repairing"_s;
     case execution::SystemToolStage::VerifyRestore: return u"verifying_repair"_s;
+    case execution::SystemToolStage::CheckFileSystem: return u"failed"_s;
     }
     return u"failed"_s;
 }
@@ -30,6 +31,8 @@ QString textForStage(execution::SystemToolStage stage)
         return u"Восстановление хранилища компонентов"_s;
     case execution::SystemToolStage::VerifyRestore:
         return u"Контрольная проверка"_s;
+    case execution::SystemToolStage::CheckFileSystem:
+        return {};
     }
     return {};
 }
@@ -128,7 +131,7 @@ bool SystemIntegrityController::start(execution::SystemToolOperation operation)
     stageText_ = u"Ожидание подтверждения прав администратора"_s;
     progressKnown_ = false;
     emit changed();
-    if (runner_->start(operation)) return true;
+    if (runner_->start(execution::SystemToolKind::ComponentStore, operation, {})) return true;
 
     if (busy_) {
         handleFailure(u"launch.failed"_s, u"Не удалось запустить исполнительный процесс."_s);
@@ -192,25 +195,27 @@ void SystemIntegrityController::handleResult(const execution::SystemToolResult& 
         return;
     }
 
-    switch (result.health) {
-    case execution::ComponentStoreHealth::Healthy:
+    switch (result.outcome) {
+    case execution::SystemToolOutcome::Healthy:
         state_ = u"healthy"_s;
         resultTitle_ = operation_ == execution::SystemToolOperation::Restore
             ? u"Хранилище компонентов восстановлено"_s
             : u"Хранилище компонентов исправно"_s;
         resultDescription_ = u"Повреждения хранилища компонентов не обнаружены."_s;
         break;
-    case execution::ComponentStoreHealth::Repairable:
+    case execution::SystemToolOutcome::Repairable:
         state_ = u"repairable"_s;
         resultTitle_ = u"Обнаружены исправимые повреждения"_s;
         resultDescription_ = u"DISM может восстановить хранилище компонентов."_s;
         break;
-    case execution::ComponentStoreHealth::NonRepairable:
+    case execution::SystemToolOutcome::NonRepairable:
         state_ = u"non_repairable"_s;
         resultTitle_ = u"Автоматическое восстановление недоступно"_s;
         resultDescription_ = u"DISM сообщил, что хранилище нельзя восстановить автоматически."_s;
         break;
-    case execution::ComponentStoreHealth::Unknown:
+    case execution::SystemToolOutcome::IssuesFound:
+    case execution::SystemToolOutcome::Incomplete:
+    case execution::SystemToolOutcome::Unknown:
         state_ = u"failed"_s;
         resultTitle_ = u"Результат проверки не распознан"_s;
         resultDescription_ = u"DISM завершился без подтверждённого состояния хранилища."_s;

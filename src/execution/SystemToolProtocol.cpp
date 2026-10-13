@@ -1,6 +1,7 @@
 #include "execution/SystemToolProtocol.h"
 
 #include <QJsonValue>
+#include <QRegularExpression>
 #include <QSet>
 
 using namespace Qt::StringLiterals;
@@ -30,10 +31,18 @@ std::optional<QUuid> requestId(const QJsonObject& object)
     return id;
 }
 
+std::optional<SystemToolKind> tool(const QString& value)
+{
+    if (value == u"component_store") return SystemToolKind::ComponentStore;
+    if (value == u"file_system") return SystemToolKind::FileSystem;
+    return std::nullopt;
+}
+
 std::optional<SystemToolOperation> operation(const QString& value)
 {
     if (value == u"scan") return SystemToolOperation::Scan;
     if (value == u"restore") return SystemToolOperation::Restore;
+    if (value == u"check") return SystemToolOperation::Check;
     return std::nullopt;
 }
 
@@ -43,15 +52,18 @@ std::optional<SystemToolStage> stage(const QString& value)
     if (value == u"check_health") return SystemToolStage::CheckHealth;
     if (value == u"restore_health") return SystemToolStage::RestoreHealth;
     if (value == u"verify_restore") return SystemToolStage::VerifyRestore;
+    if (value == u"check_file_system") return SystemToolStage::CheckFileSystem;
     return std::nullopt;
 }
 
-std::optional<ComponentStoreHealth> health(const QString& value)
+std::optional<SystemToolOutcome> outcome(const QString& value)
 {
-    if (value == u"healthy") return ComponentStoreHealth::Healthy;
-    if (value == u"repairable") return ComponentStoreHealth::Repairable;
-    if (value == u"non_repairable") return ComponentStoreHealth::NonRepairable;
-    if (value == u"unknown") return ComponentStoreHealth::Unknown;
+    if (value == u"healthy") return SystemToolOutcome::Healthy;
+    if (value == u"repairable") return SystemToolOutcome::Repairable;
+    if (value == u"non_repairable") return SystemToolOutcome::NonRepairable;
+    if (value == u"issues_found") return SystemToolOutcome::IssuesFound;
+    if (value == u"incomplete") return SystemToolOutcome::Incomplete;
+    if (value == u"unknown") return SystemToolOutcome::Unknown;
     return std::nullopt;
 }
 
@@ -67,14 +79,27 @@ QString resultStatusName(SystemToolResultStatus value)
     return value == SystemToolResultStatus::Completed ? u"completed"_s : u"failed"_s;
 }
 
+bool validRequest(SystemToolKind kind, SystemToolOperation operation, const QString& target)
+{
+    if (kind == SystemToolKind::ComponentStore) {
+        return target.isEmpty()
+            && (operation == SystemToolOperation::Scan
+                || operation == SystemToolOperation::Restore);
+    }
+    static const QRegularExpression driveTarget(u"^[A-Z]:$"_s);
+    return operation == SystemToolOperation::Check
+        && driveTarget.match(target).hasMatch();
+}
+
 } // namespace
 
 QJsonObject SystemToolProtocol::encode(const SystemToolRequest& value)
 {
     return {{u"type"_s, u"tool_request"_s},
             {u"request_id"_s, value.requestId.toString(QUuid::WithoutBraces)},
-            {u"tool"_s, u"system_integrity"_s},
-            {u"operation"_s, operationName(value.operation)}};
+            {u"tool"_s, toolName(value.tool)},
+            {u"operation"_s, operationName(value.operation)},
+            {u"target"_s, value.target}};
 }
 
 QJsonObject SystemToolProtocol::encode(const SystemToolStageEvent& value)
@@ -106,7 +131,7 @@ QJsonObject SystemToolProtocol::encode(const SystemToolResult& value)
             {u"request_id"_s, value.requestId.toString(QUuid::WithoutBraces)},
             {u"status"_s, resultStatusName(value.status)},
             {u"exit_code"_s, value.exitCode},
-            {u"health"_s, healthName(value.health)},
+            {u"outcome"_s, outcomeName(value.outcome)},
             {u"log_path"_s, value.logPath},
             {u"code"_s, value.code},
             {u"message"_s, value.message}};
@@ -115,15 +140,21 @@ QJsonObject SystemToolProtocol::encode(const SystemToolResult& value)
 SystemToolDecodeResult<SystemToolRequest> SystemToolProtocol::decodeRequest(
     const QJsonObject& object)
 {
-    if (!hasOnly(object, {u"type"_s, u"request_id"_s, u"tool"_s, u"operation"_s})
+    if (!hasOnly(object, {u"type"_s, u"request_id"_s, u"tool"_s,
+                          u"operation"_s, u"target"_s})
         || object.value(u"type"_s).toString() != u"tool_request"_s
-        || object.value(u"tool"_s).toString() != u"system_integrity"_s) {
+        || !object.value(u"target"_s).isString()) {
         return failure<SystemToolRequest>(u"tool_request.invalid"_s);
     }
     const auto id = requestId(object);
+    const auto parsedTool = tool(object.value(u"tool"_s).toString());
     const auto parsedOperation = operation(object.value(u"operation"_s).toString());
-    if (!id || !parsedOperation) return failure<SystemToolRequest>(u"tool_request.invalid"_s);
-    return {.value = SystemToolRequest{*id, *parsedOperation}};
+    const auto target = object.value(u"target"_s).toString();
+    if (!id || !parsedTool || !parsedOperation
+        || !validRequest(*parsedTool, *parsedOperation, target)) {
+        return failure<SystemToolRequest>(u"tool_request.invalid"_s);
+    }
+    return {.value = SystemToolRequest{*id, *parsedTool, *parsedOperation, target}};
 }
 
 SystemToolDecodeResult<SystemToolStageEvent> SystemToolProtocol::decodeStage(
@@ -175,7 +206,7 @@ SystemToolDecodeResult<SystemToolResult> SystemToolProtocol::decodeResult(
     const QJsonObject& object)
 {
     if (!hasOnly(object, {u"type"_s, u"request_id"_s, u"status"_s, u"exit_code"_s,
-                          u"health"_s, u"log_path"_s, u"code"_s, u"message"_s})
+                          u"outcome"_s, u"log_path"_s, u"code"_s, u"message"_s})
         || object.value(u"type"_s).toString() != u"tool_result"_s
         || !object.value(u"exit_code"_s).isDouble()
         || !object.value(u"log_path"_s).isString()) {
@@ -183,24 +214,35 @@ SystemToolDecodeResult<SystemToolResult> SystemToolProtocol::decodeResult(
     }
     const auto id = requestId(object);
     const auto parsedStatus = status(object.value(u"status"_s).toString());
-    const auto parsedHealth = health(object.value(u"health"_s).toString());
-    if (!id || !parsedStatus || !parsedHealth) {
+    const auto parsedOutcome = outcome(object.value(u"outcome"_s).toString());
+    if (!id || !parsedStatus || !parsedOutcome) {
         return failure<SystemToolResult>(u"tool_result.invalid"_s);
     }
     return {.value = SystemToolResult{
         .requestId = *id,
         .status = *parsedStatus,
         .exitCode = object.value(u"exit_code"_s).toInt(-1),
-        .health = *parsedHealth,
+        .outcome = *parsedOutcome,
         .logPath = object.value(u"log_path"_s).toString(),
         .code = object.value(u"code"_s).toString(),
         .message = object.value(u"message"_s).toString(),
     }};
 }
 
+QString SystemToolProtocol::toolName(SystemToolKind value)
+{
+    return value == SystemToolKind::ComponentStore
+        ? u"component_store"_s : u"file_system"_s;
+}
+
 QString SystemToolProtocol::operationName(SystemToolOperation value)
 {
-    return value == SystemToolOperation::Scan ? u"scan"_s : u"restore"_s;
+    switch (value) {
+    case SystemToolOperation::Scan: return u"scan"_s;
+    case SystemToolOperation::Restore: return u"restore"_s;
+    case SystemToolOperation::Check: return u"check"_s;
+    }
+    return {};
 }
 
 QString SystemToolProtocol::stageName(SystemToolStage value)
@@ -210,17 +252,20 @@ QString SystemToolProtocol::stageName(SystemToolStage value)
     case SystemToolStage::CheckHealth: return u"check_health"_s;
     case SystemToolStage::RestoreHealth: return u"restore_health"_s;
     case SystemToolStage::VerifyRestore: return u"verify_restore"_s;
+    case SystemToolStage::CheckFileSystem: return u"check_file_system"_s;
     }
     return {};
 }
 
-QString SystemToolProtocol::healthName(ComponentStoreHealth value)
+QString SystemToolProtocol::outcomeName(SystemToolOutcome value)
 {
     switch (value) {
-    case ComponentStoreHealth::Healthy: return u"healthy"_s;
-    case ComponentStoreHealth::Repairable: return u"repairable"_s;
-    case ComponentStoreHealth::NonRepairable: return u"non_repairable"_s;
-    case ComponentStoreHealth::Unknown: return u"unknown"_s;
+    case SystemToolOutcome::Healthy: return u"healthy"_s;
+    case SystemToolOutcome::Repairable: return u"repairable"_s;
+    case SystemToolOutcome::NonRepairable: return u"non_repairable"_s;
+    case SystemToolOutcome::IssuesFound: return u"issues_found"_s;
+    case SystemToolOutcome::Incomplete: return u"incomplete"_s;
+    case SystemToolOutcome::Unknown: return u"unknown"_s;
     }
     return u"unknown"_s;
 }

@@ -16,9 +16,12 @@ SystemIntegrityWorkflow::SystemIntegrityWorkflow(
 
 bool SystemIntegrityWorkflow::start(const SystemToolRequest& request)
 {
-    if (active_ || request.requestId.isNull()) return false;
+    if (active_ || request.requestId.isNull()
+        || request.tool != SystemToolKind::ComponentStore
+        || !request.target.isEmpty()
+        || request.operation == SystemToolOperation::Check) return false;
     request_ = request;
-    if (!log_.open(logsRoot_, request.operation,
+    if (!log_.open(logsRoot_, request.tool, request.operation,
                    {u"Windows: "_s + QSysInfo::prettyProductName(),
                     u"Architecture: "_s + QSysInfo::currentCpuArchitecture()})) {
         emit finished({.requestId = request.requestId,
@@ -131,7 +134,7 @@ void SystemIntegrityWorkflow::commandFinished(DismProcessResult result)
         runNext();
         return;
     }
-    if (parser_.health() == ComponentStoreHealth::Unknown) {
+    if (parser_.health() == SystemToolOutcome::Unknown) {
         complete({.requestId = request_.requestId,
                   .status = SystemToolResultStatus::Failed,
                   .exitCode = 0,
@@ -142,7 +145,7 @@ void SystemIntegrityWorkflow::commandFinished(DismProcessResult result)
     complete({.requestId = request_.requestId,
               .status = SystemToolResultStatus::Completed,
               .exitCode = 0,
-              .health = parser_.health()});
+              .outcome = parser_.health()});
 }
 
 void SystemIntegrityWorkflow::emitDisplayLine(QString text)

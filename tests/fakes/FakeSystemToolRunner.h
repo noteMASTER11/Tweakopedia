@@ -11,11 +11,15 @@ class FakeSystemToolRunner final : public execution::ISystemToolRunner
 public:
     using ISystemToolRunner::ISystemToolRunner;
 
-    bool start(execution::SystemToolOperation operation) override;
+    bool start(execution::SystemToolKind tool,
+               execution::SystemToolOperation operation,
+               QString target = {}) override;
 
     bool startResult{true};
     int startCalls{};
+    execution::SystemToolKind lastTool{execution::SystemToolKind::ComponentStore};
     execution::SystemToolOperation lastOperation{execution::SystemToolOperation::Scan};
+    QString lastTarget;
 };
 
 } // namespace tweakopedia::tests

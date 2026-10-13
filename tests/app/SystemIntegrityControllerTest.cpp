@@ -48,7 +48,7 @@ execution::SystemToolOutputEvent output(QString text)
     return {QUuid::createUuid(), 0, std::move(text)};
 }
 
-execution::SystemToolResult result(execution::ComponentStoreHealth health,
+execution::SystemToolResult result(execution::SystemToolOutcome outcome,
                                    int exitCode = 0,
                                    QString logPath = u"D:/logs/session.log"_s)
 {
@@ -56,7 +56,7 @@ execution::SystemToolResult result(execution::ComponentStoreHealth health,
     value.requestId = QUuid::createUuid();
     value.status = execution::SystemToolResultStatus::Completed;
     value.exitCode = exitCode;
-    value.health = health;
+    value.outcome = outcome;
     value.logPath = std::move(logPath);
     return value;
 }
@@ -93,7 +93,7 @@ private slots:
         QCOMPARE(controller.state(), u"checking"_s);
         QVERIFY(!controller.progressKnown());
 
-        emit runner.finished(result(execution::ComponentStoreHealth::Healthy));
+        emit runner.finished(result(execution::SystemToolOutcome::Healthy));
         QCOMPARE(controller.state(), u"healthy"_s);
         QCOMPARE(controller.resultTitle(), u"Хранилище компонентов исправно"_s);
         QVERIFY(controller.canScan());
@@ -110,7 +110,7 @@ private slots:
 
         QVERIFY(controller.startScan());
         emit runner.stageChanged(stage(execution::SystemToolStage::ScanHealth));
-        emit runner.finished(result(execution::ComponentStoreHealth::Repairable));
+        emit runner.finished(result(execution::SystemToolOutcome::Repairable));
         QCOMPARE(controller.state(), u"repairable"_s);
         QVERIFY(controller.canRestore());
 
@@ -123,7 +123,7 @@ private slots:
         emit runner.stageChanged(stage(execution::SystemToolStage::VerifyRestore));
         QCOMPARE(controller.state(), u"verifying_repair"_s);
         QCOMPARE(controller.stageText(), u"Контрольная проверка"_s);
-        emit runner.finished(result(execution::ComponentStoreHealth::Healthy));
+        emit runner.finished(result(execution::SystemToolOutcome::Healthy));
         QCOMPARE(controller.state(), u"healthy"_s);
     }
 
@@ -135,7 +135,7 @@ private slots:
 
         QVERIFY(controller.startScan());
         emit runner.stageChanged(stage(execution::SystemToolStage::ScanHealth));
-        emit runner.finished(result(execution::ComponentStoreHealth::NonRepairable, 5));
+        emit runner.finished(result(execution::SystemToolOutcome::NonRepairable, 5));
         QCOMPARE(controller.state(), u"non_repairable"_s);
         QVERIFY(controller.resultTitle().contains(u"недоступно"));
         QCOMPARE(controller.exitCode(), 5);
@@ -160,7 +160,7 @@ private slots:
         QVERIFY(controller.startScan());
         emit runner.stageChanged(stage(execution::SystemToolStage::ScanHealth));
         emit runner.outputReceived(output(u"previous\n"_s));
-        emit runner.finished(result(execution::ComponentStoreHealth::Healthy));
+        emit runner.finished(result(execution::SystemToolOutcome::Healthy));
         const auto title = controller.resultTitle();
 
         QVERIFY(controller.startScan());

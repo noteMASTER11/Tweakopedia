@@ -10,12 +10,15 @@ namespace tweakopedia::execution {
 
 bool SystemToolLogWriter::open(
     const QString& logsRoot,
+    SystemToolKind tool,
     SystemToolOperation operation,
     const QStringList& metadata)
 {
     close();
     error_.clear();
-    const auto directory = QDir(logsRoot).filePath(u"Tools/SystemIntegrity"_s);
+    const auto toolDirectory = tool == SystemToolKind::ComponentStore
+        ? u"SystemIntegrity"_s : u"FileSystemCheck"_s;
+    const auto directory = QDir(logsRoot).filePath(u"Tools/"_s + toolDirectory);
     if (!QDir{}.mkpath(directory)) {
         error_ = u"Не удалось создать каталог журнала инструмента."_s;
         return false;
@@ -30,7 +33,8 @@ bool SystemToolLogWriter::open(
         return false;
     }
     QTextStream stream(&file_);
-    stream << "Tweakopedia System Integrity\n"
+    stream << "Tweakopedia System Tool\n"
+           << "Tool: " << SystemToolProtocol::toolName(tool) << '\n'
            << "Operation: " << SystemToolProtocol::operationName(operation) << '\n'
            << "Started: " << QDateTime::currentDateTime().toString(Qt::ISODateWithMs) << '\n';
     for (const auto& line : metadata) stream << line << '\n';
