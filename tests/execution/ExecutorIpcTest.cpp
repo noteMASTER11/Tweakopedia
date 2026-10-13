@@ -280,6 +280,45 @@ private slots:
         QTRY_COMPARE_WITH_TIMEOUT(rejected.size(), 1, 3000);
         QCOMPARE(rejected.first().first().toString(), u"tool.request_mismatch"_s);
     }
+
+    void runsOneShotSystemIntegrityExecutorSession()
+    {
+        const auto serverName = u"tweakopedia-tool-e2e-"_s
+            + QUuid::createUuid().toString(QUuid::WithoutBraces);
+        const auto nonce = QUuid::createUuid().toString(QUuid::WithoutBraces);
+        execution::ExecutorServer server;
+        QVERIFY(server.listen(serverName, nonce));
+        QSignalSpy authenticated(&server, &execution::ExecutorServer::authenticated);
+        QSignalSpy stages(&server, &execution::ExecutorServer::toolStageReceived);
+        QSignalSpy output(&server, &execution::ExecutorServer::toolOutputReceived);
+        QSignalSpy result(&server, &execution::ExecutorServer::toolResultReceived);
+        QTemporaryDir logs;
+        QVERIFY(logs.isValid());
+
+        QProcess process;
+        process.setProgram(QStringLiteral(TWEAKOPEDIA_TEST_EXECUTOR));
+        process.setArguments({u"--server"_s, serverName, u"--nonce"_s, nonce,
+                              u"--test-tool-mode"_s,
+                              u"--test-tool-root"_s, logs.path()});
+        process.start();
+        QVERIFY2(process.waitForStarted(5000), qPrintable(process.errorString()));
+        server.setExpectedProcessId(process.processId());
+        QTRY_COMPARE_WITH_TIMEOUT(authenticated.size(), 1, 5000);
+
+        const execution::SystemToolRequest request{
+            QUuid::createUuid(), execution::SystemToolOperation::Scan};
+        QVERIFY(server.sendToolRequest(request));
+        QTRY_COMPARE_WITH_TIMEOUT(stages.size(), 2, 5000);
+        QTRY_VERIFY_WITH_TIMEOUT(output.size() >= 2, 5000);
+        QTRY_COMPARE_WITH_TIMEOUT(result.size(), 1, 5000);
+        const auto typed = qvariant_cast<execution::SystemToolResult>(result.first().first());
+        QCOMPARE(typed.status, execution::SystemToolResultStatus::Completed);
+        QCOMPARE(typed.health, execution::ComponentStoreHealth::Healthy);
+        QVERIFY(QFileInfo::exists(typed.logPath));
+        QVERIFY(process.waitForFinished(5000));
+        QCOMPARE(process.exitStatus(), QProcess::NormalExit);
+        QCOMPARE(process.exitCode(), 0);
+    }
 };
 
 QTEST_GUILESS_MAIN(ExecutorIpcTest)

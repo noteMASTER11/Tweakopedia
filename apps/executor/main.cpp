@@ -10,6 +10,8 @@
 #include "execution/ScheduledTaskExecutor.h"
 #include "execution/BcdElementExecutor.h"
 #include "execution/PowerSettingExecutor.h"
+#include "execution/QProcessDismRunner.h"
+#include "execution/SystemIntegrityWorkflow.h"
 #include "execution/WindowsComponentExecutor.h"
 #include "persistence/AppPaths.h"
 #include "persistence/Database.h"
@@ -120,6 +122,30 @@ private:
         + QString::number(static_cast<int>(location.source)); }
     QHash<QString, quint32> values_;
 };
+
+class FixtureDismProcessRunner final : public execution::IDismProcessRunner
+{
+public:
+    bool start(
+        const QString&,
+        const QStringList& arguments,
+        OutputCallback output,
+        FinishedCallback finished) override
+    {
+        QTimer::singleShot(0, qApp,
+            [arguments, output = std::move(output), finished = std::move(finished)]() mutable {
+                output("Deployment Image Servicing and Management tool\r\n");
+                output("[==========================100.0%==========================]\r");
+                if (arguments.contains(u"/CheckHealth"_s)) {
+                    output("No component store corruption detected.\r\n");
+                }
+                output("The operation completed successfully.\r\n");
+                finished({.termination = execution::DismProcessTermination::Normal,
+                          .exitCode = 0});
+            });
+        return true;
+    }
+};
 #endif
 
 QJsonObject errorResult(QString code, QString message)
@@ -142,6 +168,24 @@ void sendAndQuit(execution::ExecutorClient& client, const QJsonObject& result, i
     QTimer::singleShot(5000, qApp, [] { QCoreApplication::exit(18); });
 }
 
+void sendToolAndQuit(
+    execution::ExecutorClient& client,
+    const execution::SystemToolResult& result,
+    int exitCode)
+{
+    QObject::connect(
+        &client,
+        &execution::ExecutorClient::toolResultAcknowledged,
+        qApp,
+        [exitCode] { QCoreApplication::exit(exitCode); },
+        Qt::SingleShotConnection);
+    if (!client.sendToolResult(result)) {
+        QCoreApplication::exit(18);
+        return;
+    }
+    QTimer::singleShot(5000, qApp, [] { QCoreApplication::exit(18); });
+}
+
 } // namespace
 
 int main(int argc, char* argv[])
@@ -155,6 +199,8 @@ int main(int argc, char* argv[])
     parser.addOption({u"nonce"_s, u"Одноразовый nonce IPC-сеанса."_s, u"value"_s});
 #ifdef TWEAKOPEDIA_TESTING
     parser.addOption({u"test-mode"_s, u"Использовать тестовый исполнитель."_s});
+    parser.addOption({u"test-tool-mode"_s, u"Использовать тестовый DISM runner."_s});
+    parser.addOption({u"test-tool-root"_s, u"Каталог тестовых журналов."_s, u"path"_s});
 #endif
     parser.process(app);
 
@@ -163,9 +209,65 @@ int main(int argc, char* argv[])
     if (serverName.isEmpty() || nonce.isEmpty()) return 2;
 
     execution::ExecutorClient client;
-    QObject::connect(&client, &execution::ExecutorClient::failed, &app, [](const QString&) {
-        QCoreApplication::exit(3);
+    bool toolActive{};
+    QObject::connect(&client, &execution::ExecutorClient::failed, &app, [&](const QString&) {
+        if (!toolActive) QCoreApplication::exit(3);
     });
+    std::unique_ptr<execution::IDismProcessRunner> toolRunner;
+    std::unique_ptr<execution::SystemIntegrityWorkflow> toolWorkflow;
+    QObject::connect(
+        &client,
+        &execution::ExecutorClient::toolRequestReceived,
+        &app,
+        [&](const execution::SystemToolRequest& request) {
+            if (toolWorkflow) {
+                sendToolAndQuit(client, {
+                    .requestId = request.requestId,
+                    .status = execution::SystemToolResultStatus::Failed,
+                    .code = u"tool.request_duplicate"_s,
+                    .message = u"Executor уже выполняет инструмент."_s,
+                }, 19);
+                return;
+            }
+#ifdef TWEAKOPEDIA_TESTING
+            if (parser.isSet(u"test-tool-mode"_s)) {
+                toolRunner = std::make_unique<FixtureDismProcessRunner>();
+            } else
+#endif
+            {
+                toolRunner = std::make_unique<execution::QProcessDismRunner>(&app);
+            }
+            const persistence::AppPaths paths(QCoreApplication::applicationDirPath());
+#ifdef TWEAKOPEDIA_TESTING
+            const auto logsRoot = parser.isSet(u"test-tool-root"_s)
+                ? QDir::cleanPath(parser.value(u"test-tool-root"_s))
+                : paths.logsRoot();
+#else
+            const auto logsRoot = paths.logsRoot();
+#endif
+            toolWorkflow = std::make_unique<execution::SystemIntegrityWorkflow>(
+                *toolRunner, logsRoot, &app);
+            QObject::connect(toolWorkflow.get(), &execution::SystemIntegrityWorkflow::stageChanged,
+                             &app, [&](const execution::SystemToolStageEvent& event) {
+                (void)client.sendToolStage(event);
+            });
+            QObject::connect(toolWorkflow.get(), &execution::SystemIntegrityWorkflow::outputReady,
+                             &app, [&](const QUuid& id, const QString& text) {
+                (void)client.sendToolOutput(id, text);
+            });
+            QObject::connect(toolWorkflow.get(), &execution::SystemIntegrityWorkflow::progressChanged,
+                             &app, [&](const execution::SystemToolProgressEvent& event) {
+                (void)client.sendToolProgress(event);
+            });
+            QObject::connect(toolWorkflow.get(), &execution::SystemIntegrityWorkflow::finished,
+                             &app, [&](const execution::SystemToolResult& result) {
+                toolActive = false;
+                sendToolAndQuit(client, result,
+                                result.status == execution::SystemToolResultStatus::Completed ? 0 : 20);
+            });
+            toolActive = true;
+            (void)toolWorkflow->start(request);
+        });
     QObject::connect(
         &client,
         &execution::ExecutorClient::planReceived,
