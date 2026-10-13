@@ -3,8 +3,8 @@
 #include "execution/IDismProcessRunner.h"
 #include "execution/SystemToolLogWriter.h"
 
+#include <QByteArray>
 #include <QObject>
-#include <QStringConverter>
 
 namespace tweakopedia::execution {
 
@@ -28,6 +28,8 @@ signals:
 
 private:
     void consumeOutput(const QByteArray& bytes);
+    void consumeDisplayText(const QString& text);
+    [[nodiscard]] QString decodeOutput(const QByteArray& bytes, bool flush = false);
     void processFinished(DismProcessResult result);
     void emitDisplayLine(QString text);
     void flushDisplayLine();
@@ -38,7 +40,7 @@ private:
     SystemToolLogWriter log_;
     SystemToolRequest request_;
     QString displayLine_;
-    QStringDecoder outputDecoder_{QStringConverter::System};
+    QByteArray pendingOutputBytes_;
     bool pendingCarriageReturn_{};
     bool active_{};
 };

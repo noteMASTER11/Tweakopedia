@@ -6,8 +6,26 @@
 #include <QTemporaryDir>
 #include <QtTest/QTest>
 
+#include <windows.h>
+
 using namespace Qt::StringLiterals;
 using namespace tweakopedia::execution;
+
+namespace {
+
+QByteArray encodeWindowsOem(const QString& text)
+{
+    const auto required = WideCharToMultiByte(
+        GetOEMCP(), 0, reinterpret_cast<const wchar_t*>(text.utf16()),
+        static_cast<int>(text.size()), nullptr, 0, nullptr, nullptr);
+    QByteArray encoded(required, Qt::Uninitialized);
+    WideCharToMultiByte(
+        GetOEMCP(), 0, reinterpret_cast<const wchar_t*>(text.utf16()),
+        static_cast<int>(text.size()), encoded.data(), required, nullptr, nullptr);
+    return encoded;
+}
+
+} // namespace
 
 class FileSystemCheckWorkflowTest final : public QObject
 {
@@ -66,17 +84,35 @@ private slots:
 
     void preservesMultibyteCharactersSplitAcrossChunks()
     {
-        const auto expected = u"Проверка тома завершена\n"_s;
-        const auto encoded = expected.toLocal8Bit();
+        QString expected;
+        switch (GetOEMCP()) {
+        case 932: expected = u"検査完了\n"_s; break;
+        case 936: expected = u"检查完成\n"_s; break;
+        case 949: expected = u"검사 완료\n"_s; break;
+        case 950: expected = u"檢查完成\n"_s; break;
+        case CP_UTF8: expected = u"Проверка завершена\n"_s; break;
+        default: QSKIP("Текущая OEM-кодировка не является многобайтовой.");
+        }
+        const auto encoded = encodeWindowsOem(expected);
         qsizetype split = -1;
-        for (qsizetype index = 1; index < encoded.size(); ++index) {
-            if (QString::fromLocal8Bit(encoded.first(index))
-                    + QString::fromLocal8Bit(encoded.sliced(index)) != expected) {
-                split = index;
-                break;
+        if (GetOEMCP() == CP_UTF8) {
+            for (qsizetype index = 1; index < encoded.size(); ++index) {
+                if ((static_cast<unsigned char>(encoded.at(index)) & 0xc0U) == 0x80U) {
+                    split = index;
+                    break;
+                }
+            }
+        } else {
+            for (qsizetype index = 0; index + 1 < encoded.size(); ++index) {
+                if (IsDBCSLeadByteEx(GetOEMCP(), static_cast<BYTE>(encoded.at(index)))) {
+                    split = index + 1;
+                    break;
+                }
             }
         }
-        if (split < 0) QSKIP("Текущая системная кодировка не является многобайтовой.");
+        if (split < 0) {
+            QSKIP("Не удалось найти границу многобайтового символа.");
+        }
 
         QTemporaryDir logs;
         FakeDismProcessRunner runner;
@@ -91,6 +127,28 @@ private slots:
         QString combined;
         for (const auto& event : output) combined += event.at(1).toString();
         QVERIFY(combined.contains(expected));
+    }
+
+    void decodesChkdskOutputUsingWindowsOemCodePage()
+    {
+        if (GetACP() == GetOEMCP()) {
+            QSKIP("ANSI and OEM code pages are identical on this system.");
+        }
+
+        const auto expected = u"Проверка файловой системы завершена.\n"_s;
+        QTemporaryDir logs;
+        FakeDismProcessRunner runner;
+        FileSystemCheckWorkflow workflow(runner, logs.path());
+        QSignalSpy output(&workflow, &FileSystemCheckWorkflow::outputReady);
+        QVERIFY(workflow.start({QUuid::createUuid(), SystemToolKind::FileSystem,
+                                SystemToolOperation::Check, u"C:"_s}));
+
+        runner.emitOutput(0, encodeWindowsOem(expected));
+        runner.finish(0, {.termination = DismProcessTermination::Normal, .exitCode = 0});
+
+        QString combined;
+        for (const auto& event : output) combined += event.at(1).toString();
+        QVERIFY2(combined.contains(expected), qPrintable(combined));
     }
 
     void mapsDocumentedReadOnlyExitCodes()

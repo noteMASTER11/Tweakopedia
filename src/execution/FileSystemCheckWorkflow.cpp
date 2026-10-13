@@ -20,6 +20,46 @@ QString systemChkdskPath()
         .filePath(u"chkdsk.exe"_s);
 }
 
+qsizetype completeOemPrefixLength(const QByteArray& bytes, const UINT codePage)
+{
+    if (bytes.isEmpty()) return 0;
+    if (codePage == CP_UTF8) {
+        const auto size = bytes.size();
+        auto sequenceStart = size - 1;
+        while (sequenceStart >= 0
+               && (static_cast<unsigned char>(bytes.at(sequenceStart)) & 0xc0U) == 0x80U) {
+            --sequenceStart;
+        }
+        if (sequenceStart < 0) return 0;
+        const auto lead = static_cast<unsigned char>(bytes.at(sequenceStart));
+        qsizetype sequenceLength = 1;
+        if ((lead & 0xe0U) == 0xc0U) sequenceLength = 2;
+        else if ((lead & 0xf0U) == 0xe0U) sequenceLength = 3;
+        else if ((lead & 0xf8U) == 0xf0U) sequenceLength = 4;
+        return size - sequenceStart < sequenceLength ? sequenceStart : size;
+    }
+
+    CPINFO info{};
+    if (GetCPInfo(codePage, &info) && info.MaxCharSize > 1
+        && IsDBCSLeadByteEx(codePage, static_cast<BYTE>(bytes.back()))) {
+        return bytes.size() - 1;
+    }
+    return bytes.size();
+}
+
+QString decodeCodePage(const QByteArray& bytes, const UINT codePage)
+{
+    if (bytes.isEmpty()) return {};
+    const auto required = MultiByteToWideChar(
+        codePage, 0, bytes.constData(), static_cast<int>(bytes.size()), nullptr, 0);
+    if (required <= 0) return QString::fromLatin1(bytes);
+    QString decoded(required, Qt::Uninitialized);
+    MultiByteToWideChar(
+        codePage, 0, bytes.constData(), static_cast<int>(bytes.size()),
+        reinterpret_cast<wchar_t*>(decoded.data()), required);
+    return decoded;
+}
+
 } // namespace
 
 FileSystemCheckWorkflow::FileSystemCheckWorkflow(
@@ -52,7 +92,7 @@ bool FileSystemCheckWorkflow::start(const SystemToolRequest& request)
     }
 
     displayLine_.clear();
-    outputDecoder_.resetState();
+    pendingOutputBytes_.clear();
     pendingCarriageReturn_ = false;
     active_ = true;
     emit stageChanged({request.requestId, SystemToolStage::CheckFileSystem});
@@ -81,7 +121,11 @@ bool FileSystemCheckWorkflow::active() const noexcept
 void FileSystemCheckWorkflow::consumeOutput(const QByteArray& bytes)
 {
     log_.appendOutput(bytes);
-    const QString text = outputDecoder_(bytes);
+    consumeDisplayText(decodeOutput(bytes));
+}
+
+void FileSystemCheckWorkflow::consumeDisplayText(const QString& text)
+{
     for (const auto character : text) {
         if (pendingCarriageReturn_) {
             if (character == u'\n') {
@@ -105,8 +149,20 @@ void FileSystemCheckWorkflow::consumeOutput(const QByteArray& bytes)
     }
 }
 
+QString FileSystemCheckWorkflow::decodeOutput(const QByteArray& bytes, const bool flush)
+{
+    pendingOutputBytes_.append(bytes);
+    const auto prefixLength = flush
+        ? pendingOutputBytes_.size()
+        : completeOemPrefixLength(pendingOutputBytes_, GetOEMCP());
+    const auto decoded = decodeCodePage(pendingOutputBytes_.first(prefixLength), GetOEMCP());
+    pendingOutputBytes_.remove(0, prefixLength);
+    return decoded;
+}
+
 void FileSystemCheckWorkflow::processFinished(DismProcessResult result)
 {
+    consumeDisplayText(decodeOutput({}, true));
     flushDisplayLine();
     if (result.termination != DismProcessTermination::Normal) {
         const auto code = result.termination == DismProcessTermination::FailedToStart
