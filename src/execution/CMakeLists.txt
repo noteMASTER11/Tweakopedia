@@ -20,6 +20,9 @@ add_library(TweakopediaExecution STATIC
     SystemToolLogWriter.h
     SystemIntegrityWorkflow.cpp
     SystemIntegrityWorkflow.h
+    ISystemToolRunner.h
+    SystemToolSession.cpp
+    SystemToolSession.h
     ExecutorClient.cpp
     ExecutorClient.h
     ExecutorLauncher.cpp
@@ -54,6 +57,7 @@ target_include_directories(TweakopediaExecution
 target_link_libraries(TweakopediaExecution
     PUBLIC
         Qt6::Core
+        Qt6::Concurrent
         Qt6::Network
         TweakopediaDomain
         TweakopediaPlanning

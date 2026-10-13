@@ -6,6 +6,7 @@ namespace tweakopedia::execution {
 
 enum class ShellStartStatus { Started, Cancelled, Failed };
 enum class ShellWaitStatus { Exited, Timeout, Failed };
+enum class ExecutorPollStatus { Running, Exited, Failed };
 
 struct ShellLaunchRequest {
     QString executable;
@@ -66,6 +67,9 @@ public:
         const ExecutorLaunchSession& session,
         int timeoutMs,
         bool transactionCompleted);
+    [[nodiscard]] ExecutorPollStatus poll(const ExecutorLaunchSession& session);
+    [[nodiscard]] bool terminate(const ExecutorLaunchSession& session);
+    void close(const ExecutorLaunchSession& session);
 
 private:
     IShellExecuteBackend* backend_{};

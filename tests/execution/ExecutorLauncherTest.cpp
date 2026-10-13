@@ -106,6 +106,20 @@ private slots:
         QCOMPARE(result.code, u"launch.exited_early"_s);
         QVERIFY(backend.closed);
     }
+
+    void pollsWithoutClosingOrTerminatingRunningProcess()
+    {
+        FakeShellExecuteBackend backend;
+        backend.waitResult = ShellWaitStatus::Timeout;
+        ExecutorLauncher launcher(backend);
+        const auto session = launcher.start(u"executor.exe"_s, u"server"_s, u"nonce"_s);
+
+        QCOMPARE(launcher.poll(session), ExecutorPollStatus::Running);
+        QVERIFY(!backend.closed);
+        QVERIFY(!backend.terminated);
+        launcher.close(session);
+        QVERIFY(backend.closed);
+    }
 };
 
 QTEST_APPLESS_MAIN(ExecutorLauncherTest)

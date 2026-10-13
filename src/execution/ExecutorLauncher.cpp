@@ -111,4 +111,25 @@ ExecutorMonitorResult ExecutorLauncher::monitor(
     return {.success = true};
 }
 
+ExecutorPollStatus ExecutorLauncher::poll(const ExecutorLaunchSession& session)
+{
+    if (!session.started || !session.handle) return ExecutorPollStatus::Failed;
+    switch (backend_->wait(session.handle, 0)) {
+    case ShellWaitStatus::Timeout: return ExecutorPollStatus::Running;
+    case ShellWaitStatus::Exited: return ExecutorPollStatus::Exited;
+    case ShellWaitStatus::Failed: return ExecutorPollStatus::Failed;
+    }
+    return ExecutorPollStatus::Failed;
+}
+
+bool ExecutorLauncher::terminate(const ExecutorLaunchSession& session)
+{
+    return session.started && session.handle && backend_->terminate(session.handle);
+}
+
+void ExecutorLauncher::close(const ExecutorLaunchSession& session)
+{
+    if (session.started && session.handle) backend_->close(session.handle);
+}
+
 } // namespace tweakopedia::execution

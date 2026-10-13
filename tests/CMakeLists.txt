@@ -527,6 +527,11 @@ add_executable(ExecutorLauncherTest execution/ExecutorLauncherTest.cpp)
 target_link_libraries(ExecutorLauncherTest PRIVATE Qt6::Test TweakopediaExecution)
 add_test(NAME ExecutorLauncher COMMAND ExecutorLauncherTest)
 
+add_executable(SystemToolSessionTest execution/SystemToolSessionTest.cpp)
+target_link_libraries(SystemToolSessionTest PRIVATE
+    Qt6::Test Qt6::Network TweakopediaExecution)
+add_test(NAME SystemToolSession COMMAND SystemToolSessionTest)
+
 add_executable(AppControllerTest app/AppControllerTest.cpp)
 target_compile_definitions(AppControllerTest PRIVATE
     TWEAKOPEDIA_TEST_CONTENT_ROOT="${PROJECT_SOURCE_DIR}/content/tweaks"
