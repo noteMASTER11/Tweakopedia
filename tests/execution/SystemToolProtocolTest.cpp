@@ -43,6 +43,16 @@ private slots:
         QCOMPARE(decodedNetworkRequest.value->operation, SystemToolOperation::Diagnose);
         QVERIFY(decodedNetworkRequest.value->target.isEmpty());
 
+        const SystemToolRequest removeRuleRequest{
+            id, SystemToolKind::NetworkDiagnostics,
+            SystemToolOperation::RemoveFirewallRule, u"{RULE-ID}"_s};
+        const auto decodedRemoveRuleRequest = SystemToolProtocol::decodeRequest(
+            SystemToolProtocol::encode(removeRuleRequest));
+        QVERIFY(decodedRemoveRuleRequest.value.has_value());
+        QCOMPARE(decodedRemoveRuleRequest.value->operation,
+                 SystemToolOperation::RemoveFirewallRule);
+        QCOMPARE(decodedRemoveRuleRequest.value->target, u"{RULE-ID}"_s);
+
         const SystemToolStageEvent stage{id, SystemToolStage::CheckHealth};
         const auto decodedStage = SystemToolProtocol::decodeStage(
             SystemToolProtocol::encode(stage));
@@ -54,6 +64,12 @@ private slots:
             SystemToolProtocol::encode(networkStage));
         QVERIFY(decodedNetworkStage.value.has_value());
         QCOMPARE(decodedNetworkStage.value->stage, SystemToolStage::CheckNetworkDns);
+
+        const SystemToolStageEvent removalStage{
+            id, SystemToolStage::RemoveNetworkFirewallRule};
+        const auto decodedRemovalStage = SystemToolProtocol::decodeStage(
+            SystemToolProtocol::encode(removalStage));
+        QVERIFY(decodedRemovalStage.value.has_value());
 
         const SystemToolOutputEvent output{id, 42, u"hello\n"_s};
         const auto decodedOutput = SystemToolProtocol::decodeOutput(
@@ -107,6 +123,18 @@ private slots:
             SystemToolOperation::Diagnose, {}});
         request.insert(u"target"_s, u"user supplied"_s);
         QVERIFY(!SystemToolProtocol::decodeRequest(request).value.has_value());
+        auto nulTarget = u"nul"_s;
+        nulTarget.append(QChar{});
+        nulTarget.append(u"value"_s);
+        const QStringList invalidRuleTargets{
+            QString{}, QString(513, u'x'), u"line\nbreak"_s,
+            u"carriage\rreturn"_s, nulTarget};
+        for (const auto& target : invalidRuleTargets) {
+            const auto removal = SystemToolProtocol::encode(SystemToolRequest{
+                QUuid::createUuid(), SystemToolKind::NetworkDiagnostics,
+                SystemToolOperation::RemoveFirewallRule, target});
+            QVERIFY(!SystemToolProtocol::decodeRequest(removal).value.has_value());
+        }
 
         QJsonObject stage{{u"type"_s, u"tool_stage"_s}, {u"request_id"_s, id},
                           {u"stage"_s, u"unknown"_s}};

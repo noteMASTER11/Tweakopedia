@@ -14,6 +14,7 @@
 #include "execution/SystemIntegrityWorkflow.h"
 #include "execution/FileSystemCheckWorkflow.h"
 #include "execution/NetworkDiagnosticsWorkflow.h"
+#include "execution/FirewallRuleRemovalWorkflow.h"
 #include "execution/WindowsComponentExecutor.h"
 #include "persistence/AppPaths.h"
 #include "persistence/Database.h"
@@ -240,12 +241,14 @@ int main(int argc, char* argv[])
     std::unique_ptr<execution::SystemIntegrityWorkflow> integrityWorkflow;
     std::unique_ptr<execution::FileSystemCheckWorkflow> fileSystemWorkflow;
     std::unique_ptr<execution::NetworkDiagnosticsWorkflow> networkWorkflow;
+    std::unique_ptr<execution::FirewallRuleRemovalWorkflow> firewallRemovalWorkflow;
     QObject::connect(
         &client,
         &execution::ExecutorClient::toolRequestReceived,
         &app,
         [&](const execution::SystemToolRequest& request) {
-            if (integrityWorkflow || fileSystemWorkflow || networkWorkflow) {
+            if (integrityWorkflow || fileSystemWorkflow || networkWorkflow
+                || firewallRemovalWorkflow) {
                 sendToolAndQuit(client, {
                     .requestId = request.requestId,
                     .status = execution::SystemToolResultStatus::Failed,
@@ -313,7 +316,7 @@ int main(int argc, char* argv[])
                                  &execution::FileSystemCheckWorkflow::finished,
                                  &app, finishTool);
                 (void)fileSystemWorkflow->start(request);
-            } else {
+            } else if (request.operation == execution::SystemToolOperation::Diagnose) {
                 networkWorkflow = std::make_unique<execution::NetworkDiagnosticsWorkflow>(
                     *toolRunner, logsRoot, &app);
                 QObject::connect(networkWorkflow.get(),
@@ -326,6 +329,20 @@ int main(int argc, char* argv[])
                                  &execution::NetworkDiagnosticsWorkflow::finished,
                                  &app, finishTool);
                 (void)networkWorkflow->start(request);
+            } else {
+                firewallRemovalWorkflow =
+                    std::make_unique<execution::FirewallRuleRemovalWorkflow>(
+                        *toolRunner, logsRoot, &app);
+                QObject::connect(firewallRemovalWorkflow.get(),
+                                 &execution::FirewallRuleRemovalWorkflow::stageChanged,
+                                 &app, forwardStage);
+                QObject::connect(firewallRemovalWorkflow.get(),
+                                 &execution::FirewallRuleRemovalWorkflow::outputReady,
+                                 &app, forwardOutput);
+                QObject::connect(firewallRemovalWorkflow.get(),
+                                 &execution::FirewallRuleRemovalWorkflow::finished,
+                                 &app, finishTool);
+                (void)firewallRemovalWorkflow->start(request);
             }
         });
     QObject::connect(

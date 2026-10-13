@@ -25,6 +25,8 @@ add_library(TweakopediaExecution STATIC
     NetworkDiagnosticsScript.h
     NetworkDiagnosticsWorkflow.cpp
     NetworkDiagnosticsWorkflow.h
+    FirewallRuleRemovalWorkflow.cpp
+    FirewallRuleRemovalWorkflow.h
     ISystemToolRunner.h
     SystemToolSession.cpp
     SystemToolSession.h

@@ -469,6 +469,15 @@ target_include_directories(NetworkDiagnosticsWorkflowTest PRIVATE ${PROJECT_SOUR
 target_link_libraries(NetworkDiagnosticsWorkflowTest PRIVATE Qt6::Test TweakopediaExecution)
 add_test(NAME NetworkDiagnosticsWorkflow COMMAND NetworkDiagnosticsWorkflowTest)
 
+add_executable(FirewallRuleRemovalWorkflowTest
+    execution/FirewallRuleRemovalWorkflowTest.cpp
+    fakes/FakeDismProcessRunner.cpp
+    fakes/FakeDismProcessRunner.h
+)
+target_include_directories(FirewallRuleRemovalWorkflowTest PRIVATE ${PROJECT_SOURCE_DIR}/tests)
+target_link_libraries(FirewallRuleRemovalWorkflowTest PRIVATE Qt6::Test TweakopediaExecution)
+add_test(NAME FirewallRuleRemovalWorkflow COMMAND FirewallRuleRemovalWorkflowTest)
+
 add_executable(PlanValidatorTest
     execution/PlanValidatorTest.cpp
 )

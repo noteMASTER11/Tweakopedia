@@ -9,7 +9,7 @@
 namespace tweakopedia::execution {
 
 enum class SystemToolKind { ComponentStore, FileSystem, NetworkDiagnostics };
-enum class SystemToolOperation { Scan, Restore, Check, Diagnose };
+enum class SystemToolOperation { Scan, Restore, Check, Diagnose, RemoveFirewallRule };
 enum class SystemToolStage {
     ScanHealth,
     CheckHealth,
@@ -22,6 +22,7 @@ enum class SystemToolStage {
     CheckNetworkHosts,
     CheckNetworkRoutes,
     CheckNetworkFirewall,
+    RemoveNetworkFirewallRule,
 };
 enum class SystemToolOutcome {
     Healthy,

@@ -45,6 +45,7 @@ std::optional<SystemToolOperation> operation(const QString& value)
     if (value == u"restore") return SystemToolOperation::Restore;
     if (value == u"check") return SystemToolOperation::Check;
     if (value == u"diagnose") return SystemToolOperation::Diagnose;
+    if (value == u"remove_firewall_rule") return SystemToolOperation::RemoveFirewallRule;
     return std::nullopt;
 }
 
@@ -61,6 +62,8 @@ std::optional<SystemToolStage> stage(const QString& value)
     if (value == u"check_network_hosts") return SystemToolStage::CheckNetworkHosts;
     if (value == u"check_network_routes") return SystemToolStage::CheckNetworkRoutes;
     if (value == u"check_network_firewall") return SystemToolStage::CheckNetworkFirewall;
+    if (value == u"remove_network_firewall_rule")
+        return SystemToolStage::RemoveNetworkFirewallRule;
     return std::nullopt;
 }
 
@@ -99,8 +102,11 @@ bool validRequest(SystemToolKind kind, SystemToolOperation operation, const QStr
         return operation == SystemToolOperation::Check
             && driveTarget.match(target).hasMatch();
     }
-    return kind == SystemToolKind::NetworkDiagnostics
-        && operation == SystemToolOperation::Diagnose && target.isEmpty();
+    if (kind != SystemToolKind::NetworkDiagnostics) return false;
+    if (operation == SystemToolOperation::Diagnose) return target.isEmpty();
+    return operation == SystemToolOperation::RemoveFirewallRule
+        && !target.isEmpty() && target.size() <= 512
+        && !target.contains(QChar{}) && !target.contains(u'\r') && !target.contains(u'\n');
 }
 
 } // namespace
@@ -262,6 +268,7 @@ QString SystemToolProtocol::operationName(SystemToolOperation value)
     case SystemToolOperation::Restore: return u"restore"_s;
     case SystemToolOperation::Check: return u"check"_s;
     case SystemToolOperation::Diagnose: return u"diagnose"_s;
+    case SystemToolOperation::RemoveFirewallRule: return u"remove_firewall_rule"_s;
     }
     return {};
 }
@@ -280,6 +287,8 @@ QString SystemToolProtocol::stageName(SystemToolStage value)
     case SystemToolStage::CheckNetworkHosts: return u"check_network_hosts"_s;
     case SystemToolStage::CheckNetworkRoutes: return u"check_network_routes"_s;
     case SystemToolStage::CheckNetworkFirewall: return u"check_network_firewall"_s;
+    case SystemToolStage::RemoveNetworkFirewallRule:
+        return u"remove_network_firewall_rule"_s;
     }
     return {};
 }
