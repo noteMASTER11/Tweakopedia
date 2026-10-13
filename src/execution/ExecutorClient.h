@@ -1,5 +1,7 @@
 #pragma once
 
+#include "execution/SystemToolProtocol.h"
+
 #include <QByteArray>
 #include <QJsonObject>
 #include <QObject>
@@ -20,6 +22,10 @@ public:
     void connectToServer(const QString& serverName, const QString& nonce, qint64 processId = 0);
     [[nodiscard]] bool sendProgress(int percent, const QString& message);
     [[nodiscard]] bool sendResult(const QJsonObject& result);
+    [[nodiscard]] bool sendToolStage(const SystemToolStageEvent& event);
+    [[nodiscard]] bool sendToolOutput(const QUuid& requestId, const QString& text);
+    [[nodiscard]] bool sendToolProgress(const SystemToolProgressEvent& event);
+    [[nodiscard]] bool sendToolResult(const SystemToolResult& result);
 
 signals:
     void authenticated();
@@ -32,6 +38,8 @@ signals:
         const QString& dataRoot,
         const QString& transactionDirectory);
     void resultAcknowledged();
+    void toolRequestReceived(const SystemToolRequest& request);
+    void toolResultAcknowledged();
     void failed(const QString& code);
 
 private:
@@ -43,6 +51,8 @@ private:
     QByteArray input_;
     QString nonce_;
     qint64 processId_{};
+    QUuid activeToolRequestId_;
+    qint64 nextToolSequence_{};
 };
 
 } // namespace tweakopedia::execution

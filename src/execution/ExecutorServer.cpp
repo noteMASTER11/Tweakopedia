@@ -87,6 +87,18 @@ bool ExecutorServer::sendRollback(
     });
 }
 
+bool ExecutorServer::sendToolRequest(const SystemToolRequest& request)
+{
+    if (!authenticated_ || !client_ || request.requestId.isNull()
+        || !activeToolRequestId_.isNull()) {
+        return false;
+    }
+    if (!send(client_, SystemToolProtocol::encode(request))) return false;
+    activeToolRequestId_ = request.requestId;
+    expectedToolSequence_ = 0;
+    return true;
+}
+
 void ExecutorServer::acceptConnections()
 {
     while (server_->hasPendingConnections()) {
@@ -152,6 +164,58 @@ void ExecutorServer::handleMessage(QLocalSocket* socket, const QJsonObject& mess
     } else if (type == u"result" && message.value(u"result"_s).isObject()) {
         emit completed(message.value(u"result"_s).toObject());
         (void)send(socket, {{u"type"_s, u"result_ack"_s}});
+    } else if (type == u"tool_stage") {
+        const auto decoded = SystemToolProtocol::decodeStage(message);
+        if (!decoded.value) {
+            reject(socket, decoded.code);
+            return;
+        }
+        if (decoded.value->requestId != activeToolRequestId_) {
+            reject(socket, u"tool.request_mismatch"_s);
+            return;
+        }
+        emit toolStageReceived(*decoded.value);
+    } else if (type == u"tool_output") {
+        const auto decoded = SystemToolProtocol::decodeOutput(message);
+        if (!decoded.value) {
+            reject(socket, decoded.code);
+            return;
+        }
+        if (decoded.value->requestId != activeToolRequestId_) {
+            reject(socket, u"tool.request_mismatch"_s);
+            return;
+        }
+        if (decoded.value->sequence != expectedToolSequence_) {
+            reject(socket, u"tool.sequence_invalid"_s);
+            return;
+        }
+        ++expectedToolSequence_;
+        emit toolOutputReceived(*decoded.value);
+    } else if (type == u"tool_progress") {
+        const auto decoded = SystemToolProtocol::decodeProgress(message);
+        if (!decoded.value) {
+            reject(socket, decoded.code);
+            return;
+        }
+        if (decoded.value->requestId != activeToolRequestId_) {
+            reject(socket, u"tool.request_mismatch"_s);
+            return;
+        }
+        emit toolProgressReceived(*decoded.value);
+    } else if (type == u"tool_result") {
+        const auto decoded = SystemToolProtocol::decodeResult(message);
+        if (!decoded.value) {
+            reject(socket, decoded.code);
+            return;
+        }
+        if (decoded.value->requestId != activeToolRequestId_) {
+            reject(socket, u"tool.request_mismatch"_s);
+            return;
+        }
+        emit toolResultReceived(*decoded.value);
+        (void)send(socket, {{u"type"_s, u"tool_result_ack"_s},
+                            {u"request_id"_s,
+                             activeToolRequestId_.toString(QUuid::WithoutBraces)}});
     } else {
         reject(socket, u"message.unexpected"_s);
     }

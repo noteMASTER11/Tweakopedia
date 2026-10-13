@@ -43,6 +43,29 @@ bool ExecutorClient::sendResult(const QJsonObject& result)
     return send({{u"type"_s, u"result"_s}, {u"result"_s, result}});
 }
 
+bool ExecutorClient::sendToolStage(const SystemToolStageEvent& event)
+{
+    return send(SystemToolProtocol::encode(event));
+}
+
+bool ExecutorClient::sendToolOutput(const QUuid& requestId, const QString& text)
+{
+    const SystemToolOutputEvent event{requestId, nextToolSequence_, text};
+    if (!send(SystemToolProtocol::encode(event))) return false;
+    ++nextToolSequence_;
+    return true;
+}
+
+bool ExecutorClient::sendToolProgress(const SystemToolProgressEvent& event)
+{
+    return send(SystemToolProtocol::encode(event));
+}
+
+bool ExecutorClient::sendToolResult(const SystemToolResult& result)
+{
+    return send(SystemToolProtocol::encode(result));
+}
+
 void ExecutorClient::readMessages()
 {
     input_.append(socket_->readAll());
@@ -81,6 +104,22 @@ void ExecutorClient::handleMessage(const QJsonObject& message)
             message.value(u"transaction_directory"_s).toString());
     } else if (type == u"result_ack") {
         emit resultAcknowledged();
+    } else if (type == u"tool_request") {
+        const auto decoded = SystemToolProtocol::decodeRequest(message);
+        if (!decoded.value || !activeToolRequestId_.isNull()) {
+            emit failed(decoded.value ? u"tool.request_duplicate"_s : decoded.code);
+            return;
+        }
+        activeToolRequestId_ = decoded.value->requestId;
+        nextToolSequence_ = 0;
+        emit toolRequestReceived(*decoded.value);
+    } else if (type == u"tool_result_ack") {
+        const QUuid id(message.value(u"request_id"_s).toString());
+        if (id.isNull() || id != activeToolRequestId_) {
+            emit failed(u"tool.ack_invalid"_s);
+            return;
+        }
+        emit toolResultAcknowledged();
     } else if (type == u"error") {
         emit failed(message.value(u"code"_s).toString());
     } else {

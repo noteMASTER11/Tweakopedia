@@ -5,6 +5,7 @@
 #include "execution/FileOperationExecutor.h"
 #include "execution/ScheduledTaskExecutor.h"
 #include "execution/PowerSettingExecutor.h"
+#include "execution/SystemToolProtocol.h"
 #include "persistence/Database.h"
 #include "persistence/TransactionFiles.h"
 #include "persistence/TransactionRepository.h"
@@ -65,6 +66,15 @@ class ExecutorIpcTest final : public QObject
     Q_OBJECT
 
 private slots:
+    void initTestCase()
+    {
+        qRegisterMetaType<execution::SystemToolRequest>();
+        qRegisterMetaType<execution::SystemToolStageEvent>();
+        qRegisterMetaType<execution::SystemToolOutputEvent>();
+        qRegisterMetaType<execution::SystemToolProgressEvent>();
+        qRegisterMetaType<execution::SystemToolResult>();
+    }
+
     void acknowledgesDeliveredResult()
     {
         const auto serverName = u"tweakopedia-ack-test-"_s
@@ -195,6 +205,80 @@ private slots:
         }
         QCOMPARE(process.exitStatus(), QProcess::NormalExit);
         QCOMPARE(process.exitCode(), 0);
+    }
+
+    void streamsAuthenticatedSystemToolMessages()
+    {
+        const auto serverName = u"tweakopedia-tool-test-"_s
+            + QUuid::createUuid().toString(QUuid::WithoutBraces);
+        const auto nonce = QUuid::createUuid().toString(QUuid::WithoutBraces);
+        execution::ExecutorServer server;
+        QVERIFY2(server.listen(serverName, nonce), qPrintable(server.errorString()));
+        server.setExpectedProcessId(QCoreApplication::applicationPid());
+
+        execution::ExecutorClient client;
+        QSignalSpy authenticated(&server, &execution::ExecutorServer::authenticated);
+        QSignalSpy requestReceived(&client, &execution::ExecutorClient::toolRequestReceived);
+        QSignalSpy stageReceived(&server, &execution::ExecutorServer::toolStageReceived);
+        QSignalSpy outputReceived(&server, &execution::ExecutorServer::toolOutputReceived);
+        QSignalSpy progressReceived(&server, &execution::ExecutorServer::toolProgressReceived);
+        QSignalSpy resultReceived(&server, &execution::ExecutorServer::toolResultReceived);
+        QSignalSpy acknowledged(&client, &execution::ExecutorClient::toolResultAcknowledged);
+        client.connectToServer(serverName, nonce);
+        QTRY_COMPARE_WITH_TIMEOUT(authenticated.size(), 1, 3000);
+
+        const execution::SystemToolRequest request{
+            QUuid::createUuid(), execution::SystemToolOperation::Scan};
+        QVERIFY(server.sendToolRequest(request));
+        QTRY_COMPARE_WITH_TIMEOUT(requestReceived.size(), 1, 3000);
+        QCOMPARE(qvariant_cast<execution::SystemToolRequest>(
+                     requestReceived.first().first()).requestId, request.requestId);
+
+        QVERIFY(client.sendToolStage({request.requestId, execution::SystemToolStage::ScanHealth}));
+        QVERIFY(client.sendToolOutput(request.requestId, u"chunk one"_s));
+        QVERIFY(client.sendToolOutput(request.requestId, u"chunk two"_s));
+        QVERIFY(client.sendToolProgress(
+            {request.requestId, execution::SystemToolStage::ScanHealth, 43}));
+        QVERIFY(client.sendToolResult({
+            .requestId = request.requestId,
+            .status = execution::SystemToolResultStatus::Completed,
+            .exitCode = 0,
+            .health = execution::ComponentStoreHealth::Healthy,
+            .logPath = u"C:/logs/tool.log"_s,
+        }));
+
+        QTRY_COMPARE_WITH_TIMEOUT(stageReceived.size(), 1, 3000);
+        QTRY_COMPARE_WITH_TIMEOUT(outputReceived.size(), 2, 3000);
+        QCOMPARE(qvariant_cast<execution::SystemToolOutputEvent>(
+                     outputReceived.at(0).first()).sequence, 0);
+        QCOMPARE(qvariant_cast<execution::SystemToolOutputEvent>(
+                     outputReceived.at(1).first()).sequence, 1);
+        QTRY_COMPARE_WITH_TIMEOUT(progressReceived.size(), 1, 3000);
+        QTRY_COMPARE_WITH_TIMEOUT(resultReceived.size(), 1, 3000);
+        QTRY_COMPARE_WITH_TIMEOUT(acknowledged.size(), 1, 3000);
+    }
+
+    void rejectsToolEventForAnotherRequest()
+    {
+        const auto serverName = u"tweakopedia-tool-reject-"_s
+            + QUuid::createUuid().toString(QUuid::WithoutBraces);
+        const auto nonce = QUuid::createUuid().toString(QUuid::WithoutBraces);
+        execution::ExecutorServer server;
+        QVERIFY(server.listen(serverName, nonce));
+        server.setExpectedProcessId(QCoreApplication::applicationPid());
+        execution::ExecutorClient client;
+        QSignalSpy authenticated(&server, &execution::ExecutorServer::authenticated);
+        QSignalSpy rejected(&server, &execution::ExecutorServer::clientRejected);
+        client.connectToServer(serverName, nonce);
+        QTRY_COMPARE_WITH_TIMEOUT(authenticated.size(), 1, 3000);
+
+        const execution::SystemToolRequest request{
+            QUuid::createUuid(), execution::SystemToolOperation::Scan};
+        QVERIFY(server.sendToolRequest(request));
+        QVERIFY(client.sendToolStage(
+            {QUuid::createUuid(), execution::SystemToolStage::ScanHealth}));
+        QTRY_COMPARE_WITH_TIMEOUT(rejected.size(), 1, 3000);
+        QCOMPARE(rejected.first().first().toString(), u"tool.request_mismatch"_s);
     }
 };
 
