@@ -59,7 +59,9 @@ QFont UiTypography::applicationFont()
     auto font = QGuiApplication::font();
     font.setFamily(preferredFamily(QFontDatabase::families(), font.family()));
     font.setWeight(QFont::Medium);
-    font.setHintingPreference(QFont::PreferFullHinting);
+    // Preserve fractional horizontal advances so kerning stays even. Full
+    // hinting snaps both glyph edges to pixels and makes letter spacing vary.
+    font.setHintingPreference(QFont::PreferVerticalHinting);
     font.setKerning(true);
 
     auto strategy = static_cast<int>(font.styleStrategy());

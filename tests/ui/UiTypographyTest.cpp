@@ -59,7 +59,7 @@ private slots:
         const auto font = ui::UiTypography::applicationFont();
         QVERIFY(!font.family().isEmpty());
         QCOMPARE(font.weight(), QFont::Medium);
-        QCOMPARE(font.hintingPreference(), QFont::PreferFullHinting);
+        QCOMPARE(font.hintingPreference(), QFont::PreferVerticalHinting);
         QVERIFY(font.kerning());
         QVERIFY((font.styleStrategy() & QFont::PreferAntialias) != 0);
         QVERIFY((font.styleStrategy() & QFont::PreferQuality) != 0);

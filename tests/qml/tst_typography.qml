@@ -30,7 +30,7 @@ TestCase {
         compare(sample.font.weight, Font.DemiBold)
         compare(sample.renderType, Text.NativeRendering)
         compare(sample.renderTypeQuality, Text.HighRenderTypeQuality)
-        compare(sample.font.hintingPreference, Font.PreferFullHinting)
+        compare(sample.font.hintingPreference, Font.PreferVerticalHinting)
         compare(sample.font.preferTypoLineMetrics, true)
         compare(sample.font.kerning, true)
         compare(sample.antialiasing, true)
