@@ -10,6 +10,7 @@ Page {
 
     property var controller
     readonly property bool narrowLayout: width < 760
+    readonly property bool detailDocked: width >= 1180
     readonly property string toolState: controller ? controller.state : "idle"
     property var selectedCheck: ({})
     property var pendingRule: ({})
@@ -81,12 +82,15 @@ Page {
 
     ScrollView {
         id: pageScroll
+        objectName: "networkDiagnosticsPageScroll"
         anchors.fill: parent
+        anchors.rightMargin: detailPane.opened && root.detailDocked ? detailPane.width : 0
         clip: true
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
         ColumnLayout {
-            width: pageScroll.availableWidth
+            objectName: "networkDiagnosticsContent"
+            width: pageScroll.width
             spacing: 14
 
             Item { Layout.preferredHeight: 8 }
@@ -161,7 +165,7 @@ Page {
                     id: stateLayout
                     anchors.fill: parent
                     anchors.margins: 18
-                    columns: root.narrowLayout ? 1 : 2
+                    columns: root.narrowLayout || pageScroll.width < 900 ? 1 : 2
                     columnSpacing: 18
                     rowSpacing: 12
 
@@ -268,6 +272,7 @@ Page {
                         required property var modelData
                         required property int index
                         Layout.fillWidth: true
+                        Layout.minimumWidth: 0
                         Layout.preferredHeight: 78
                         radius: 9
                         color: modelData.tint
@@ -301,14 +306,23 @@ Page {
                 }
             }
 
-            GridLayout {
+            ColumnLayout {
+                id: checkList
+                objectName: "networkDiagnosticsCheckList"
                 visible: controller && controller.checks.length > 0
                 Layout.fillWidth: true
                 Layout.leftMargin: 28
                 Layout.rightMargin: 28
-                columns: root.narrowLayout ? 1 : 2
-                columnSpacing: 12
-                rowSpacing: 12
+                spacing: 8
+
+                FluentText {
+                    Layout.fillWidth: true
+                    text: "Результаты проверки"
+                    color: FluentTheme.textPrimary
+                    font.family: FluentTheme.fontFamily
+                    font.pixelSize: 16
+                    font.weight: Font.DemiBold
+                }
 
                 Repeater {
                     id: checkRepeater
@@ -320,11 +334,11 @@ Page {
                         required property var modelData
                         objectName: "networkDiagnosticsCheckCard_" + modelData.id
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 154
+                        Layout.preferredHeight: 82
                         leftPadding: 16
                         rightPadding: 16
-                        topPadding: 16
-                        bottomPadding: 16
+                        topPadding: 12
+                        bottomPadding: 12
                         focusPolicy: Qt.StrongFocus
                         Accessible.name: (modelData.title || "Проверка") + ". Открыть подробности"
                         onClicked: root.openCheckDetails(modelData)
@@ -333,10 +347,10 @@ Page {
                             spacing: 12
 
                             Rectangle {
-                                Layout.preferredWidth: 38
-                                Layout.preferredHeight: 38
-                                Layout.alignment: Qt.AlignTop
-                                radius: 19
+                                Layout.preferredWidth: 36
+                                Layout.preferredHeight: 36
+                                Layout.alignment: Qt.AlignVCenter
+                                radius: 18
                                 color: root.statusTint(checkCard.modelData.status)
 
                                 Text {
@@ -350,8 +364,8 @@ Page {
 
                             ColumnLayout {
                                 Layout.fillWidth: true
-                                Layout.fillHeight: true
-                                spacing: 5
+                                Layout.alignment: Qt.AlignVCenter
+                                spacing: 3
 
                                 RowLayout {
                                     Layout.fillWidth: true
@@ -367,6 +381,7 @@ Page {
                                         elide: Text.ElideRight
                                     }
                                     FluentText {
+                                        visible: !root.narrowLayout
                                         text: root.statusTitle(checkCard.modelData.status)
                                         color: root.statusColor(checkCard.modelData.status)
                                         font.family: FluentTheme.fontFamily
@@ -385,21 +400,6 @@ Page {
                                     maximumLineCount: 2
                                     elide: Text.ElideRight
                                 }
-
-                                FluentText {
-                                    Layout.fillWidth: true
-                                    visible: checkCard.modelData.details
-                                        && checkCard.modelData.details.length > 0
-                                    text: visible ? checkCard.modelData.details.slice(0, 2).join(" · ") : ""
-                                    color: FluentTheme.textSecondary
-                                    font.family: FluentTheme.fontFamily
-                                    font.pixelSize: 11
-                                    wrapMode: Text.WordWrap
-                                    maximumLineCount: 2
-                                    elide: Text.ElideRight
-                                }
-
-                                Item { Layout.fillHeight: true }
                             }
 
                             Text {
@@ -413,12 +413,18 @@ Page {
                         }
 
                         background: Rectangle {
-                            radius: 10
-                            color: checkCard.pressed ? FluentTheme.selected
+                            radius: 8
+                            color: root.selectedCheck.id === checkCard.modelData.id
+                                && detailPane.opened ? FluentTheme.selected
+                                : checkCard.pressed ? FluentTheme.selected
                                 : checkCard.hovered ? FluentTheme.hover : FluentTheme.surface
-                            border.width: checkCard.hovered || checkCard.activeFocus ? 2 : 1
-                            border.color: checkCard.hovered || checkCard.activeFocus
-                                ? FluentTheme.accent : FluentTheme.stroke
+                            border.width: root.selectedCheck.id === checkCard.modelData.id
+                                && detailPane.opened ? 2
+                                : checkCard.hovered || checkCard.activeFocus ? 2 : 1
+                            border.color: root.selectedCheck.id === checkCard.modelData.id
+                                && detailPane.opened ? FluentTheme.accent
+                                : checkCard.hovered || checkCard.activeFocus
+                                  ? FluentTheme.accent : FluentTheme.stroke
                         }
                     }
                 }
@@ -630,19 +636,30 @@ Page {
         parent: root
         x: root.width - width
         y: 0
-        width: Math.min(540, root.width)
+        width: root.detailDocked ? 420 : Math.min(540, root.width)
         height: root.height
-        modal: true
-        dim: true
+        modal: !root.detailDocked
+        dim: !root.detailDocked
         padding: 0
-        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        closePolicy: Popup.CloseOnEscape
+            | (root.detailDocked ? Popup.NoAutoClose : Popup.CloseOnPressOutside)
         enter: Transition {
-            NumberAnimation { property: "x"; from: root.width; duration: 170; easing.type: Easing.OutCubic }
+            NumberAnimation {
+                property: "x"
+                from: root.detailDocked ? root.width - detailPane.width : root.width
+                duration: root.detailDocked ? 0 : 170
+                easing.type: Easing.OutCubic
+            }
         }
         exit: Transition {
-            NumberAnimation { property: "x"; to: root.width; duration: 130; easing.type: Easing.InCubic }
+            NumberAnimation {
+                property: "x"
+                to: root.detailDocked ? root.width - detailPane.width : root.width
+                duration: root.detailDocked ? 0 : 130
+                easing.type: Easing.InCubic
+            }
         }
-        Overlay.modal: Rectangle { color: "#52000000" }
+        Overlay.modal: Rectangle { color: root.detailDocked ? "transparent" : "#52000000" }
 
         background: Rectangle {
             color: FluentTheme.canvas

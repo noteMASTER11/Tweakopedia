@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
         application.exit(!image.isNull() && image.save(output, "PNG") ? 0 : 4);
     };
     QObject::connect(window, &QQuickWindow::frameSwapped, &application, [&] {
-        QTimer::singleShot(0, &application, capture);
+        QTimer::singleShot(250, &application, capture);
     });
     QTimer::singleShot(3000, &application, capture);
     window->requestUpdate();

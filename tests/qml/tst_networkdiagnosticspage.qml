@@ -172,6 +172,46 @@ TestCase {
         compare(findChild(page, "networkDiagnosticsDetailTitle").text, "DNS")
     }
 
+    function test_resultsUseSingleListAndDockedDetailsOnWideWindow() {
+        fakeController.checks = [
+            { id: "adapters", title: "Сетевые адаптеры", status: "ok",
+              summary: "Подключение активно", details: ["Ethernet"] },
+            { id: "dns", title: "DNS", status: "attention",
+              summary: "Сервер не отвечает", details: ["1.1.1.1"] }
+        ]
+        const page = createTemporaryObject(pageComponent, this, { width: 1280, height: 760 })
+        const first = findChild(page, "networkDiagnosticsCheckCard_adapters")
+        const second = findChild(page, "networkDiagnosticsCheckCard_dns")
+        verify(first)
+        verify(second)
+        compare(Math.round(first.x), Math.round(second.x))
+        verify(second.y > first.y)
+
+        mouseClick(second)
+        const panel = findChild(page, "networkDiagnosticsDetailPane")
+        const scroll = findChild(page, "networkDiagnosticsPageScroll")
+        tryCompare(panel, "visible", true)
+        compare(panel.modal, false)
+        compare(Math.round(panel.width), 420)
+        tryCompare(scroll, "width", page.width - panel.width)
+        compare(Math.round(findChild(page, "networkDiagnosticsContent").width),
+                Math.round(scroll.width))
+        compare(findChild(page, "networkDiagnosticsDetailTitle").text, "DNS")
+    }
+
+    function test_detailsOverlayTheNarrowWindow() {
+        fakeController.checks = [
+            { id: "dns", title: "DNS", status: "attention",
+              summary: "Сервер не отвечает", details: ["1.1.1.1"] }
+        ]
+        const page = createTemporaryObject(pageComponent, this, { width: 720, height: 760 })
+        mouseClick(findChild(page, "networkDiagnosticsCheckCard_dns"))
+        const panel = findChild(page, "networkDiagnosticsDetailPane")
+        tryCompare(panel, "visible", true)
+        compare(panel.modal, true)
+        verify(panel.width <= page.width)
+    }
+
     function test_firewallDetailsRequireConfirmationBeforeRemoval() {
         fakeController.checks = [
             { id: "firewall", title: "Windows Firewall", status: "attention",
