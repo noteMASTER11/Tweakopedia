@@ -48,11 +48,11 @@ pwsh -NoProfile -File .\tools\verify-package.ps1 `
 - Release-сборка: завершена успешно.
 - Проверка layout: один `Tweakopedia.exe`, версия файла 0.9.4.0.
 - Изолированный self-check контейнера: завершён успешно.
-- Размер контейнера: 45 638 878 байт.
+- Размер контейнера: 45 639 076 байт.
 - SHA-256 контейнера:
-  `7f412f27a5967bc2b0eb19bfe93468e744dd4baf693214b8eea5545c8c476b52`.
+  `924b3fd17b7891a1f99f014c197fbe110ebf26935988fbb6a2ae36080304264b`.
 - SHA-256 payload:
-  `d75babcf30aa1287a8396e956bbfb84a0bc469aaf34fd7e0e6dcf63657a7fde6`.
+  `b7542a029d119c3639a44fa163eb635058a3ea2fa734a418926ebe1f532fce8a`.
 - Артефакт: `D:\ChatGPT\Projects\Tweakopedia\dist\Tweakopedia.exe`.
 
 Автоматические тесты не меняют сетевые параметры. Работа интерфейса, IPC и
