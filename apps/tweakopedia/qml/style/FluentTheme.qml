@@ -8,7 +8,7 @@ QtObject {
     readonly property color surface: "#FFFFFF"
     readonly property color surfaceInset: "#F4F6FA"
     readonly property color textPrimary: "#20232B"
-    readonly property color textSecondary: "#687487"
+    readonly property color textSecondary: "#5D6878"
     readonly property color stroke: "#E1E5ED"
     readonly property color accent: "#0067C0"
     readonly property color accentHover: "#005BAA"
@@ -24,6 +24,8 @@ QtObject {
     readonly property color dangerHover: "#A4262C"
 
     readonly property string fontFamily: Application.font.family
+    readonly property int bodyFontWeight: Font.Medium
+    readonly property int headingFontWeight: Font.DemiBold
     readonly property int navigationExpandedWidth: 220
     readonly property int navigationCompactWidth: 64
     readonly property int compactBreakpoint: 1100

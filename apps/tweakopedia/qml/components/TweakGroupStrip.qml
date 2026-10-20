@@ -142,7 +142,7 @@ Item {
                     color: tab.enabled ? FluentTheme.textPrimary : FluentTheme.disabledText
                     font.family: FluentTheme.fontFamily
                     font.pixelSize: 13
-                    font.weight: tab.groupId === root.currentGroup ? Font.DemiBold : Font.Normal
+                    font.weight: tab.groupId === root.currentGroup ? Font.DemiBold : Font.Medium
                     elide: Text.ElideRight
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter

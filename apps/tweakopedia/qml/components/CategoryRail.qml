@@ -86,7 +86,7 @@ Item {
                     font.family: FluentTheme.fontFamily
                     font.pixelSize: 13
                     font.weight: categoryButton.categoryId === root.currentCategory
-                        ? Font.DemiBold : Font.Normal
+                        ? Font.DemiBold : Font.Medium
                 }
             }
 

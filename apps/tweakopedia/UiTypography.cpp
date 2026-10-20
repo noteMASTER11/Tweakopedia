@@ -43,7 +43,9 @@ QString UiTypography::preferredFamily(
     const QStringList& availableFamilies,
     const QString& systemFamily)
 {
-    for (const auto& preferred : {u"Segoe UI Variable"_s, u"Segoe UI"_s}) {
+    // The static Segoe UI family produces more predictable stem weights than
+    // the variable face in Qt Quick's native renderer, especially at 100–150%.
+    for (const auto& preferred : {u"Segoe UI"_s, u"Segoe UI Variable"_s}) {
         for (const auto& available : availableFamilies) {
             if (available.compare(preferred, Qt::CaseInsensitive) == 0) return available;
         }
@@ -56,9 +58,17 @@ QFont UiTypography::applicationFont()
     registerWindowsUiFonts();
     auto font = QGuiApplication::font();
     font.setFamily(preferredFamily(QFontDatabase::families(), font.family()));
-    font.setHintingPreference(QFont::PreferVerticalHinting);
-    font.setStyleStrategy(static_cast<QFont::StyleStrategy>(
-        font.styleStrategy() | QFont::PreferTypoLineMetrics));
+    font.setWeight(QFont::Medium);
+    font.setHintingPreference(QFont::PreferFullHinting);
+    font.setKerning(true);
+
+    auto strategy = static_cast<int>(font.styleStrategy());
+    strategy &= ~static_cast<int>(QFont::NoAntialias);
+    strategy &= ~static_cast<int>(QFont::NoSubpixelAntialias);
+    strategy |= static_cast<int>(QFont::PreferAntialias);
+    strategy |= static_cast<int>(QFont::PreferQuality);
+    strategy |= static_cast<int>(QFont::PreferTypoLineMetrics);
+    font.setStyleStrategy(static_cast<QFont::StyleStrategy>(strategy));
     return font;
 }
 

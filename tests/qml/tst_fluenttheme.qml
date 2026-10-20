@@ -11,7 +11,7 @@ TestCase {
         compare(FluentTheme.surface.toString(), "#ffffff")
         compare(FluentTheme.surfaceInset.toString(), "#f4f6fa")
         compare(FluentTheme.textPrimary.toString(), "#20232b")
-        compare(FluentTheme.textSecondary.toString(), "#687487")
+        compare(FluentTheme.textSecondary.toString(), "#5d6878")
         compare(FluentTheme.stroke.toString(), "#e1e5ed")
         compare(FluentTheme.accent.toString(), "#0067c0")
         compare(FluentTheme.accentHover.toString(), "#005baa")
@@ -26,6 +26,8 @@ TestCase {
 
     function test_typographyAndAdaptiveGeometry() {
         compare(FluentTheme.fontFamily, Application.font.family)
+        compare(FluentTheme.bodyFontWeight, Font.Medium)
+        compare(FluentTheme.headingFontWeight, Font.DemiBold)
         compare(FluentTheme.navigationExpandedWidth, 220)
         compare(FluentTheme.navigationCompactWidth, 64)
         compare(FluentTheme.compactBreakpoint, 1100)

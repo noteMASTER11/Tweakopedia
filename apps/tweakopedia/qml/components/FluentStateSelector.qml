@@ -112,7 +112,7 @@ ComboBox {
             verticalAlignment: Text.AlignVCenter
             font.family: FluentTheme.fontFamily
             font.pixelSize: 13
-            font.weight: option.highlighted ? Font.DemiBold : Font.Normal
+            font.weight: option.highlighted ? Font.DemiBold : Font.Medium
         }
 
         background: Rectangle {

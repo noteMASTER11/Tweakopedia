@@ -47,7 +47,7 @@ private slots:
     {
         QCOMPARE(ui::UiTypography::preferredFamily(
                      {u"Arial"_s, u"Segoe UI"_s, u"Segoe UI Variable"_s}, u"Arial"_s),
-                 u"Segoe UI Variable"_s);
+                 u"Segoe UI"_s);
         QCOMPARE(ui::UiTypography::preferredFamily(
                      {u"Arial"_s, u"Segoe UI"_s}, u"Arial"_s),
                  u"Segoe UI"_s);
@@ -58,8 +58,14 @@ private slots:
     {
         const auto font = ui::UiTypography::applicationFont();
         QVERIFY(!font.family().isEmpty());
-        QCOMPARE(font.hintingPreference(), QFont::PreferVerticalHinting);
+        QCOMPARE(font.weight(), QFont::Medium);
+        QCOMPARE(font.hintingPreference(), QFont::PreferFullHinting);
+        QVERIFY(font.kerning());
+        QVERIFY((font.styleStrategy() & QFont::PreferAntialias) != 0);
+        QVERIFY((font.styleStrategy() & QFont::PreferQuality) != 0);
         QVERIFY((font.styleStrategy() & QFont::PreferTypoLineMetrics) != 0);
+        QVERIFY((font.styleStrategy() & QFont::NoAntialias) == 0);
+        QVERIFY((font.styleStrategy() & QFont::NoSubpixelAntialias) == 0);
 
         for (const auto weight : {QFont::Normal, QFont::Medium, QFont::DemiBold, QFont::Bold}) {
             auto weighted = font;

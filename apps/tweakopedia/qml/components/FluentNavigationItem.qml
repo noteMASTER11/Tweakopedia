@@ -43,7 +43,7 @@ AbstractButton {
                 color: FluentTheme.textPrimary
                 font.family: FluentTheme.fontFamily
                 font.pixelSize: 14
-                font.weight: root.selected ? Font.DemiBold : Font.Normal
+                font.weight: root.selected ? Font.DemiBold : Font.Medium
                 anchors.verticalCenter: parent.verticalCenter
             }
         }

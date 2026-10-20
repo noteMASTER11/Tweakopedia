@@ -288,7 +288,7 @@ Item {
                             width: root.stackRelated
                                 ? parent.width
                                 : Math.max(190, Math.min(260,
-                                    (parent.width - parent.spacing * 2) / 3))
+                                    Math.floor((parent.width - parent.spacing * 2) / 3)))
                             onArticleRequested: id => root.controller.openArticle(id)
                         }
                     }

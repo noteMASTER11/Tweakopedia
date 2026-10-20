@@ -258,7 +258,7 @@ Page {
                     FluentText {
                         objectName: "aboutLibraries"
                         Layout.fillWidth: true
-                        text: "Qt 6.8.3: Core, GUI, QML, Quick, Quick Controls 2, Concurrent, Network и SQL\nyaml-cpp 0.8.0 · nlohmann/json 3.12.0 · miniz 3.1.2 · SQLite через Qt SQL/QSQLITE\nSF Pro — встроенный шрифт интерфейса\nWin32 API: Registry/Advapi32, DXGI, DWM, COM/WMI, Secur32, CNG/Bcrypt, Shell32 и NTDLL Feature Store; AppX и PowerShell"
+                        text: "Qt 6.8.3: Core, GUI, QML, Quick, Quick Controls 2, Concurrent, Network и SQL\nyaml-cpp 0.8.0 · nlohmann/json 3.12.0 · miniz 3.1.2 · SQLite через Qt SQL/QSQLITE\nSegoe UI — системная типографика Fluent UI с нативным рендерингом Windows\nWin32 API: Registry/Advapi32, DXGI, DWM, COM/WMI, Secur32, CNG/Bcrypt, Shell32 и NTDLL Feature Store; AppX и PowerShell"
                         color: FluentTheme.textSecondary
                         font.family: FluentTheme.fontFamily
                         font.pixelSize: 13

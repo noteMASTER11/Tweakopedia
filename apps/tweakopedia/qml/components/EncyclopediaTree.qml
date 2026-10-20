@@ -94,7 +94,7 @@ FocusScope {
                     font.family: FluentTheme.fontFamily
                     font.pixelSize: treeDelegate.model.nodeType === "category" ? 14 : 13
                     font.weight: treeDelegate.model.nodeType === "article"
-                        ? Font.Normal : Font.DemiBold
+                        ? Font.Medium : Font.DemiBold
                 }
 
                 FluentText {
