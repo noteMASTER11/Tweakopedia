@@ -264,5 +264,39 @@ TestCase {
         }
     }
 
+    function test_largeFirewallResultOpensPanelBeforeRenderingEveryRule() {
+        let rules = []
+        for (let i = 0; i < 64; ++i) {
+            rules.push({
+                key: "rule-" + i,
+                title: "Правило " + (i + 1),
+                description: "Разрешающее входящее правило",
+                profile: "Private",
+                program: "C:/Program Files/Example/app-" + i + ".exe",
+                protocol: i % 2 === 0 ? "TCP" : "UDP",
+                local_port: "Any",
+                remote_port: "Any",
+                local_address: "Any",
+                remote_address: "Any"
+            })
+        }
+        fakeController.checks = [
+            { id: "firewall", title: "Windows Firewall", status: "attention",
+              summary: "Найдено 64 правила", details: ["Domain", "Private", "Public"],
+              items: rules }
+        ]
+
+        const page = createTemporaryObject(pageComponent, this)
+        mouseClick(findChild(page, "networkDiagnosticsCheckCard_firewall"))
+        const panel = findChild(page, "networkDiagnosticsDetailPane")
+        tryCompare(panel, "visible", true)
+        compare(findChild(page, "networkDiagnosticsDetailTitle").text, "Windows Firewall")
+        compare(findChild(page, "firewallRuleRepeater").count, 12)
+        const moreButton = findChild(page, "firewallRulesShowMoreButton")
+        verify(moreButton.visible)
+        mouseClick(moreButton)
+        compare(findChild(page, "firewallRuleRepeater").count, 24)
+    }
+
     Component { id: signalSpy; SignalSpy {} }
 }

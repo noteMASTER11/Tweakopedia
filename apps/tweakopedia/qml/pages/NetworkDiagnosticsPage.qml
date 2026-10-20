@@ -14,6 +14,7 @@ Page {
     readonly property string toolState: controller ? controller.state : "idle"
     property var selectedCheck: ({})
     property var pendingRule: ({})
+    property int firewallRuleLimit: 12
     signal backRequested()
     signal recoveryRequested()
 
@@ -68,8 +69,18 @@ Page {
     }
 
     function openCheckDetails(check) {
+        firewallRuleLimit = 12
         selectedCheck = check
         detailPane.open()
+    }
+
+    function visibleFirewallRules() {
+        const items = selectedCheck.items || []
+        const count = Math.min(items.length, firewallRuleLimit)
+        const visibleItems = []
+        for (let index = 0; index < count; ++index)
+            visibleItems.push(items[index])
+        return visibleItems
     }
 
     function ruleIsRemoved(key) {
@@ -730,7 +741,7 @@ Page {
                         Repeater {
                             id: firewallRuleRepeater
                             objectName: "firewallRuleRepeater"
-                            model: root.selectedCheck.items || []
+                            model: root.visibleFirewallRules()
                             delegate: Rectangle {
                                 id: ruleCard
                                 required property var modelData
@@ -836,6 +847,53 @@ Page {
                                                 : FluentTheme.disabledSurface
                                         }
                                     }
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            visible: root.selectedCheck.items
+                                && root.firewallRuleLimit < root.selectedCheck.items.length
+                            spacing: 10
+
+                            FluentText {
+                                Layout.fillWidth: true
+                                text: "Показано " + firewallRuleRepeater.count + " из "
+                                    + (root.selectedCheck.items ? root.selectedCheck.items.length : 0)
+                                color: FluentTheme.textSecondary
+                                font.family: FluentTheme.fontFamily
+                                font.pixelSize: 11
+                            }
+
+                            Button {
+                                id: showMoreRulesButton
+                                objectName: "firewallRulesShowMoreButton"
+                                Layout.preferredHeight: 34
+                                text: "Показать ещё"
+                                focusPolicy: Qt.StrongFocus
+                                onClicked: root.firewallRuleLimit = Math.min(
+                                    root.firewallRuleLimit + 12,
+                                    root.selectedCheck.items.length)
+                                contentItem: FluentText {
+                                    text: showMoreRulesButton.text
+                                    color: FluentTheme.textPrimary
+                                    font.family: FluentTheme.fontFamily
+                                    font.pixelSize: 12
+                                    font.weight: Font.DemiBold
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                                background: Rectangle {
+                                    implicitWidth: 124
+                                    radius: 6
+                                    color: showMoreRulesButton.pressed
+                                        ? FluentTheme.selected
+                                        : showMoreRulesButton.hovered
+                                          ? FluentTheme.hover : FluentTheme.surface
+                                    border.width: showMoreRulesButton.activeFocus ? 2 : 1
+                                    border.color: showMoreRulesButton.activeFocus
+                                        ? FluentTheme.accent : FluentTheme.stroke
                                 }
                             }
                         }
