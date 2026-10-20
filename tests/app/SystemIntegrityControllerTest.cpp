@@ -199,6 +199,27 @@ private slots:
         QVERIFY(controller.outputText().endsWith(QString(128, u'x')));
     }
 
+    void carriageReturnUpdatesTheCurrentTerminalLine()
+    {
+        tests::FakeSystemToolRunner runner;
+        FakeDesktopServices desktop;
+        app::SystemIntegrityController controller(runner, desktop);
+
+        QVERIFY(controller.startScan());
+        emit runner.stageChanged(stage(execution::SystemToolStage::ScanHealth));
+        emit runner.outputReceived(output(u"[==== 12%          ]\r"_s));
+        QCOMPARE(controller.outputText(), u"[==== 12%          ]"_s);
+
+        emit runner.outputReceived(output(u"[========= 47%     ]\r"_s));
+        QCOMPARE(controller.outputText(), u"[========= 47%     ]"_s);
+
+        emit runner.outputReceived(output(u"[================ 100%]\r"_s));
+        QCOMPARE(controller.outputText(), u"[================ 100%]"_s);
+        emit runner.outputReceived(output(u"\nГотово.\r\n"_s));
+        QCOMPARE(controller.outputText(),
+                 u"[================ 100%]\nГотово.\n"_s);
+    }
+
     void delegatesDesktopActionsAndReportsMissingDismLog()
     {
         tests::FakeSystemToolRunner runner;

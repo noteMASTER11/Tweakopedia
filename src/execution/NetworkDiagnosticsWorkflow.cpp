@@ -232,6 +232,7 @@ void NetworkDiagnosticsWorkflow::processMarker(const QJsonObject& marker)
     if (!item) return;
     if (type == u"stage") {
         emit stageChanged({request_.requestId, item->stage});
+        emit outputReady(request_.requestId, u"\r"_s + QString(item->title) + u"…"_s);
         return;
     }
     if (type != u"check") return;
@@ -256,6 +257,9 @@ void NetworkDiagnosticsWorkflow::processMarker(const QJsonObject& marker)
     if (id == u"firewall"_s)
         check.insert(u"items"_s, boundedFirewallItems(marker.value(u"items"_s)));
     checks_.append(check);
+    emit outputReady(request_.requestId,
+                     u"\r"_s + QString(item->title) + u" — "_s
+                         + check.value(u"summary"_s).toString() + u"\n"_s);
 }
 
 void NetworkDiagnosticsWorkflow::processFinished(DismProcessResult result)

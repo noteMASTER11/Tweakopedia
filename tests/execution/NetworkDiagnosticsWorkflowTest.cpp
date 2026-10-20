@@ -87,6 +87,8 @@ private slots:
         QString displayed;
         for (const auto& event : output) displayed += event.at(1).toString();
         QVERIFY(displayed.contains(u"Network diagnostics"_s));
+        QVERIFY(displayed.contains(u"Сетевые адаптеры…"_s));
+        QVERIFY(displayed.contains(u"DNS — Разрешение имён не выполнено"_s));
         QVERIFY(!displayed.contains(u"@@TWEAKOPEDIA@@"_s));
         QCOMPARE(finished.size(), 1);
         const auto result = qvariant_cast<SystemToolResult>(finished.first().first());

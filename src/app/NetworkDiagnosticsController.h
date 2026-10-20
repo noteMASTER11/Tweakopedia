@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/ISystemIntegrityDesktopServices.h"
+#include "app/TerminalOutputBuffer.h"
 #include "execution/ISystemToolRunner.h"
 
 #include <QObject>
@@ -71,7 +72,6 @@ private:
     void handleOutput(const execution::SystemToolOutputEvent& event);
     void handleResult(const execution::SystemToolResult& result);
     void handleFailure(const QString& code, const QString& message);
-    void trimOutput();
     [[nodiscard]] bool hasFirewallRule(const QString& key) const;
     void clearActionState();
 
@@ -81,7 +81,7 @@ private:
     ISystemIntegrityDesktopServices* desktopServices_{};
     QString state_{QStringLiteral("idle")};
     QString stageText_;
-    QString outputText_;
+    TerminalOutputBuffer output_;
     QString resultTitle_;
     QString resultDescription_;
     QString errorCode_;

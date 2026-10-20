@@ -493,137 +493,22 @@ Page {
                 }
             }
 
-            Rectangle {
+            LiveCommandOutput {
                 Layout.fillWidth: true
                 Layout.leftMargin: 28
                 Layout.rightMargin: 28
-                Layout.preferredHeight: 286
-                radius: 10
-                color: FluentTheme.surface
-                border.width: 1
-                border.color: FluentTheme.stroke
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 14
-                    spacing: 10
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
-
-                        FluentText {
-                            Layout.fillWidth: true
-                            text: "Вывод диагностики"
-                            color: FluentTheme.textPrimary
-                            font.family: FluentTheme.fontFamily
-                            font.pixelSize: 14
-                            font.weight: Font.DemiBold
-                        }
-
-                        Button {
-                            id: copyButton
-                            objectName: "networkDiagnosticsCopyButton"
-                            text: "Копировать"
-                            enabled: controller && controller.outputText.length > 0
-                            onClicked: if (controller) controller.copyOutput()
-                            contentItem: FluentText {
-                                text: copyButton.text
-                                color: copyButton.enabled ? FluentTheme.textPrimary : FluentTheme.disabledText
-                                font.family: FluentTheme.fontFamily
-                                font.pixelSize: 12
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                            }
-                            background: Rectangle {
-                                implicitWidth: 104
-                                implicitHeight: 34
-                                radius: 6
-                                color: copyButton.pressed ? FluentTheme.selected
-                                    : copyButton.hovered ? FluentTheme.hover : FluentTheme.surface
-                                border.width: 1
-                                border.color: copyButton.activeFocus ? FluentTheme.accent : FluentTheme.stroke
-                            }
-                        }
-
-                        Button {
-                            id: openLogButton
-                            objectName: "networkDiagnosticsOpenLogButton"
-                            text: "Открыть журнал"
-                            enabled: controller && controller.sessionLogPath.length > 0
-                            onClicked: if (controller) controller.openSessionLog()
-                            contentItem: FluentText {
-                                text: openLogButton.text
-                                color: openLogButton.enabled ? FluentTheme.textPrimary : FluentTheme.disabledText
-                                font.family: FluentTheme.fontFamily
-                                font.pixelSize: 12
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                            }
-                            background: Rectangle {
-                                implicitWidth: 124
-                                implicitHeight: 34
-                                radius: 6
-                                color: openLogButton.pressed ? FluentTheme.selected
-                                    : openLogButton.hovered ? FluentTheme.hover : FluentTheme.surface
-                                border.width: 1
-                                border.color: openLogButton.activeFocus ? FluentTheme.accent : FluentTheme.stroke
-                            }
-                        }
-                    }
-
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        radius: 7
-                        color: "#101218"
-                        border.width: 1
-                        border.color: "#2B3040"
-
-                        Flickable {
-                            id: terminalScroll
-                            anchors.fill: parent
-                            anchors.margins: 1
-                            clip: true
-                            contentWidth: width
-                            contentHeight: Math.max(height, terminalText.implicitHeight + 24)
-                            boundsBehavior: Flickable.StopAtBounds
-                            property bool following: true
-
-                            TextArea {
-                                id: terminalText
-                                objectName: "networkDiagnosticsTerminal"
-                                x: 10
-                                y: 8
-                                width: terminalScroll.width - 20
-                                height: Math.max(terminalScroll.height - 16, implicitHeight)
-                                text: controller ? controller.outputText : ""
-                                placeholderText: "Здесь появится ход и подробный вывод диагностики."
-                                readOnly: true
-                                selectByMouse: true
-                                wrapMode: TextEdit.WrapAnywhere
-                                color: "#E6EDF3"
-                                placeholderTextColor: "#798294"
-                                selectionColor: FluentTheme.accent
-                                selectedTextColor: "white"
-                                font.family: "Cascadia Mono, Consolas"
-                                font.pixelSize: 12
-                                background: null
-
-                                onTextChanged: {
-                                    if (terminalScroll.following) {
-                                        Qt.callLater(function() {
-                                            terminalScroll.contentY = Math.max(0,
-                                                terminalScroll.contentHeight - terminalScroll.height)
-                                        })
-                                    }
-                                }
-                            }
-
-                            ScrollBar.vertical: ScrollBar {}
-                        }
-                    }
-                }
+                Layout.preferredHeight: 210
+                title: "Ход диагностики"
+                outputText: controller ? controller.outputText : ""
+                placeholderText: "Здесь появится поток вывода диагностики."
+                terminalObjectName: "networkDiagnosticsTerminal"
+                copyButtonObjectName: "networkDiagnosticsCopyButton"
+                logButtonObjectName: "networkDiagnosticsOpenLogButton"
+                logButtonText: "Открыть журнал"
+                busy: controller && controller.busy
+                logEnabled: controller && controller.sessionLogPath.length > 0
+                onCopyRequested: if (controller) controller.copyOutput()
+                onOpenLogRequested: if (controller) controller.openSessionLog()
             }
 
             Item { Layout.preferredHeight: 10 }

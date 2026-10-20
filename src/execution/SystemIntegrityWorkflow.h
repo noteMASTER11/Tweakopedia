@@ -37,8 +37,6 @@ private:
     void runNext();
     void consumeOutput(const QByteArray& bytes);
     void commandFinished(DismProcessResult result);
-    void emitDisplayLine(QString text);
-    void flushDisplayLine();
     void complete(SystemToolResult result);
 
     IDismProcessRunner* runner_{};
@@ -48,8 +46,6 @@ private:
     SystemToolRequest request_;
     QVector<Command> commands_;
     qsizetype commandIndex_{};
-    QString displayLine_;
-    bool pendingCarriageReturn_{};
     int lastProgress_{-1};
     bool active_{};
 };

@@ -5,9 +5,6 @@ using namespace Qt::StringLiterals;
 namespace tweakopedia::app {
 namespace {
 
-constexpr qsizetype kMaximumOutputBytes = 2 * 1024 * 1024;
-const auto kTruncationMarker = QByteArray("[Начало вывода удалено из экранного буфера]\n");
-
 QString stateForStage(execution::SystemToolStage stage)
 {
     switch (stage) {
@@ -74,7 +71,7 @@ QString SystemIntegrityController::state() const { return state_; }
 QString SystemIntegrityController::stageText() const { return stageText_; }
 int SystemIntegrityController::progress() const { return progress_; }
 bool SystemIntegrityController::progressKnown() const { return progressKnown_; }
-QString SystemIntegrityController::outputText() const { return outputText_; }
+QString SystemIntegrityController::outputText() const { return output_.text(); }
 QString SystemIntegrityController::resultTitle() const { return resultTitle_; }
 QString SystemIntegrityController::resultDescription() const { return resultDescription_; }
 QString SystemIntegrityController::errorCode() const { return errorCode_; }
@@ -101,7 +98,7 @@ bool SystemIntegrityController::startRestore()
 
 bool SystemIntegrityController::copyOutput()
 {
-    return desktopServices_->copyText(outputText_);
+    return desktopServices_->copyText(output_.text());
 }
 
 bool SystemIntegrityController::openDismLog()
@@ -144,7 +141,7 @@ void SystemIntegrityController::beginConfirmedSession()
 {
     if (!pendingNewSession_) return;
     pendingNewSession_ = false;
-    outputText_.clear();
+    output_.clear();
     resultTitle_.clear();
     resultDescription_.clear();
     errorCode_.clear();
@@ -167,8 +164,7 @@ void SystemIntegrityController::handleStage(const execution::SystemToolStageEven
 void SystemIntegrityController::handleOutput(const execution::SystemToolOutputEvent& event)
 {
     if (!busy_) return;
-    outputText_ += event.text;
-    trimOutput();
+    output_.append(event.text);
     emit changed();
 }
 
@@ -242,15 +238,6 @@ void SystemIntegrityController::handleFailure(const QString& code, const QString
     resultDescription_ = message;
     errorCode_ = code;
     emit changed();
-}
-
-void SystemIntegrityController::trimOutput()
-{
-    auto bytes = outputText_.toUtf8();
-    if (bytes.size() <= kMaximumOutputBytes) return;
-    const auto tailBytes = kMaximumOutputBytes - kTruncationMarker.size();
-    bytes = kTruncationMarker + bytes.right(tailBytes);
-    outputText_ = QString::fromUtf8(bytes);
 }
 
 } // namespace tweakopedia::app

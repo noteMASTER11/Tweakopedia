@@ -7,9 +7,6 @@ using namespace Qt::StringLiterals;
 namespace tweakopedia::app {
 namespace {
 
-constexpr qsizetype kMaximumOutputBytes = 2 * 1024 * 1024;
-const auto kTruncationMarker = QByteArray("[Начало вывода удалено из экранного буфера]\n");
-
 bool isNetworkDiagnosticStage(execution::SystemToolStage stage)
 {
     switch (stage) {
@@ -76,7 +73,7 @@ NetworkDiagnosticsController::NetworkDiagnosticsController(
 
 QString NetworkDiagnosticsController::state() const { return state_; }
 QString NetworkDiagnosticsController::stageText() const { return stageText_; }
-QString NetworkDiagnosticsController::outputText() const { return outputText_; }
+QString NetworkDiagnosticsController::outputText() const { return output_.text(); }
 QString NetworkDiagnosticsController::resultTitle() const { return resultTitle_; }
 QString NetworkDiagnosticsController::resultDescription() const { return resultDescription_; }
 QString NetworkDiagnosticsController::errorCode() const { return errorCode_; }
@@ -141,7 +138,7 @@ bool NetworkDiagnosticsController::removeFirewallRule(const QString& key)
 
 bool NetworkDiagnosticsController::copyOutput()
 {
-    return desktopServices_->copyText(outputText_);
+    return desktopServices_->copyText(output_.text());
 }
 
 bool NetworkDiagnosticsController::openSessionLog()
@@ -165,7 +162,7 @@ void NetworkDiagnosticsController::beginConfirmedSession()
 {
     if (!pendingNewSession_) return;
     pendingNewSession_ = false;
-    outputText_.clear();
+    output_.clear();
     resultTitle_.clear();
     resultDescription_.clear();
     errorCode_.clear();
@@ -202,8 +199,7 @@ void NetworkDiagnosticsController::handleOutput(const execution::SystemToolOutpu
 {
     if (!busy_) return;
     if (!activeRequestId_.isNull() && event.requestId != activeRequestId_) return;
-    outputText_ += event.text;
-    trimOutput();
+    output_.append(event.text);
     emit changed();
 }
 
@@ -320,14 +316,6 @@ void NetworkDiagnosticsController::clearActionState()
     actionMessage_.clear();
     activeRuleKey_.clear();
     removedRuleKeys_.clear();
-}
-
-void NetworkDiagnosticsController::trimOutput()
-{
-    auto bytes = outputText_.toUtf8();
-    if (bytes.size() <= kMaximumOutputBytes) return;
-    const auto tailBytes = kMaximumOutputBytes - kTruncationMarker.size();
-    outputText_ = QString::fromUtf8(kTruncationMarker + bytes.right(tailBytes));
 }
 
 } // namespace tweakopedia::app

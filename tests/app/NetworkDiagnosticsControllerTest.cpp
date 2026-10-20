@@ -168,6 +168,23 @@ private slots:
         QVERIFY(controller.outputText().startsWith(u"[Начало вывода удалено"_s));
     }
 
+    void carriageReturnUpdatesTheCurrentTerminalLine()
+    {
+        tests::FakeSystemToolRunner runner;
+        FakeDesktopServices desktop;
+        app::NetworkDiagnosticsController controller(runner, desktop);
+        QVERIFY(controller.startDiagnostics());
+        const auto id = QUuid::createUuid();
+        emit runner.stageChanged({id, execution::SystemToolStage::CollectNetworkAdapters});
+
+        emit runner.outputReceived({id, 0, u"Проверено 1 из 6\r"_s});
+        QCOMPARE(controller.outputText(), u"Проверено 1 из 6"_s);
+        emit runner.outputReceived({id, 0, u"Проверено 4 из 6\r"_s});
+        QCOMPARE(controller.outputText(), u"Проверено 4 из 6"_s);
+        emit runner.outputReceived({id, 0, u"Проверено 6 из 6\r\n"_s});
+        QCOMPARE(controller.outputText(), u"Проверено 6 из 6\n"_s);
+    }
+
     void ignoresEventsFromAnotherRequest()
     {
         tests::FakeSystemToolRunner runner;

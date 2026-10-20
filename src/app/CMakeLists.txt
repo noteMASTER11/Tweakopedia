@@ -24,6 +24,8 @@ add_library(TweakopediaApp STATIC
     ISystemIntegrityDesktopServices.h
     SystemIntegrityController.cpp
     SystemIntegrityController.h
+    TerminalOutputBuffer.cpp
+    TerminalOutputBuffer.h
     SystemOverviewPresenter.cpp
     SystemOverviewPresenter.h
     TweakListModel.cpp

@@ -306,152 +306,22 @@ Page {
             }
         }
 
-        Rectangle {
+        LiveCommandOutput {
             Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.minimumHeight: 220
-            radius: 10
-            color: FluentTheme.surface
-            border.width: 1
-            border.color: FluentTheme.stroke
-
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: 14
-                spacing: 10
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
-
-                    FluentText {
-                        Layout.fillWidth: true
-                        text: "Вывод DISM"
-                        color: FluentTheme.textPrimary
-                        font.family: FluentTheme.fontFamily
-                        font.pixelSize: 14
-                        font.weight: Font.DemiBold
-                    }
-
-                    Button {
-                        id: copyButton
-                        objectName: "systemIntegrityCopyButton"
-                        text: "Копировать вывод"
-                        enabled: controller && controller.outputText.length > 0
-                        onClicked: if (controller) controller.copyOutput()
-
-                        contentItem: FluentText {
-                            text: copyButton.text
-                            color: copyButton.enabled ? FluentTheme.textPrimary : FluentTheme.textDisabled
-                            font.family: FluentTheme.fontFamily
-                            font.pixelSize: 12
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                        background: Rectangle {
-                            implicitHeight: 34
-                            radius: 6
-                            color: copyButton.pressed ? FluentTheme.selected
-                                : copyButton.hovered ? FluentTheme.hover : FluentTheme.surface
-                            border.width: 1
-                            border.color: copyButton.activeFocus ? FluentTheme.accent : FluentTheme.stroke
-                        }
-                    }
-                    Button {
-                        id: openLogButton
-                        objectName: "systemIntegrityOpenLogButton"
-                        text: "Открыть журнал DISM"
-                        onClicked: if (controller) controller.openDismLog()
-
-                        contentItem: FluentText {
-                            text: openLogButton.text
-                            color: FluentTheme.textPrimary
-                            font.family: FluentTheme.fontFamily
-                            font.pixelSize: 12
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                        background: Rectangle {
-                            implicitHeight: 34
-                            radius: 6
-                            color: openLogButton.pressed ? FluentTheme.selected
-                                : openLogButton.hovered ? FluentTheme.hover : FluentTheme.surface
-                            border.width: 1
-                            border.color: openLogButton.activeFocus ? FluentTheme.accent : FluentTheme.stroke
-                        }
-                    }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    radius: 7
-                    color: "#101218"
-                    border.width: 1
-                    border.color: "#2B3040"
-
-                    Flickable {
-                        id: terminalScroll
-                        anchors.fill: parent
-                        anchors.margins: 1
-                        clip: true
-                        contentWidth: width
-                        contentHeight: Math.max(height, terminalText.implicitHeight + 24)
-                        boundsBehavior: Flickable.StopAtBounds
-                        property bool following: true
-
-                        onContentYChanged: {
-                            const maximum = Math.max(0, contentHeight - height)
-                            following = maximum - contentY < 4
-                        }
-
-                        TextArea {
-                            id: terminalText
-                            objectName: "systemIntegrityTerminal"
-                            x: 10
-                            y: 8
-                            width: terminalScroll.width - 20
-                            height: Math.max(terminalScroll.height - 16, implicitHeight)
-                            text: controller ? controller.outputText : ""
-                            placeholderText: "Здесь появятся команды и вывод DISM."
-                            readOnly: true
-                            selectByMouse: true
-                            wrapMode: TextEdit.WrapAnywhere
-                            color: "#E6EDF3"
-                            placeholderTextColor: "#798294"
-                            selectionColor: FluentTheme.accent
-                            selectedTextColor: "white"
-                            font.family: "Cascadia Mono, Consolas"
-                            font.pixelSize: 12
-                            background: null
-
-                            onTextChanged: {
-                                if (terminalScroll.following) {
-                                    Qt.callLater(function() {
-                                        terminalScroll.contentY = Math.max(0,
-                                            terminalScroll.contentHeight - terminalScroll.height)
-                                    })
-                                }
-                            }
-                        }
-
-                        ScrollBar.vertical: ScrollBar {}
-                    }
-
-                    Button {
-                        anchors.right: parent.right
-                        anchors.bottom: parent.bottom
-                        anchors.margins: 12
-                        visible: !terminalScroll.following
-                        text: "К последней строке"
-                        onClicked: {
-                            terminalScroll.contentY = Math.max(0,
-                                terminalScroll.contentHeight - terminalScroll.height)
-                            terminalScroll.following = true
-                        }
-                    }
-                }
-            }
+            Layout.preferredHeight: 210
+            title: "Ход выполнения DISM"
+            outputText: controller ? controller.outputText : ""
+            placeholderText: "Здесь появится поток вывода DISM."
+            terminalObjectName: "systemIntegrityTerminal"
+            copyButtonObjectName: "systemIntegrityCopyButton"
+            logButtonObjectName: "systemIntegrityOpenLogButton"
+            logButtonText: "Открыть журнал DISM"
+            busy: controller && controller.busy
+            logEnabled: true
+            onCopyRequested: if (controller) controller.copyOutput()
+            onOpenLogRequested: if (controller) controller.openDismLog()
         }
+
+        Item { Layout.fillHeight: true }
     }
 }

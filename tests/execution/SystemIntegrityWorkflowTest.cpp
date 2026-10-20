@@ -60,6 +60,25 @@ private slots:
         QVERIFY(!result.logPath.isEmpty());
     }
 
+    void forwardsDismChunksWithoutConvertingCarriageReturnsToLines()
+    {
+        QTemporaryDir logs;
+        FakeDismProcessRunner runner;
+        SystemIntegrityWorkflow workflow(runner, logs.path());
+        QSignalSpy output(&workflow, &SystemIntegrityWorkflow::outputReady);
+        const auto requestId = QUuid::createUuid();
+
+        QVERIFY(workflow.start({requestId, SystemToolKind::ComponentStore,
+                                SystemToolOperation::Scan, {}}));
+        output.clear();
+        runner.emitOutput(0, "[==== 12%]\r[======== 47%]\r");
+
+        QCOMPARE(output.size(), 1);
+        QCOMPARE(output.first().at(0).toUuid(), requestId);
+        QCOMPARE(output.first().at(1).toString(),
+                 QString::fromLatin1("[==== 12%]\r[======== 47%]\r"));
+    }
+
     void restoreRunsVerificationAndRequiresRecognizedResult()
     {
         QTemporaryDir logs;

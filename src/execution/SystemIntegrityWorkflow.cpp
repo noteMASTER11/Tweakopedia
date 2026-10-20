@@ -63,8 +63,6 @@ void SystemIntegrityWorkflow::runNext()
     const auto& command = commands_.at(commandIndex_);
     parser_.reset(command.stage);
     lastProgress_ = -1;
-    displayLine_.clear();
-    pendingCarriageReturn_ = false;
     emit stageChanged({request_.requestId, command.stage});
     log_.appendCommand(u"DISM.exe"_s, command.arguments);
     emit outputReady(request_.requestId,
@@ -92,31 +90,11 @@ void SystemIntegrityWorkflow::consumeOutput(const QByteArray& bytes)
     }
 
     const auto text = QString::fromLocal8Bit(bytes);
-    for (const auto character : text) {
-        if (pendingCarriageReturn_) {
-            if (character == u'\n') {
-                emitDisplayLine(displayLine_ + u'\n');
-                displayLine_.clear();
-                pendingCarriageReturn_ = false;
-                continue;
-            }
-            displayLine_.clear();
-            pendingCarriageReturn_ = false;
-        }
-        if (character == u'\r') {
-            pendingCarriageReturn_ = true;
-        } else if (character == u'\n') {
-            emitDisplayLine(displayLine_ + u'\n');
-            displayLine_.clear();
-        } else {
-            displayLine_.append(character);
-        }
-    }
+    if (!text.isEmpty()) emit outputReady(request_.requestId, text);
 }
 
 void SystemIntegrityWorkflow::commandFinished(DismProcessResult result)
 {
-    flushDisplayLine();
     if (result.termination != DismProcessTermination::Normal || result.exitCode != 0) {
         const auto code = result.termination == DismProcessTermination::FailedToStart
             ? u"dism.start_failed"_s
@@ -146,23 +124,6 @@ void SystemIntegrityWorkflow::commandFinished(DismProcessResult result)
               .status = SystemToolResultStatus::Completed,
               .exitCode = 0,
               .outcome = parser_.health()});
-}
-
-void SystemIntegrityWorkflow::emitDisplayLine(QString text)
-{
-    if (!text.isEmpty()) emit outputReady(request_.requestId, text);
-}
-
-void SystemIntegrityWorkflow::flushDisplayLine()
-{
-    if (pendingCarriageReturn_) {
-        displayLine_.clear();
-        pendingCarriageReturn_ = false;
-    }
-    if (!displayLine_.isEmpty()) {
-        emitDisplayLine(displayLine_ + u'\n');
-        displayLine_.clear();
-    }
 }
 
 void SystemIntegrityWorkflow::complete(SystemToolResult result)

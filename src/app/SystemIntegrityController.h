@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/ISystemIntegrityDesktopServices.h"
+#include "app/TerminalOutputBuffer.h"
 #include "execution/ISystemToolRunner.h"
 
 #include <QObject>
@@ -62,7 +63,6 @@ private:
     void handleProgress(const execution::SystemToolProgressEvent& event);
     void handleResult(const execution::SystemToolResult& result);
     void handleFailure(const QString& code, const QString& message);
-    void trimOutput();
 
     execution::ISystemToolRunner* runner_{};
     ISystemIntegrityDesktopServices* desktopServices_{};
@@ -71,7 +71,7 @@ private:
     QString stageText_;
     int progress_{};
     bool progressKnown_{};
-    QString outputText_;
+    TerminalOutputBuffer output_;
     QString resultTitle_;
     QString resultDescription_;
     QString errorCode_;
