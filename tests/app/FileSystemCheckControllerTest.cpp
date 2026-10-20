@@ -176,6 +176,23 @@ private slots:
         QVERIFY(controller.openSessionLog());
         QCOMPARE(desktop.openedPath, u"D:/logs/chkdsk.log"_s);
     }
+
+    void replacesCarriageReturnProgressInsteadOfAppendingTailLines()
+    {
+        tests::FakeLocalVolumeProvider provider;
+        provider.values = {volume(u"C:"_s, {})};
+        tests::FakeSystemToolRunner runner;
+        FakeDesktopServices desktop;
+        app::FileSystemCheckController controller(provider, runner, desktop);
+        QVERIFY(controller.startCheck());
+        emit runner.stageChanged({QUuid::createUuid(),
+                                  execution::SystemToolStage::CheckFileSystem});
+
+        emit runner.outputReceived({QUuid::createUuid(), 0,
+                                    u"Этап 1: 10%\rЭтап 1: 47%\rЭтап 1: 100%\n"_s});
+
+        QCOMPARE(controller.outputText(), u"Этап 1: 100%\n"_s);
+    }
 };
 
 QTEST_APPLESS_MAIN(FileSystemCheckControllerTest)

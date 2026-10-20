@@ -28,20 +28,15 @@ signals:
 
 private:
     void consumeOutput(const QByteArray& bytes);
-    void consumeDisplayText(const QString& text);
     [[nodiscard]] QString decodeOutput(const QByteArray& bytes, bool flush = false);
     void processFinished(DismProcessResult result);
-    void emitDisplayLine(QString text);
-    void flushDisplayLine();
     void complete(SystemToolResult result);
 
     IDismProcessRunner* runner_{};
     QString logsRoot_;
     SystemToolLogWriter log_;
     SystemToolRequest request_;
-    QString displayLine_;
     QByteArray pendingOutputBytes_;
-    bool pendingCarriageReturn_{};
     bool active_{};
 };
 

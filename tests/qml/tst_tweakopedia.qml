@@ -60,6 +60,7 @@ TestCase {
     function articleData(id) {
         return {
             id: id,
+            tweakId: id,
             title: "Диагностические данные Windows",
             summary: "Управляет сбором и отправкой диагностических сведений Windows.",
             purpose: "Поясняет назначение параметра.",
@@ -184,6 +185,14 @@ TestCase {
 
         compare(spy.count, 1)
         compare(spy.signalArguments[0][0], "privacy.diagnostic-data")
+    }
+
+    function test_referenceArticleHidesTweakNavigation() {
+        showArticle("guide.file-system-check")
+        delete articleModel.article.tweakId
+        articleModel.articleChanged()
+        const page = createTemporaryObject(pageComponent, this)
+        compare(findChild(page, "articleOpenTweakButton").visible, false)
     }
 
     function test_contentsScrollsToSectionAndTechnicalObjectIsSelectable() {

@@ -8,9 +8,6 @@ using namespace Qt::StringLiterals;
 namespace tweakopedia::app {
 namespace {
 
-constexpr qsizetype kMaximumOutputBytes = 2 * 1024 * 1024;
-const auto kTruncationMarker = QByteArray("[Начало вывода удалено из экранного буфера]\n");
-
 QString formatBytes(quint64 bytes)
 {
     constexpr quint64 gib = 1024ULL * 1024 * 1024;
@@ -73,7 +70,7 @@ int FileSystemCheckController::selectedVolumeIndex() const { return selectedVolu
 bool FileSystemCheckController::hasVolumes() const { return !volumeData_.isEmpty(); }
 QString FileSystemCheckController::state() const { return state_; }
 QString FileSystemCheckController::stageText() const { return stageText_; }
-QString FileSystemCheckController::outputText() const { return outputText_; }
+QString FileSystemCheckController::outputText() const { return output_.text(); }
 QString FileSystemCheckController::resultTitle() const { return resultTitle_; }
 QString FileSystemCheckController::resultDescription() const { return resultDescription_; }
 QString FileSystemCheckController::errorCode() const { return errorCode_; }
@@ -125,7 +122,7 @@ bool FileSystemCheckController::startCheck()
 
 bool FileSystemCheckController::copyOutput()
 {
-    return desktopServices_->copyText(outputText_);
+    return desktopServices_->copyText(output_.text());
 }
 
 bool FileSystemCheckController::openSessionLog()
@@ -149,7 +146,7 @@ void FileSystemCheckController::beginConfirmedSession()
 {
     if (!pendingNewSession_) return;
     pendingNewSession_ = false;
-    outputText_.clear();
+    output_.clear();
     resultTitle_.clear();
     resultDescription_.clear();
     errorCode_.clear();
@@ -171,8 +168,7 @@ void FileSystemCheckController::handleOutput(
     const execution::SystemToolOutputEvent& event)
 {
     if (!busy_) return;
-    outputText_ += event.text;
-    trimOutput();
+    output_.append(event.text);
     emit changed();
 }
 
@@ -235,14 +231,6 @@ void FileSystemCheckController::handleFailure(
     resultDescription_ = message;
     errorCode_ = code;
     emit changed();
-}
-
-void FileSystemCheckController::trimOutput()
-{
-    auto bytes = outputText_.toUtf8();
-    if (bytes.size() <= kMaximumOutputBytes) return;
-    const auto tailBytes = kMaximumOutputBytes - kTruncationMarker.size();
-    outputText_ = QString::fromUtf8(kTruncationMarker + bytes.right(tailBytes));
 }
 
 void FileSystemCheckController::rebuildVolumeModel(const QString& preferredTarget)

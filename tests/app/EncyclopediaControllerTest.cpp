@@ -124,7 +124,7 @@ private slots:
         QCOMPARE(controller.tree()->articleCount(), 1);
         QCOMPARE(selectedCount(*controller.tree()), 0);
         controller.clearSearch();
-        QCOMPARE(controller.tree()->articleCount(), 3);
+        QCOMPARE(controller.tree()->articleCount(), 6);
         QCOMPARE(selectedCount(*controller.tree()), 1);
     }
 

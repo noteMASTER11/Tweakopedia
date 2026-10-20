@@ -17,6 +17,7 @@ Page {
     property int firewallRuleLimit: 12
     signal backRequested()
     signal recoveryRequested()
+    signal articleRequested(string id)
 
     function primaryText() {
         if (controller && controller.busy)
@@ -90,6 +91,35 @@ Page {
 
     padding: 0
     background: Rectangle { color: FluentTheme.canvas }
+
+    footer: Item {
+        implicitHeight: networkDiagnosticsResultGuide.implicitHeight + 20
+
+        Rectangle {
+            anchors.fill: parent
+            color: FluentTheme.canvas
+        }
+
+        ToolResultGuide {
+            id: networkDiagnosticsResultGuide
+            objectName: "networkDiagnosticsResultGuide"
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.leftMargin: 28
+            anchors.rightMargin: detailPane.opened && root.detailDocked
+                ? detailPane.width + 28 : 28
+            title: "Если диагностика сети нашла отклонения"
+            description: "Отметка требует проверки, но сама по себе не доказывает неисправность: пользовательские DNS, прокси, маршруты, hosts и правила Windows Firewall могут быть настроены намеренно."
+            actions: [
+                "Откройте отмеченный пункт в списке и сопоставьте адреса, программы и правила с установленным ПО и вашей сетью.",
+                "Удаляйте только явно ненужные пользовательские правила Windows Firewall; перед удалением приложение сохраняет текущую политику.",
+                "Если адаптер, DNS или маршрут недоступны, проверьте DHCP, шлюз и параметры адаптера, затем повторите диагностику."
+            ]
+            articleId: "guide.network-diagnostics"
+            onArticleRequested: id => root.articleRequested(id)
+        }
+    }
 
     ScrollView {
         id: pageScroll
@@ -853,7 +883,7 @@ Page {
 
                         RowLayout {
                             Layout.fillWidth: true
-                            visible: root.selectedCheck.items
+                            visible: !!root.selectedCheck.items
                                 && root.firewallRuleLimit < root.selectedCheck.items.length
                             spacing: 10
 

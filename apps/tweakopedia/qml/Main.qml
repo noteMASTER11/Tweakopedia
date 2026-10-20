@@ -65,6 +65,10 @@ ApplicationWindow {
                 integrityController: systemIntegrityController
                 fileSystemController: fileSystemCheckController
                 networkController: networkDiagnosticsController
+                onArticleRequested: function(articleId) {
+                    appController.encyclopedia.openArticle(articleId)
+                    navigation.currentIndex = 2
+                }
             }
             SettingsPage { controller: settingsController }
             AboutPage {}

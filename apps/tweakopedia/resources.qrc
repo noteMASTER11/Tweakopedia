@@ -41,6 +41,7 @@
     <file alias="qml/components/ArticleContents.qml">qml/components/ArticleContents.qml</file>
     <file alias="qml/components/RelatedArticleCard.qml">qml/components/RelatedArticleCard.qml</file>
     <file alias="qml/components/LiveCommandOutput.qml">qml/components/LiveCommandOutput.qml</file>
+    <file alias="qml/components/ToolResultGuide.qml">qml/components/ToolResultGuide.qml</file>
     <file alias="images/windows-10.svg">images/windows-10.svg</file>
     <file alias="images/windows-11.svg">images/windows-11.svg</file>
     <file alias="images/windows.svg">images/windows.svg</file>

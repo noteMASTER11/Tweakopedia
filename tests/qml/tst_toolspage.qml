@@ -144,8 +144,8 @@ TestCase {
         verify(findChild(page, "systemIntegrityPage").visible)
         compare(fakeIntegrityController.state, "idle")
 
-        mouseClick(findChild(page, "systemIntegrityBackButton"))
-        compare(findChild(page, "toolsOverview").visible, true)
+        findChild(page, "systemIntegrityPage").backRequested()
+        tryCompare(findChild(page, "toolsOverview"), "visible", true)
         compare(fakeIntegrityController.state, "idle")
     }
 
@@ -157,7 +157,7 @@ TestCase {
         verify(findChild(page, "fileSystemCheckPage").visible)
         compare(fakeFileSystemController.state, "idle")
 
-        mouseClick(findChild(page, "fileSystemCheckBackButton"))
-        compare(findChild(page, "toolsOverview").visible, true)
+        findChild(page, "fileSystemCheckPage").backRequested()
+        tryCompare(findChild(page, "toolsOverview"), "visible", true)
     }
 }

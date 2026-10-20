@@ -1,4 +1,5 @@
 #include "app/EncyclopediaArticleModel.h"
+#include "app/EncyclopediaReferenceArticles.h"
 
 #include <QSet>
 
@@ -185,9 +186,11 @@ void EncyclopediaArticleModel::reset(
         emit articleChanged();
         return;
     }
-    const auto* selected = find(selectedArticleId_);
-    if (selected) article_ = buildArticle(*selected);
-    else {
+    if (const auto* selected = find(selectedArticleId_)) {
+        article_ = buildArticle(*selected);
+    } else if (const auto* selected = findEncyclopediaReferenceArticle(selectedArticleId_)) {
+        article_ = buildArticle(*selected);
+    } else {
         selectedArticleId_.clear();
         article_.clear();
     }
@@ -196,15 +199,20 @@ void EncyclopediaArticleModel::reset(
 
 bool EncyclopediaArticleModel::selectArticle(const QString& id)
 {
-    const auto* tweak = find(id);
-    if (!tweak) {
-        clear();
-        return false;
+    if (const auto* tweak = find(id)) {
+        selectedArticleId_ = id;
+        article_ = buildArticle(*tweak);
+        emit articleChanged();
+        return true;
     }
-    selectedArticleId_ = id;
-    article_ = buildArticle(*tweak);
-    emit articleChanged();
-    return true;
+    if (const auto* reference = findEncyclopediaReferenceArticle(id)) {
+        selectedArticleId_ = id;
+        article_ = buildArticle(*reference);
+        emit articleChanged();
+        return true;
+    }
+    clear();
+    return false;
 }
 
 void EncyclopediaArticleModel::clear()
@@ -272,6 +280,7 @@ QVariantMap EncyclopediaArticleModel::buildArticle(const domain::TweakDefinition
 
     return {
         {u"id"_s, tweak.id.toString()},
+        {u"tweakId"_s, tweak.id.toString()},
         {u"title"_s, tweak.title},
         {u"summary"_s, tweak.summary},
         {u"purpose"_s, tweak.explanation.purpose},
@@ -286,6 +295,58 @@ QVariantMap EncyclopediaArticleModel::buildArticle(const domain::TweakDefinition
         }},
         {u"relatedArticles"_s, relatedArticles(tweak)},
     };
+}
+
+QVariantMap EncyclopediaArticleModel::buildArticle(
+    const EncyclopediaReferenceArticle& reference) const
+{
+    QVariantList sections;
+    sections.reserve(reference.sections.size());
+    for (const auto& section : reference.sections) {
+        sections.append(QVariantMap{
+            {u"id"_s, section.id},
+            {u"title"_s, section.title},
+            {u"text"_s, section.text},
+            {u"technical"_s, section.technical},
+        });
+    }
+    return {
+        {u"id"_s, reference.id},
+        {u"title"_s, reference.title},
+        {u"summary"_s, reference.summary},
+        {u"purpose"_s, reference.purpose},
+        {u"breadcrumbs"_s, QStringList{
+            u"Твикопедия"_s, reference.categoryTitle, reference.subcategoryTitle}},
+        {u"sections"_s, sections},
+        {u"technicalObjects"_s, reference.technicalObjects},
+        {u"compatibility"_s, QVariantMap{
+            {u"operatingSystems"_s, QStringList{u"Windows 10"_s, u"Windows 11"_s}},
+            {u"architectures"_s, QStringList{u"x64"_s}},
+        }},
+        {u"restart"_s, QVariantMap{
+            {u"id"_s, u"none"_s},
+            {u"title"_s, u"Не требуется"_s},
+            {u"required"_s, false},
+        }},
+        {u"relatedArticles"_s, relatedArticles(reference)},
+    };
+}
+
+QVariantList EncyclopediaArticleModel::relatedArticles(
+    const EncyclopediaReferenceArticle& reference) const
+{
+    QVariantList result;
+    for (const auto& id : reference.relatedArticleIds) {
+        const auto* related = findEncyclopediaReferenceArticle(id);
+        if (!related) continue;
+        result.append(QVariantMap{
+            {u"id"_s, related->id},
+            {u"title"_s, related->title},
+            {u"summary"_s, related->summary},
+            {u"path"_s, related->categoryTitle + u" › "_s + related->subcategoryTitle},
+        });
+    }
+    return result;
 }
 
 QVariantList EncyclopediaArticleModel::relatedArticles(

@@ -22,6 +22,7 @@ private:
     QString committed_;
     QString currentLine_;
     qsizetype cursor_{};
+    bool carriageReturnPending_{};
 };
 
 } // namespace tweakopedia::app

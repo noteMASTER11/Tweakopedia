@@ -104,13 +104,14 @@ Item {
                     Button {
                         id: openTweakButton
                         objectName: "articleOpenTweakButton"
+                        visible: (root.articleData.tweakId || "").length > 0
                         Layout.alignment: Qt.AlignTop
                         leftPadding: 14
                         rightPadding: 14
                         topPadding: 9
                         bottomPadding: 9
                         Accessible.name: "Перейти к твику: " + (root.articleData.title || "")
-                        onClicked: root.tweakRequested(root.articleData.id || "")
+                        onClicked: root.tweakRequested(root.articleData.tweakId || "")
 
                         contentItem: RowLayout {
                             spacing: 7

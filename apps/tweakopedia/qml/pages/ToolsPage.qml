@@ -12,6 +12,7 @@ Page {
     property var fileSystemController
     property var networkController
     readonly property bool wideLayout: width >= 820
+    signal articleRequested(string id)
     padding: 0
 
     background: Rectangle {
@@ -243,17 +244,20 @@ Page {
         SystemIntegrityPage {
             controller: root.integrityController
             onBackRequested: root.selectedToolIndex = -1
+            onArticleRequested: id => root.articleRequested(id)
         }
 
         FileSystemCheckPage {
             controller: root.fileSystemController
             onBackRequested: root.selectedToolIndex = -1
+            onArticleRequested: id => root.articleRequested(id)
         }
 
         NetworkDiagnosticsPage {
             controller: root.networkController
             onBackRequested: root.selectedToolIndex = -1
             onRecoveryRequested: root.selectedToolIndex = 3
+            onArticleRequested: id => root.articleRequested(id)
         }
 
         Item {

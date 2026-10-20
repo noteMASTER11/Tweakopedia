@@ -12,6 +12,7 @@ Page {
     readonly property bool wideLayout: width >= 760
     readonly property string toolState: controller ? controller.state : "idle"
     signal backRequested()
+    signal articleRequested(string id)
 
     function primaryText() {
         if (toolState === "repairable")
@@ -53,13 +54,51 @@ Page {
     padding: 0
     background: Rectangle { color: FluentTheme.canvas }
 
-    ColumnLayout {
+    footer: Item {
+        implicitHeight: systemIntegrityResultGuide.implicitHeight + 20
+
+        Rectangle {
+            anchors.fill: parent
+            color: FluentTheme.canvas
+        }
+
+        ToolResultGuide {
+            id: systemIntegrityResultGuide
+            objectName: "systemIntegrityResultGuide"
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.leftMargin: 28
+            anchors.rightMargin: 28
+            title: "Если DISM обнаружил повреждение"
+            description: "Это означает, что хранилище компонентов Windows содержит отсутствующие или повреждённые данные, используемые при обслуживании системы."
+            actions: [
+                "Нажмите «Восстановить»: приложение выполнит DISM /RestoreHealth и затем повторно проверит состояние хранилища.",
+                "После успешного восстановления повторите проверку; при неполадках системных файлов дополнительно выполните sfc /scannow.",
+                "Если восстановление не завершилось, откройте журнал DISM и проверьте код ошибки; может потребоваться источник файлов той же версии Windows."
+            ]
+            articleId: "guide.system-integrity"
+            onArticleRequested: id => root.articleRequested(id)
+        }
+    }
+
+    ScrollView {
+        id: systemIntegrityScroll
         anchors.fill: parent
-        anchors.leftMargin: 28
-        anchors.rightMargin: 28
-        anchors.topMargin: 22
-        anchors.bottomMargin: 24
-        spacing: 14
+        contentWidth: availableWidth
+        clip: true
+        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+
+        Item {
+            width: systemIntegrityScroll.availableWidth
+            implicitHeight: systemIntegrityContent.implicitHeight + 46
+
+            ColumnLayout {
+                id: systemIntegrityContent
+                x: 28
+                y: 22
+                width: parent.width - 56
+                spacing: 14
 
         RowLayout {
             Layout.fillWidth: true
@@ -275,7 +314,7 @@ Page {
 
                         contentItem: FluentText {
                             text: primaryButton.text
-                            color: primaryButton.enabled ? "white" : FluentTheme.textDisabled
+                            color: primaryButton.enabled ? "white" : FluentTheme.disabledText
                             font.family: FluentTheme.fontFamily
                             font.pixelSize: 13
                             font.weight: Font.DemiBold
@@ -288,7 +327,7 @@ Page {
                                 : primaryButton.pressed ? FluentTheme.accentPressed
                                 : primaryButton.hovered ? FluentTheme.accentHover : FluentTheme.accent
                             border.width: primaryButton.activeFocus ? 2 : 0
-                            border.color: FluentTheme.accentDark
+                            border.color: FluentTheme.accentPressed
                         }
                     }
 
@@ -322,6 +361,8 @@ Page {
             onOpenLogRequested: if (controller) controller.openDismLog()
         }
 
-        Item { Layout.fillHeight: true }
+                Item { Layout.preferredHeight: 2 }
+            }
+        }
     }
 }

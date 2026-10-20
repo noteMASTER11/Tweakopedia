@@ -64,6 +64,9 @@ private slots:
         QCOMPARE(qvariant_cast<SystemToolStageEvent>(stages.first().first()).stage,
                  SystemToolStage::CheckFileSystem);
         QVERIFY(output.size() >= 2);
+        QString streamed;
+        for (const auto& event : output) streamed += event.at(1).toString();
+        QVERIFY(streamed.contains(u"Stage 1\r17 percent\r\ncomplete\n"_s));
         QCOMPARE(finished.size(), 1);
         const auto result = qvariant_cast<SystemToolResult>(finished.first().first());
         QCOMPARE(result.status, SystemToolResultStatus::Completed);

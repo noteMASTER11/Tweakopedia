@@ -123,6 +123,10 @@ TestCase {
             target: page,
             signalName: "recoveryRequested"
         })
+        const scroll = findChild(page, "networkDiagnosticsPageScroll")
+        scroll.contentItem.contentY = Math.max(0,
+            scroll.contentItem.contentHeight - scroll.contentItem.height)
+        wait(0)
         mouseClick(findChild(page, "networkDiagnosticsRecoveryButton"))
         compare(recoverySpy.count, 1)
     }
@@ -296,6 +300,19 @@ TestCase {
         verify(moreButton.visible)
         mouseClick(moreButton)
         compare(findChild(page, "firewallRuleRepeater").count, 24)
+    }
+
+    function test_resultGuideOpensFullArticle() {
+        const page = createTemporaryObject(pageComponent, this)
+        const articleSpy = signalSpy.createObject(page, {
+            target: page,
+            signalName: "articleRequested"
+        })
+        const button = findChild(page, "toolResultGuideArticleButton")
+        verify(button)
+        mouseClick(button)
+        compare(articleSpy.count, 1)
+        compare(articleSpy.signalArguments[0][0], "guide.network-diagnostics")
     }
 
     Component { id: signalSpy; SignalSpy {} }

@@ -91,9 +91,7 @@ bool FileSystemCheckWorkflow::start(const SystemToolRequest& request)
         return false;
     }
 
-    displayLine_.clear();
     pendingOutputBytes_.clear();
-    pendingCarriageReturn_ = false;
     active_ = true;
     emit stageChanged({request.requestId, SystemToolStage::CheckFileSystem});
     const QStringList arguments{request.target};
@@ -121,32 +119,8 @@ bool FileSystemCheckWorkflow::active() const noexcept
 void FileSystemCheckWorkflow::consumeOutput(const QByteArray& bytes)
 {
     log_.appendOutput(bytes);
-    consumeDisplayText(decodeOutput(bytes));
-}
-
-void FileSystemCheckWorkflow::consumeDisplayText(const QString& text)
-{
-    for (const auto character : text) {
-        if (pendingCarriageReturn_) {
-            if (character == u'\n') {
-                emitDisplayLine(displayLine_ + u'\n');
-                displayLine_.clear();
-                pendingCarriageReturn_ = false;
-                continue;
-            }
-            if (!displayLine_.isEmpty()) emitDisplayLine(displayLine_ + u'\n');
-            displayLine_.clear();
-            pendingCarriageReturn_ = false;
-        }
-        if (character == u'\r') {
-            pendingCarriageReturn_ = true;
-        } else if (character == u'\n') {
-            emitDisplayLine(displayLine_ + u'\n');
-            displayLine_.clear();
-        } else {
-            displayLine_.append(character);
-        }
-    }
+    const auto text = decodeOutput(bytes);
+    if (!text.isEmpty()) emit outputReady(request_.requestId, text);
 }
 
 QString FileSystemCheckWorkflow::decodeOutput(const QByteArray& bytes, const bool flush)
@@ -162,8 +136,8 @@ QString FileSystemCheckWorkflow::decodeOutput(const QByteArray& bytes, const boo
 
 void FileSystemCheckWorkflow::processFinished(DismProcessResult result)
 {
-    consumeDisplayText(decodeOutput({}, true));
-    flushDisplayLine();
+    const auto remainingText = decodeOutput({}, true);
+    if (!remainingText.isEmpty()) emit outputReady(request_.requestId, remainingText);
     if (result.termination != DismProcessTermination::Normal) {
         const auto code = result.termination == DismProcessTermination::FailedToStart
             ? u"chkdsk.start_failed"_s : u"chkdsk.crashed"_s;
@@ -210,23 +184,6 @@ void FileSystemCheckWorkflow::processFinished(DismProcessResult result)
               .outcome = outcome,
               .code = code,
               .message = message});
-}
-
-void FileSystemCheckWorkflow::emitDisplayLine(QString text)
-{
-    if (!text.isEmpty()) emit outputReady(request_.requestId, text);
-}
-
-void FileSystemCheckWorkflow::flushDisplayLine()
-{
-    if (pendingCarriageReturn_) {
-        if (!displayLine_.isEmpty()) emitDisplayLine(displayLine_ + u'\n');
-        displayLine_.clear();
-        pendingCarriageReturn_ = false;
-    } else if (!displayLine_.isEmpty()) {
-        emitDisplayLine(displayLine_ + u'\n');
-        displayLine_.clear();
-    }
 }
 
 void FileSystemCheckWorkflow::complete(SystemToolResult result)

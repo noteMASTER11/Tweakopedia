@@ -19,6 +19,7 @@ void TerminalOutputBuffer::clear()
     committed_.clear();
     currentLine_.clear();
     cursor_ = 0;
+    carriageReturnPending_ = false;
 }
 
 void TerminalOutputBuffer::append(const QStringView chunk)
@@ -26,11 +27,17 @@ void TerminalOutputBuffer::append(const QStringView chunk)
     for (const auto character : chunk) {
         if (character == u'\r') {
             cursor_ = 0;
+            carriageReturnPending_ = true;
             continue;
         }
         if (character == u'\n') {
             commitLine();
             continue;
+        }
+        if (carriageReturnPending_) {
+            currentLine_.clear();
+            cursor_ = 0;
+            carriageReturnPending_ = false;
         }
         if (character == u'\b') {
             if (cursor_ > 0) --cursor_;
@@ -57,6 +64,7 @@ void TerminalOutputBuffer::commitLine()
     committed_ += u'\n';
     currentLine_.clear();
     cursor_ = 0;
+    carriageReturnPending_ = false;
 }
 
 void TerminalOutputBuffer::trim()

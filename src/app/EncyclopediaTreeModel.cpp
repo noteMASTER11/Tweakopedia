@@ -1,4 +1,5 @@
 #include "app/EncyclopediaTreeModel.h"
+#include "app/EncyclopediaReferenceArticles.h"
 
 #include <QSet>
 
@@ -130,6 +131,7 @@ void EncyclopediaTreeModel::reset(
 {
     beginResetModel();
     categories_ = categories.categories();
+    categories_.append(encyclopediaReferenceCategory());
     QHash<QString, QString> navigationTitles;
     for (const auto& category : categories_) {
         for (const auto& subcategory : category.subcategories) {
@@ -139,7 +141,7 @@ void EncyclopediaTreeModel::reset(
         }
     }
     articles_.clear();
-    articles_.reserve(catalog.tweaks().size());
+    articles_.reserve(catalog.tweaks().size() + encyclopediaReferenceArticles().size());
     int sourceOrder = 0;
     for (const auto& tweak : catalog.tweaks()) {
         const auto body = QStringList{
@@ -163,6 +165,25 @@ void EncyclopediaTreeModel::reset(
                 normalize(u"Другие материалы Без раздела"_s)),
             .bodySearch = normalize(body),
             .technicalSearch = normalize(technicalTerms(tweak)),
+            .sourceOrder = sourceOrder++,
+        });
+    }
+    for (const auto& reference : encyclopediaReferenceArticles()) {
+        QStringList body;
+        body.reserve(reference.sections.size());
+        for (const auto& section : reference.sections) body.append(section.text);
+        articles_.append({
+            .id = reference.id,
+            .title = reference.title,
+            .categoryId = reference.categoryId,
+            .subcategoryId = reference.subcategoryId,
+            .summary = reference.summary,
+            .titleSearch = normalize(reference.title),
+            .summarySearch = normalize(reference.summary),
+            .navigationSearch = navigationTitles.value(
+                reference.categoryId + u'\n' + reference.subcategoryId),
+            .bodySearch = normalize(body.join(u' ')),
+            .technicalSearch = normalize(reference.technicalObjects.join(u' ')),
             .sourceOrder = sourceOrder++,
         });
     }

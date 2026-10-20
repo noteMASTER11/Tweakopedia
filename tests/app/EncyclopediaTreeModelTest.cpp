@@ -118,7 +118,7 @@ private slots:
 
         model.reset(catalog, categoryCatalog);
 
-        QCOMPARE(model.rowCount(), 2);
+        QCOMPARE(model.rowCount(), 3);
         const auto privacy = childByTitle(model, u"Конфиденциальность");
         QVERIFY(privacy.isValid());
         QCOMPARE(model.data(privacy, app::EncyclopediaTreeModel::NodeTypeRole).toString(), u"category"_s);
@@ -152,6 +152,26 @@ private slots:
         QCOMPARE(model.rowCount(subsection), 1);
         QCOMPARE(model.data(model.index(0, 0, subsection), app::EncyclopediaTreeModel::IdRole).toString(),
                  u"orphan.hidden-setting"_s);
+    }
+
+    void includesDiagnosticGuidesAndFindsThemByCommand()
+    {
+        app::EncyclopediaTreeModel model;
+        const auto catalog = tweaks();
+        const auto categoryCatalog = categories();
+        model.reset(catalog, categoryCatalog);
+
+        const auto guides = childByTitle(model, u"Диагностика и восстановление");
+        QVERIFY(guides.isValid());
+        QCOMPARE(model.rowCount(guides), 3);
+
+        model.setQuery(u"chkdsk.exe"_s);
+        QCOMPARE(model.articleCount(), 1);
+        const auto filteredGuides = model.index(0, 0);
+        const auto fileSystem = model.index(0, 0, filteredGuides);
+        const auto article = model.index(0, 0, fileSystem);
+        QCOMPARE(model.data(article, app::EncyclopediaTreeModel::IdRole).toString(),
+                 u"guide.file-system-check"_s);
     }
 
     void normalizesAndRanksSearchResults()
@@ -194,8 +214,8 @@ private slots:
                  u"privacy.diagnostic-data"_s);
 
         model.setQuery({});
-        QCOMPARE(model.articleCount(), 4);
-        QCOMPARE(model.rowCount(), 2);
+        QCOMPARE(model.articleCount(), 7);
+        QCOMPARE(model.rowCount(), 3);
     }
 
     void searchesLocalizedCategoryAndSubcategoryTitles()

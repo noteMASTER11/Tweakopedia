@@ -289,12 +289,12 @@ private slots:
 
         QVERIFY(controller.startup());
         QVERIFY(controller.encyclopedia() != nullptr);
-        QCOMPARE(controller.encyclopedia()->tree()->articleCount(), 2);
+        QCOMPARE(controller.encyclopedia()->tree()->articleCount(), 5);
 
         controller.setHideUnsupportedTweaks(true);
 
         QCOMPARE(controller.filteredTweaks()->rowCount(), 1);
-        QCOMPARE(controller.encyclopedia()->tree()->articleCount(), 2);
+        QCOMPARE(controller.encyclopedia()->tree()->articleCount(), 5);
     }
 
     void hidingUnsupportedTweaksRemovesEmptyCategoriesAndResetsSelection()
@@ -403,7 +403,7 @@ private slots:
         QTRY_COMPARE(controller.appRemovalScanStatus(), u"succeeded"_s);
         QCOMPARE(backend.appRemovalScans, 1);
         QCOMPARE(controller.tweaks()->rowCount(), 2);
-        QCOMPARE(controller.encyclopedia()->tree()->articleCount(), 2);
+        QCOMPARE(controller.encyclopedia()->tree()->articleCount(), 5);
     }
 
     void returningToggleToActualStateRemovesQueueItem()

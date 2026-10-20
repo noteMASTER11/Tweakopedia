@@ -2,6 +2,7 @@
 
 #include "content/CategoryCatalog.h"
 #include "content/TweakCatalog.h"
+#include "app/EncyclopediaReferenceArticles.h"
 
 #include <QObject>
 #include <QVariantMap>
@@ -32,7 +33,11 @@ signals:
 
 private:
     [[nodiscard]] const domain::TweakDefinition* find(QStringView id) const;
+    [[nodiscard]] QVariantMap buildArticle(
+        const EncyclopediaReferenceArticle& article) const;
     [[nodiscard]] QVariantMap buildArticle(const domain::TweakDefinition& tweak) const;
+    [[nodiscard]] QVariantList relatedArticles(
+        const EncyclopediaReferenceArticle& article) const;
     [[nodiscard]] QVariantList relatedArticles(const domain::TweakDefinition& tweak) const;
     [[nodiscard]] QString categoryTitle(QStringView id) const;
     [[nodiscard]] QString subcategoryTitle(QStringView categoryId, QStringView id) const;

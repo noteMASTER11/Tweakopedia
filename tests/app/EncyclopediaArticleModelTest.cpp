@@ -149,6 +149,26 @@ private slots:
         QVERIFY(model.article().isEmpty());
     }
 
+    void buildsReferenceArticleWithoutTweakNavigation()
+    {
+        const content::TweakCatalog catalog;
+        const auto categoryCatalog = categories();
+        app::EncyclopediaArticleModel model;
+        model.reset(catalog, categoryCatalog);
+
+        QVERIFY(model.selectArticle(u"guide.file-system-check"_s));
+        const auto article = model.article();
+        QCOMPARE(article.value(u"title"_s).toString(),
+                 u"Проверка файловой системы с помощью CHKDSK"_s);
+        QVERIFY(!article.contains(u"tweakId"_s));
+        QVERIFY(article.value(u"sections"_s).toList().size() >= 5);
+        QVERIFY(article.value(u"technicalObjects"_s).toStringList()
+                    .contains(u"chkdsk.exe"_s));
+        QCOMPARE(article.value(u"breadcrumbs"_s).toStringList().at(1),
+                 u"Диагностика и восстановление"_s);
+        QCOMPARE(article.value(u"relatedArticles"_s).toList().size(), 2);
+    }
+
     void ranksAndDeduplicatesRelatedArticles()
     {
         auto primary = makeTweak(

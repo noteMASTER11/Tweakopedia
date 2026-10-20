@@ -12,6 +12,7 @@ Page {
     readonly property string toolState: controller ? controller.state : "idle"
     readonly property bool narrowLayout: width < 720
     signal backRequested()
+    signal articleRequested(string id)
 
     function primaryText() {
         if (controller && controller.busy)
@@ -44,13 +45,51 @@ Page {
     padding: 0
     background: Rectangle { color: FluentTheme.canvas }
 
-    ColumnLayout {
+    footer: Item {
+        implicitHeight: fileSystemCheckResultGuide.implicitHeight + 20
+
+        Rectangle {
+            anchors.fill: parent
+            color: FluentTheme.canvas
+        }
+
+        ToolResultGuide {
+            id: fileSystemCheckResultGuide
+            objectName: "fileSystemCheckResultGuide"
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.leftMargin: 28
+            anchors.rightMargin: 28
+            title: "Если CHKDSK обнаружил ошибки"
+            description: "Проверка в Tweakopedia работает только на чтение. Найденные ошибки означают несогласованность структуры NTFS либо проблемы чтения накопителя; приложение ничего не исправляет автоматически."
+            actions: [
+                "Сначала сохраните важные файлы с выбранного тома на другой накопитель.",
+                "Для исправления логических ошибок запустите chkdsk X: /f; системный том Windows предложит проверить при перезагрузке.",
+                "При сообщениях о повреждённых секторах или повторяющихся ошибках проверьте состояние накопителя и не откладывайте его замену."
+            ]
+            articleId: "guide.file-system-check"
+            onArticleRequested: id => root.articleRequested(id)
+        }
+    }
+
+    ScrollView {
+        id: fileSystemCheckScroll
         anchors.fill: parent
-        anchors.leftMargin: 28
-        anchors.rightMargin: 28
-        anchors.topMargin: 22
-        anchors.bottomMargin: 24
-        spacing: 14
+        contentWidth: availableWidth
+        clip: true
+        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+
+        Item {
+            width: fileSystemCheckScroll.availableWidth
+            implicitHeight: fileSystemCheckContent.implicitHeight + 46
+
+            ColumnLayout {
+                id: fileSystemCheckContent
+                x: 28
+                y: 22
+                width: parent.width - 56
+                spacing: 14
 
         RowLayout {
             Layout.fillWidth: true
@@ -326,141 +365,23 @@ Page {
             }
         }
 
-        Rectangle {
+        LiveCommandOutput {
             Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.minimumHeight: 176
-            radius: 10
-            color: FluentTheme.surface
-            border.width: 1
-            border.color: FluentTheme.stroke
+            Layout.preferredHeight: 210
+            title: "Ход выполнения CHKDSK"
+            outputText: controller ? controller.outputText : ""
+            placeholderText: "Здесь появится поток вывода CHKDSK."
+            terminalObjectName: "fileSystemCheckTerminal"
+            copyButtonObjectName: "fileSystemCheckCopyButton"
+            logButtonObjectName: "fileSystemCheckOpenLogButton"
+            logButtonText: "Открыть журнал CHKDSK"
+            busy: controller && controller.busy
+            logEnabled: controller && controller.sessionLogPath.length > 0
+            onCopyRequested: if (controller) controller.copyOutput()
+            onOpenLogRequested: if (controller) controller.openSessionLog()
+        }
 
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: 14
-                spacing: 10
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
-
-                    FluentText {
-                        Layout.fillWidth: true
-                        text: "Вывод CHKDSK"
-                        color: FluentTheme.textPrimary
-                        font.family: FluentTheme.fontFamily
-                        font.pixelSize: 14
-                        font.weight: Font.DemiBold
-                    }
-
-                    Button {
-                        id: copyButton
-                        objectName: "fileSystemCheckCopyButton"
-                        text: "Копировать"
-                        enabled: controller && controller.outputText.length > 0
-                        onClicked: if (controller) controller.copyOutput()
-
-                        contentItem: FluentText {
-                            text: copyButton.text
-                            color: copyButton.enabled ? FluentTheme.textPrimary : FluentTheme.disabledText
-                            font.family: FluentTheme.fontFamily
-                            font.pixelSize: 12
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                        background: Rectangle {
-                            implicitWidth: 104
-                            implicitHeight: 34
-                            radius: 6
-                            color: copyButton.pressed ? FluentTheme.selected
-                                : copyButton.hovered ? FluentTheme.hover : FluentTheme.surface
-                            border.width: 1
-                            border.color: copyButton.activeFocus ? FluentTheme.accent : FluentTheme.stroke
-                        }
-                    }
-                    Button {
-                        id: openLogButton
-                        objectName: "fileSystemCheckOpenLogButton"
-                        text: "Открыть журнал"
-                        enabled: controller && controller.sessionLogPath.length > 0
-                        onClicked: if (controller) controller.openSessionLog()
-
-                        contentItem: FluentText {
-                            text: openLogButton.text
-                            color: openLogButton.enabled ? FluentTheme.textPrimary : FluentTheme.disabledText
-                            font.family: FluentTheme.fontFamily
-                            font.pixelSize: 12
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                        background: Rectangle {
-                            implicitWidth: 124
-                            implicitHeight: 34
-                            radius: 6
-                            color: openLogButton.pressed ? FluentTheme.selected
-                                : openLogButton.hovered ? FluentTheme.hover : FluentTheme.surface
-                            border.width: 1
-                            border.color: openLogButton.activeFocus ? FluentTheme.accent : FluentTheme.stroke
-                        }
-                    }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    radius: 7
-                    color: "#101218"
-                    border.width: 1
-                    border.color: "#2B3040"
-
-                    Flickable {
-                        id: terminalScroll
-                        anchors.fill: parent
-                        anchors.margins: 1
-                        clip: true
-                        contentWidth: width
-                        contentHeight: Math.max(height, terminalText.implicitHeight + 24)
-                        boundsBehavior: Flickable.StopAtBounds
-                        property bool following: true
-
-                        onContentYChanged: {
-                            const maximum = Math.max(0, contentHeight - height)
-                            following = maximum - contentY < 4
-                        }
-
-                        TextArea {
-                            id: terminalText
-                            objectName: "fileSystemCheckTerminal"
-                            x: 10
-                            y: 8
-                            width: terminalScroll.width - 20
-                            height: Math.max(terminalScroll.height - 16, implicitHeight)
-                            text: controller ? controller.outputText : ""
-                            placeholderText: "Здесь появятся команда и вывод CHKDSK."
-                            readOnly: true
-                            selectByMouse: true
-                            wrapMode: TextEdit.WrapAnywhere
-                            color: "#E6EDF3"
-                            placeholderTextColor: "#798294"
-                            selectionColor: FluentTheme.accent
-                            selectedTextColor: "white"
-                            font.family: "Cascadia Mono, Consolas"
-                            font.pixelSize: 12
-                            background: null
-
-                            onTextChanged: {
-                                if (terminalScroll.following) {
-                                    Qt.callLater(function() {
-                                        terminalScroll.contentY = Math.max(0,
-                                            terminalScroll.contentHeight - terminalScroll.height)
-                                    })
-                                }
-                            }
-                        }
-
-                        ScrollBar.vertical: ScrollBar {}
-                    }
-                }
+                Item { Layout.preferredHeight: 2 }
             }
         }
     }

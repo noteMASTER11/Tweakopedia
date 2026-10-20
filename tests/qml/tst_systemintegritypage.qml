@@ -132,5 +132,18 @@ TestCase {
         verify(point.x + primary.width <= page.width)
     }
 
+    function test_resultGuideOpensFullArticle() {
+        const page = createTemporaryObject(pageComponent, this)
+        const articleSpy = signalSpy.createObject(page, {
+            target: page,
+            signalName: "articleRequested"
+        })
+        const button = findChild(page, "toolResultGuideArticleButton")
+        verify(button)
+        mouseClick(button)
+        compare(articleSpy.count, 1)
+        compare(articleSpy.signalArguments[0][0], "guide.system-integrity")
+    }
+
     Component { id: signalSpy; SignalSpy {} }
 }
