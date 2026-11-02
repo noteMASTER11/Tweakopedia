@@ -45,8 +45,8 @@ Page {
                 Layout.rightMargin: 28
                 implicitHeight: root.wideLayout ? 204 : 330
                 radius: 12
-                color: "#EEF6FF"
-                border.color: "#C8DCF4"
+                color: FluentTheme.infoSurface
+                border.color: FluentTheme.infoStroke
 
                 GridLayout {
                     anchors.fill: parent
@@ -61,7 +61,7 @@ Page {
                         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                         radius: 24
                         color: FluentTheme.surface
-                        border.color: "#D6E5F6"
+                        border.color: FluentTheme.infoStroke
 
                         Image {
                             anchors.centerIn: parent
@@ -310,8 +310,8 @@ Page {
                 Layout.rightMargin: 28
                 implicitHeight: independenceText.implicitHeight + 28
                 radius: 10
-                color: "#EEF6FF"
-                border.color: "#C8DCF4"
+                color: FluentTheme.infoSurface
+                border.color: FluentTheme.infoStroke
 
                 FluentText {
                     id: independenceText

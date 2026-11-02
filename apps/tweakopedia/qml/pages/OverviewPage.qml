@@ -24,7 +24,7 @@ Page {
 
     function healthColor(tone) {
         if (tone === "good") return FluentTheme.stateOn
-        if (tone === "warning") return "#B36A00"
+        if (tone === "warning") return FluentTheme.warning
         if (tone === "bad") return FluentTheme.danger
         return FluentTheme.textSecondary
     }
@@ -103,8 +103,8 @@ Page {
                 visible: root.controller.systemOverviewLoading
                          || root.controller.systemOverviewError !== ""
                 radius: 8
-                color: root.controller.systemOverviewError !== "" ? "#FFF4CE" : FluentTheme.surface
-                border.color: root.controller.systemOverviewError !== "" ? "#E5C365" : FluentTheme.stroke
+                color: root.controller.systemOverviewError !== "" ? FluentTheme.warningSurface : FluentTheme.surface
+                border.color: root.controller.systemOverviewError !== "" ? FluentTheme.warningStroke : FluentTheme.stroke
 
                 RowLayout {
                     anchors.fill: parent
@@ -120,7 +120,7 @@ Page {
                         text: root.controller.systemOverviewError !== ""
                               ? root.controller.systemOverviewError
                               : "Получение сведений о компьютере…"
-                        color: root.controller.systemOverviewError !== "" ? "#7A5412" : FluentTheme.textSecondary
+                        color: root.controller.systemOverviewError !== "" ? FluentTheme.warning : FluentTheme.textSecondary
                         font.family: FluentTheme.fontFamily
                         font.pixelSize: 14
                         wrapMode: Text.WordWrap
@@ -144,8 +144,8 @@ Page {
                     Layout.fillHeight: root.wideLayout
                     implicitHeight: root.wideLayout ? 614 : 520
                     radius: 12
-                    color: "#EEF6FF"
-                    border.color: "#C8DCF4"
+                    color: FluentTheme.infoSurface
+                    border.color: FluentTheme.infoStroke
 
                     ColumnLayout {
                         anchors.fill: parent
@@ -157,7 +157,7 @@ Page {
                             Layout.preferredHeight: 210
                             radius: 10
                             color: FluentTheme.surface
-                            border.color: "#D6E5F6"
+                            border.color: FluentTheme.infoStroke
 
                             Image {
                                 objectName: "overviewWindowsLogo"
@@ -194,7 +194,7 @@ Page {
                         Rectangle {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 1
-                            color: "#C8DCF4"
+                            color: FluentTheme.infoStroke
                         }
 
                         GridLayout {
@@ -282,7 +282,7 @@ Page {
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 6
                                 radius: 3
-                                color: "#E8EBF0"
+                                color: FluentTheme.disabledSurface
                                 Rectangle {
                                     width: parent.width * Math.min(100, Math.max(0, root.overview.memory ? root.overview.memory.usedPercent : 0)) / 100
                                     height: parent.height

@@ -71,7 +71,7 @@ AbstractButton {
 
     background: Rectangle {
         radius: 8
-        color: root.hovered ? "#F5F9FF" : FluentTheme.surface
+        color: root.hovered ? FluentTheme.infoSurface : FluentTheme.surface
         border.width: root.hovered || root.activeFocus ? 2 : 1
         border.color: root.hovered || root.activeFocus
             ? FluentTheme.accent : FluentTheme.stroke

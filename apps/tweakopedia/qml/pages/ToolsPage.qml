@@ -18,6 +18,20 @@ Page {
     signal tweakRequested(string id)
     padding: 0
 
+    function toolAccent(index) {
+        if (index === 1) return FluentTheme.positive
+        if (index === 2) return FluentTheme.accentColor("violet", FluentTheme.dark)
+        if (index === 3) return FluentTheme.danger
+        return FluentTheme.accent
+    }
+
+    function toolTint(index) {
+        if (index === 1) return FluentTheme.positiveSurface
+        if (index === 2) return FluentTheme.accentTint("violet", FluentTheme.dark, FluentTheme.midnight)
+        if (index === 3) return FluentTheme.dangerSurface
+        return FluentTheme.infoSurface
+    }
+
     background: Rectangle {
         objectName: "toolsBackground"
         color: FluentTheme.canvas
@@ -149,12 +163,12 @@ Page {
                                         Layout.leftMargin: 22
                                         Layout.alignment: Qt.AlignVCenter
                                         radius: 36
-                                        color: card.tint
+                                        color: root.toolTint(index)
 
                                         Text {
                                             anchors.centerIn: parent
                                             text: card.glyph
-                                            color: card.accent
+                                            color: root.toolAccent(index)
                                             font.family: "Segoe MDL2 Assets"
                                             font.pixelSize: 30
                                             horizontalAlignment: Text.AlignHCenter

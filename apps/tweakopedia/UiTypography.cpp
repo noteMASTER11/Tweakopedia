@@ -53,11 +53,15 @@ QString UiTypography::preferredFamily(
     return systemFamily;
 }
 
-QFont UiTypography::applicationFont()
+QFont UiTypography::applicationFont(const QString& fontId)
 {
     registerWindowsUiFonts();
-    auto font = QGuiApplication::font();
-    font.setFamily(preferredFamily(QFontDatabase::families(), font.family()));
+    auto font = fontId == u"system"_s
+        ? QFontDatabase::systemFont(QFontDatabase::GeneralFont)
+        : QGuiApplication::font();
+    if (fontId != u"system"_s) {
+        font.setFamily(preferredFamily(QFontDatabase::families(), font.family()));
+    }
     font.setWeight(QFont::Medium);
     // Preserve fractional horizontal advances so kerning stays even. Full
     // hinting snaps both glyph edges to pixels and makes letter spacing vary.

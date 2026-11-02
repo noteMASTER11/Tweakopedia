@@ -22,7 +22,7 @@ Rectangle {
     Layout.minimumWidth: effectiveWidth
     Layout.preferredWidth: effectiveWidth
     Layout.maximumWidth: effectiveWidth
-    color: FluentTheme.surfaceInset
+    color: FluentTheme.navigation
     border.width: 1
     border.color: FluentTheme.stroke
 

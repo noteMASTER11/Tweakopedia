@@ -70,10 +70,10 @@ Page {
     }
 
     function statusColor(status) {
-        if (status === "configured") return "#107C10"
+        if (status === "configured") return FluentTheme.positive
         if (status === "queued") return FluentTheme.accent
         if (status === "unsupported") return FluentTheme.textSecondary
-        return "#CA5010"
+        return FluentTheme.warning
     }
 
     Component.onCompleted: refreshProfile()
@@ -277,7 +277,7 @@ Page {
                         background: Rectangle {
                             radius: 9
                             color: root.selectedProfileId === profileCard.modelData.id
-                                ? "#EEF5FF"
+                                ? FluentTheme.infoSurface
                                 : profileCard.pressed ? FluentTheme.selected
                                 : profileCard.hovered ? FluentTheme.hover : FluentTheme.surface
                             border.width: root.selectedProfileId === profileCard.modelData.id
@@ -296,9 +296,9 @@ Page {
                 Layout.rightMargin: 28
                 implicitHeight: explanationLayout.implicitHeight + 28
                 radius: 10
-                color: "#F4F8FE"
+                color: FluentTheme.infoSurface
                 border.width: 1
-                border.color: "#C9DCF5"
+                border.color: FluentTheme.infoStroke
 
                 ColumnLayout {
                     id: explanationLayout
@@ -371,9 +371,9 @@ Page {
                     model: [
                         { title: "Готово или в очереди",
                           value: (root.profile.configuredCount || 0) + (root.profile.queuedCount || 0),
-                          color: "#107C10", tint: "#E8F5EA" },
+                          color: FluentTheme.positive, tint: FluentTheme.positiveSurface },
                         { title: "Требуют изменения", value: root.profile.changeCount || 0,
-                          color: "#CA5010", tint: "#FFF0E5" },
+                          color: FluentTheme.warning, tint: FluentTheme.warningSurface },
                         { title: "Не поддерживаются", value: root.profile.unsupportedCount || 0,
                           color: FluentTheme.textSecondary, tint: FluentTheme.surfaceInset }
                     ]

@@ -188,7 +188,7 @@ Item {
                     visible: (root.articleData.purpose || "").length > 0
                     implicitHeight: purposeText.implicitHeight + 28
                     radius: 8
-                    color: "#EAF3FF"
+                    color: FluentTheme.infoSurface
 
                     FluentText {
                         id: purposeText

@@ -22,12 +22,38 @@ public:
         ++openCalls;
         return openResult;
     }
+    QString appearanceMode() const override { return mode; }
+    QString lightThemeId() const override { return lightTheme; }
+    QString darkThemeId() const override { return darkTheme; }
+    QString accentId() const override { return accent; }
+    QString fontId() const override { return font; }
+    qreal uiScale() const override { return scale; }
+    QString motionMode() const override { return motion; }
+    bool systemDarkMode() const override { return systemDark; }
+    bool systemReduceMotion() const override { return systemMotion; }
+    bool setAppearanceMode(const QString& value) override { mode = value; return appearanceResult; }
+    bool setLightThemeId(const QString& value) override { lightTheme = value; return appearanceResult; }
+    bool setDarkThemeId(const QString& value) override { darkTheme = value; return appearanceResult; }
+    bool setAccentId(const QString& value) override { accent = value; return appearanceResult; }
+    bool setFontId(const QString& value) override { font = value; return appearanceResult; }
+    bool setUiScale(qreal value) override { scale = value; return appearanceResult; }
+    bool setMotionMode(const QString& value) override { motion = value; return appearanceResult; }
 
     bool enabled{};
     bool setResult{true};
     bool openResult{true};
     int setCalls{};
     int openCalls{};
+    QString mode{QStringLiteral("system")};
+    QString lightTheme{QStringLiteral("light_cool")};
+    QString darkTheme{QStringLiteral("dark_graphite")};
+    QString accent{QStringLiteral("blue")};
+    QString font{QStringLiteral("segoe")};
+    qreal scale{1.0};
+    QString motion{QStringLiteral("system")};
+    bool systemDark{};
+    bool systemMotion{};
+    bool appearanceResult{true};
 };
 
 } // namespace
@@ -62,6 +88,40 @@ private slots:
 
         QVERIFY(controller.openLogsDirectory());
         QCOMPARE(services.openCalls, 1);
+    }
+
+    void updatesAppearanceAndComputesEffectiveValues()
+    {
+        FakeSettingsServices services;
+        app::SettingsController controller(services);
+        QSignalSpy changed(&controller, &app::SettingsController::appearanceChanged);
+
+        QCOMPARE(controller.effectiveThemeId(), QStringLiteral("light_cool"));
+        QVERIFY(!controller.effectiveDark());
+        QVERIFY(controller.setDarkThemeId(QStringLiteral("dark_midnight")));
+        QVERIFY(controller.setAppearanceMode(QStringLiteral("dark")));
+        QVERIFY(controller.setAccentId(QStringLiteral("violet")));
+        QVERIFY(controller.setUiScale(1.25));
+        QVERIFY(controller.setMotionMode(QStringLiteral("on")));
+
+        QCOMPARE(controller.effectiveThemeId(), QStringLiteral("dark_midnight"));
+        QVERIFY(controller.effectiveDark());
+        QVERIFY(controller.reduceMotion());
+        QCOMPARE(changed.count(), 5);
+        QVERIFY(!controller.setUiScale(1.13));
+        QVERIFY(!controller.setAccentId(QStringLiteral("unknown")));
+    }
+
+    void followsSystemThemeInSystemMode()
+    {
+        FakeSettingsServices services;
+        app::SettingsController controller(services);
+        QSignalSpy changed(&controller, &app::SettingsController::appearanceChanged);
+
+        controller.setSystemDarkMode(true);
+        QVERIFY(controller.effectiveDark());
+        QCOMPARE(controller.effectiveThemeId(), QStringLiteral("dark_graphite"));
+        QCOMPARE(changed.count(), 1);
     }
 };
 

@@ -42,6 +42,7 @@
 #include <QDir>
 #include <QCommandLineParser>
 #include <QClipboard>
+#include <QColor>
 #include <QDesktopServices>
 #include <QEventLoop>
 #include <QFileInfo>
@@ -55,6 +56,7 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 #include <QQuickWindow>
+#include <QStyleHints>
 #include <QTimer>
 #include <QTemporaryDir>
 #include <QSysInfo>
@@ -76,21 +78,21 @@ using namespace Qt::StringLiterals;
 namespace {
 
 #ifdef Q_OS_WIN
-void applyLightTitleBar(QWindow* window)
+void applyTitleBar(QWindow* window, bool dark, const QColor& color)
 {
     if (!window) return;
     const auto handle = reinterpret_cast<HWND>(window->winId());
-    const BOOL useDarkMode = FALSE;
+    const BOOL useDarkMode = dark ? TRUE : FALSE;
     constexpr DWORD useImmersiveDarkMode = 20;
     (void)DwmSetWindowAttribute(
         handle, useImmersiveDarkMode, &useDarkMode, sizeof(useDarkMode));
-    const COLORREF captionColor = RGB(247, 248, 252);
+    const COLORREF captionColor = RGB(color.red(), color.green(), color.blue());
     constexpr DWORD captionColorAttribute = 35;
     (void)DwmSetWindowAttribute(
         handle, captionColorAttribute, &captionColor, sizeof(captionColor));
 }
 #else
-void applyLightTitleBar(QWindow*)
+void applyTitleBar(QWindow*, bool, const QColor&)
 {
 }
 #endif
@@ -500,6 +502,55 @@ public:
         return QDesktopServices::openUrl(QUrl::fromLocalFile(logsRoot_));
     }
 
+    QString appearanceMode() const override { return settings_.appearanceMode(); }
+    QString lightThemeId() const override { return settings_.lightThemeId(); }
+    QString darkThemeId() const override { return settings_.darkThemeId(); }
+    QString accentId() const override { return settings_.accentId(); }
+    QString fontId() const override { return settings_.fontId(); }
+    qreal uiScale() const override { return settings_.uiScale(); }
+    QString motionMode() const override { return settings_.motionMode(); }
+    bool systemDarkMode() const override
+    {
+        return QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark;
+    }
+    bool systemReduceMotion() const override
+    {
+#ifdef Q_OS_WIN
+        BOOL animationsEnabled = TRUE;
+        if (SystemParametersInfoW(SPI_GETCLIENTAREAANIMATION, 0, &animationsEnabled, 0)) {
+            return animationsEnabled == FALSE;
+        }
+#endif
+        return false;
+    }
+    bool setAppearanceMode(const QString& value) override
+    {
+        return settings_.setAppearanceMode(value);
+    }
+    bool setLightThemeId(const QString& value) override
+    {
+        return settings_.setLightThemeId(value);
+    }
+    bool setDarkThemeId(const QString& value) override
+    {
+        return settings_.setDarkThemeId(value);
+    }
+    bool setAccentId(const QString& value) override
+    {
+        return settings_.setAccentId(value);
+    }
+    bool setFontId(const QString& value) override
+    {
+        if (!settings_.setFontId(value)) return false;
+        QGuiApplication::setFont(ui::UiTypography::applicationFont(value));
+        return true;
+    }
+    bool setUiScale(qreal value) override { return settings_.setUiScale(value); }
+    bool setMotionMode(const QString& value) override
+    {
+        return settings_.setMotionMode(value);
+    }
+
 private:
     void writeSessionContext() const
     {
@@ -609,6 +660,11 @@ int main(int argc, char* argv[])
         runtimeRoot,
         applicationPaths.dataRoot());
     app::SettingsController settingsController(settingsServices);
+    app.setFont(ui::UiTypography::applicationFont(settingsController.fontId()));
+    QObject::connect(app.styleHints(), &QStyleHints::colorSchemeChanged,
+                     &settingsController, [&settingsController](Qt::ColorScheme scheme) {
+        settingsController.setSystemDarkMode(scheme == Qt::ColorScheme::Dark);
+    });
 
     execution::WindowsShellExecuteBackend toolShellBackend;
     execution::SystemToolSession systemToolSession(
@@ -651,7 +707,17 @@ int main(int argc, char* argv[])
         return 1;
     }
     auto* window = qobject_cast<QQuickWindow*>(engine.rootObjects().constFirst());
-    applyLightTitleBar(window);
+    const auto updateTitleBar = [window, &settingsController] {
+        QColor caption = settingsController.effectiveDark()
+            ? (settingsController.effectiveThemeId() == u"dark_midnight"_s
+                ? QColor(u"#0F172A"_s) : QColor(u"#1F1F1F"_s))
+            : (settingsController.effectiveThemeId() == u"light_warm"_s
+                ? QColor(u"#FAF8F3"_s) : QColor(u"#F6F8FC"_s));
+        applyTitleBar(window, settingsController.effectiveDark(), caption);
+    };
+    updateTitleBar();
+    QObject::connect(&settingsController, &app::SettingsController::appearanceChanged,
+                     window, updateTitleBar);
     if (startupClient && window) {
         if (const auto bounds = startupClient->splashGeometry()) {
             window->setGeometry(*bounds);

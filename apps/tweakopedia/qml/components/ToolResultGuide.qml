@@ -15,9 +15,9 @@ Rectangle {
 
     implicitHeight: guideLayout.implicitHeight + 28
     radius: 10
-    color: "#F4F8FE"
+    color: FluentTheme.infoSurface
     border.width: 1
-    border.color: "#C9DCF5"
+    border.color: FluentTheme.infoStroke
 
     ColumnLayout {
         id: guideLayout
@@ -90,7 +90,7 @@ Rectangle {
                         : articleButton.hovered ? FluentTheme.hover : "transparent"
                     border.width: articleButton.activeFocus ? 2 : 1
                     border.color: articleButton.activeFocus
-                        ? FluentTheme.accent : "#B7CBE7"
+                        ? FluentTheme.accent : FluentTheme.infoStroke
                 }
             }
         }

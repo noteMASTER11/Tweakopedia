@@ -136,10 +136,10 @@ Page {
                             Layout.preferredWidth: 34
                             Layout.preferredHeight: 34
                             radius: 17
-                            color: root.toolState === "healthy" ? "#E8F5EA"
-                                : root.toolState === "repairable" ? "#FFF4CE"
+                            color: root.toolState === "healthy" ? FluentTheme.positiveSurface
+                                : root.toolState === "repairable" ? FluentTheme.warningSurface
                                 : (root.toolState === "failed" || root.toolState === "non_repairable")
-                                    ? "#FDE7E9" : FluentTheme.selected
+                                    ? FluentTheme.dangerSurface : FluentTheme.selected
 
                             Text {
                                 anchors.centerIn: parent
@@ -147,10 +147,10 @@ Page {
                                     : root.toolState === "repairable" ? "\uE7BA"
                                     : (root.toolState === "failed" || root.toolState === "non_repairable")
                                         ? "\uEA39" : "\uE9F5"
-                                color: root.toolState === "healthy" ? "#107C10"
-                                    : root.toolState === "repairable" ? "#9D5D00"
+                                color: root.toolState === "healthy" ? FluentTheme.positive
+                                    : root.toolState === "repairable" ? FluentTheme.warning
                                     : (root.toolState === "failed" || root.toolState === "non_repairable")
-                                        ? "#C42B1C" : FluentTheme.accent
+                                        ? FluentTheme.danger : FluentTheme.accent
                                 font.family: "Segoe MDL2 Assets"
                                 font.pixelSize: 16
                             }

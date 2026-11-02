@@ -248,9 +248,9 @@ Page {
                         Layout.fillWidth: true
                         text: controller && controller.resultTitle.length > 0
                             ? controller.resultTitle : root.defaultTitle()
-                        color: toolState === "healthy" ? "#107C10"
+                        color: toolState === "healthy" ? FluentTheme.positive
                             : toolState === "issues_found" || toolState === "incomplete" || toolState === "failed"
-                                ? "#C42B1C" : FluentTheme.textPrimary
+                                ? FluentTheme.danger : FluentTheme.textPrimary
                         font.family: FluentTheme.fontFamily
                         font.pixelSize: 17
                         font.weight: Font.DemiBold

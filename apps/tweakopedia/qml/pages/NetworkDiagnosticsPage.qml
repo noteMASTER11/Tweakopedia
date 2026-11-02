@@ -51,14 +51,14 @@ Page {
     }
 
     function statusColor(status) {
-        if (status === "ok") return "#107C10"
-        if (status === "attention") return "#CA5010"
+        if (status === "ok") return FluentTheme.positive
+        if (status === "attention") return FluentTheme.warning
         return FluentTheme.textSecondary
     }
 
     function statusTint(status) {
-        if (status === "ok") return "#E8F5EA"
-        if (status === "attention") return "#FFF0E5"
+        if (status === "ok") return FluentTheme.positiveSurface
+        if (status === "attention") return FluentTheme.warningSurface
         return FluentTheme.surfaceInset
     }
 
@@ -180,9 +180,9 @@ Page {
                             Layout.fillWidth: true
                             text: controller && controller.resultTitle.length > 0
                                 ? controller.resultTitle : root.defaultTitle()
-                            color: toolState === "healthy" ? "#107C10"
-                                : toolState === "issues_found" ? "#CA5010"
-                                : toolState === "failed" ? "#C42B1C"
+                            color: toolState === "healthy" ? FluentTheme.positive
+                                : toolState === "issues_found" ? FluentTheme.warning
+                                : toolState === "failed" ? FluentTheme.danger
                                 : FluentTheme.textPrimary
                             font.family: FluentTheme.fontFamily
                             font.pixelSize: 17
@@ -264,9 +264,9 @@ Page {
                 Repeater {
                     model: [
                         { title: "Без замечаний", value: controller ? controller.okCount : 0,
-                          color: "#107C10", tint: "#E8F5EA" },
+                          color: FluentTheme.positive, tint: FluentTheme.positiveSurface },
                         { title: "Требуют внимания", value: controller ? controller.attentionCount : 0,
-                          color: "#CA5010", tint: "#FFF0E5" },
+                          color: FluentTheme.warning, tint: FluentTheme.warningSurface },
                         { title: "Недоступны", value: controller ? controller.unavailableCount : 0,
                           color: FluentTheme.textSecondary, tint: FluentTheme.surfaceInset }
                     ]
@@ -440,9 +440,9 @@ Page {
                 Layout.rightMargin: 28
                 implicitHeight: recoveryLayout.implicitHeight + 28
                 radius: 10
-                color: "#FFF8F3"
+                color: FluentTheme.warningSurface
                 border.width: 1
-                border.color: "#F0C7A8"
+                border.color: FluentTheme.warningStroke
 
                 RowLayout {
                     id: recoveryLayout
@@ -547,7 +547,7 @@ Page {
                 easing.type: Easing.InCubic
             }
         }
-        Overlay.modal: Rectangle { color: root.detailDocked ? "transparent" : "#52000000" }
+        Overlay.modal: Rectangle { color: root.detailDocked ? "transparent" : FluentTheme.overlay }
 
         background: Rectangle {
             color: FluentTheme.canvas
@@ -745,7 +745,7 @@ Page {
                                 radius: 9
                                 color: FluentTheme.surface
                                 border.width: 1
-                                border.color: removed ? "#A7D7AA" : FluentTheme.stroke
+                                border.color: removed ? FluentTheme.positiveStroke : FluentTheme.stroke
 
                                 ColumnLayout {
                                     id: ruleLayout
@@ -834,8 +834,8 @@ Page {
                                             implicitWidth: 142
                                             radius: 6
                                             color: removeRuleButton.enabled
-                                                ? (removeRuleButton.pressed ? "#8E1A10"
-                                                   : removeRuleButton.hovered ? "#B42318" : "#C42B1C")
+                                                ? (removeRuleButton.pressed ? FluentTheme.dangerHover
+                                                   : removeRuleButton.hovered ? FluentTheme.dangerHover : FluentTheme.danger)
                                                 : FluentTheme.disabledSurface
                                         }
                                     }
@@ -899,12 +899,12 @@ Page {
                         implicitHeight: actionText.implicitHeight + 26
                         radius: 8
                         color: controller && controller.actionState === "succeeded"
-                            ? "#E8F5EA" : controller && controller.actionState === "failed"
-                              ? "#FDE7E9" : FluentTheme.surfaceInset
+                            ? FluentTheme.positiveSurface : controller && controller.actionState === "failed"
+                              ? FluentTheme.dangerSurface : FluentTheme.surfaceInset
                         border.width: 1
                         border.color: controller && controller.actionState === "succeeded"
-                            ? "#A7D7AA" : controller && controller.actionState === "failed"
-                              ? "#E8A5AA" : FluentTheme.stroke
+                            ? FluentTheme.positiveStroke : controller && controller.actionState === "failed"
+                              ? FluentTheme.dangerStroke : FluentTheme.stroke
                         FluentText {
                             id: actionText
                             anchors.fill: parent
@@ -912,7 +912,7 @@ Page {
                             text: controller && controller.actionMessage
                                 ? controller.actionMessage : ""
                             color: controller && controller.actionState === "failed"
-                                ? "#C42B1C" : FluentTheme.textPrimary
+                                ? FluentTheme.danger : FluentTheme.textPrimary
                             font.family: FluentTheme.fontFamily
                             font.pixelSize: 12
                             wrapMode: Text.WordWrap
@@ -949,7 +949,7 @@ Page {
         dim: true
         padding: 18
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-        Overlay.modal: Rectangle { color: "#66000000" }
+        Overlay.modal: Rectangle { color: FluentTheme.overlay }
         background: Rectangle {
             radius: 10
             color: FluentTheme.surface
@@ -1029,8 +1029,8 @@ Page {
                         implicitWidth: 98
                         implicitHeight: 36
                         radius: 6
-                        color: confirmRemovalButton.pressed ? "#8E1A10"
-                            : confirmRemovalButton.hovered ? "#B42318" : "#C42B1C"
+                        color: confirmRemovalButton.pressed ? FluentTheme.dangerHover
+                            : confirmRemovalButton.hovered ? FluentTheme.dangerHover : FluentTheme.danger
                     }
                 }
             }

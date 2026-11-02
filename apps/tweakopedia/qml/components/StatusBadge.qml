@@ -8,11 +8,11 @@ Rectangle {
     implicitWidth: label.implicitWidth + 18
     implicitHeight: 26
     radius: 13
-    color: positive ? "#DFF6DD" : "#FFF4CE"
+    color: positive ? FluentTheme.positiveSurface : FluentTheme.warningSurface
     FluentText {
         id: label
         anchors.centerIn: parent
-        color: root.positive ? FluentTheme.stateOn : "#7A5412"
+        color: root.positive ? FluentTheme.stateOn : FluentTheme.warning
         font.family: FluentTheme.fontFamily
         font.pixelSize: 12
         font.weight: Font.DemiBold

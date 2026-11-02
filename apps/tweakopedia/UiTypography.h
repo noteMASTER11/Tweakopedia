@@ -11,7 +11,7 @@ public:
     [[nodiscard]] static QString preferredFamily(
         const QStringList& availableFamilies,
         const QString& systemFamily);
-    [[nodiscard]] static QFont applicationFont();
+    [[nodiscard]] static QFont applicationFont(const QString& fontId = QStringLiteral("segoe"));
 };
 
 } // namespace tweakopedia::ui

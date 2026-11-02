@@ -35,17 +35,17 @@ Rectangle {
         switch (status) {
         case "succeeded": return FluentTheme.stateOn
         case "failed": return FluentTheme.stateOff
-        case "interrupted": return "#9A6700"
+        case "interrupted": return FluentTheme.warning
         case "rolled_back": return FluentTheme.accent
         default: return FluentTheme.textSecondary
         }
     }
     readonly property color statusSurface: {
         switch (status) {
-        case "succeeded": return "#E8F3E8"
-        case "failed": return "#FDE7E9"
-        case "interrupted": return "#FFF4CE"
-        case "rolled_back": return "#EAF3FF"
+        case "succeeded": return FluentTheme.positiveSurface
+        case "failed": return FluentTheme.dangerSurface
+        case "interrupted": return FluentTheme.warningSurface
+        case "rolled_back": return FluentTheme.infoSurface
         default: return FluentTheme.surfaceInset
         }
     }
@@ -261,7 +261,7 @@ Rectangle {
             visible: root.error.length > 0
             implicitHeight: errorRow.implicitHeight + 18
             radius: 7
-            color: "#FDE7E9"
+            color: FluentTheme.dangerSurface
 
             RowLayout {
                 id: errorRow
@@ -366,7 +366,7 @@ Rectangle {
                                 implicitWidth: kindText.implicitWidth + 14
                                 implicitHeight: 22
                                 radius: 11
-                                color: "#EAF3FF"
+                                color: FluentTheme.infoSurface
 
                                 FluentText {
                                     id: kindText

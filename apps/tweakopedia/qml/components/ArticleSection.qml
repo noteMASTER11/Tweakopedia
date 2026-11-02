@@ -55,7 +55,7 @@ Rectangle {
                     Layout.preferredHeight: 30
                     Layout.alignment: Qt.AlignTop
                     radius: 15
-                    color: "#EAF3FF"
+                    color: FluentTheme.infoSurface
 
                     FluentText {
                         objectName: "articleSectionGlyph_" + root.section.id
