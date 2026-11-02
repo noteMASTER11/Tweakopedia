@@ -15,6 +15,7 @@ ApplicationWindow {
         property string appearanceMode: "light"
         property string lightThemeId: "light_cool"
         property string darkThemeId: "dark_graphite"
+        property string effectiveThemeId: appearanceMode === "dark" ? darkThemeId : lightThemeId
         property string accentId: "blue"
         property string fontId: "segoe"
         property real uiScale: 1.0

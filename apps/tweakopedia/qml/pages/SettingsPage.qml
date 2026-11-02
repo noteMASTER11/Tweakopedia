@@ -89,6 +89,130 @@ Page {
         }
     }
 
+    component ThemePresetButton: Button {
+        id: themeButton
+
+        required property var themeData
+        property real edge: 148
+        readonly property bool selected: root.controller.effectiveThemeId === themeData.id
+
+        objectName: "theme_" + themeData.id
+        Accessible.name: themeData.title
+        width: edge
+        height: edge
+        padding: 0
+
+        onClicked: {
+            const accepted = themeData.kind === "light"
+                ? root.controller.setLightThemeId(themeData.id)
+                : root.controller.setDarkThemeId(themeData.id)
+            if (accepted)
+                root.controller.setAppearanceMode(themeData.kind)
+        }
+
+        contentItem: Item {
+            clip: true
+
+            Rectangle {
+                id: themePreview
+                objectName: "themePreview_" + themeButton.themeData.id
+                x: 10
+                y: 10
+                width: parent.width - 20
+                height: parent.height - 48
+                radius: 6
+                clip: true
+                color: themeButton.themeData.canvas
+                border.width: 1
+                border.color: themeButton.themeData.kind === "dark" ? "#46566D" : "#D8DEE8"
+
+                Rectangle {
+                    x: 8
+                    y: 8
+                    width: Math.min(28, parent.width * 0.22)
+                    height: parent.height - 16
+                    radius: 4
+                    color: themeButton.themeData.surface
+                }
+                Column {
+                    x: Math.min(46, parent.width * 0.34)
+                    y: 14
+                    spacing: 7
+                    Rectangle { width: Math.max(0, Math.min(62, themePreview.width - parent.x - 10)); height: 7; radius: 3; color: themeButton.themeData.text }
+                    Rectangle { width: Math.max(0, Math.min(88, themePreview.width - parent.x - 10)); height: 5; radius: 2; color: themeButton.themeData.text; opacity: 0.45 }
+                    Rectangle { width: Math.max(0, Math.min(76, themePreview.width - parent.x - 10)); height: 5; radius: 2; color: FluentTheme.accent }
+                }
+            }
+
+            FluentText {
+                anchors.left: parent.left
+                anchors.right: selectedMark.left
+                anchors.bottom: parent.bottom
+                anchors.leftMargin: 10
+                anchors.rightMargin: 4
+                anchors.bottomMargin: 9
+                text: themeButton.themeData.title
+                color: FluentTheme.textPrimary
+                font.pixelSize: 13
+                font.weight: Font.DemiBold
+                elide: Text.ElideRight
+            }
+            Text {
+                id: selectedMark
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.rightMargin: 10
+                anchors.bottomMargin: 9
+                visible: themeButton.selected
+                text: "\uE73E"
+                color: FluentTheme.accent
+                font.family: "Segoe MDL2 Assets"
+                font.pixelSize: 14
+            }
+        }
+
+        background: Rectangle {
+            radius: 10
+            color: themeButton.hovered ? FluentTheme.hover : FluentTheme.surface
+            border.width: themeButton.selected ? 2 : 1
+            border.color: themeButton.selected ? FluentTheme.accent : FluentTheme.stroke
+        }
+    }
+
+    component ThemePresetGroup: Item {
+        id: presetGroup
+
+        required property string groupTitle
+        required property var presets
+        property real cardEdge: 148
+
+        width: cardEdge * 2 + 10
+        height: 28 + cardEdge * 2 + 10
+
+        FluentText {
+            x: 2
+            y: 0
+            text: presetGroup.groupTitle
+            color: FluentTheme.textSecondary
+            font.pixelSize: 13
+            font.weight: Font.DemiBold
+        }
+        Grid {
+            y: 28
+            columns: 2
+            columnSpacing: 10
+            rowSpacing: 10
+            Repeater {
+                model: presetGroup.presets
+                delegate: ThemePresetButton {
+                    required property var modelData
+                    themeData: modelData
+                    edge: presetGroup.cardEdge
+                }
+            }
+        }
+    }
+
     ScrollView {
         id: scroll
         anchors.fill: parent
@@ -197,81 +321,41 @@ Page {
                 }
             }
 
-            Row {
-                id: themePresetRow
+            Item {
+                id: themePresetGroups
                 Layout.fillWidth: true
-                spacing: 10
+                Layout.preferredHeight: presetRow.height
 
-                Repeater {
-                    model: [
-                        { id: "light_cool", title: "Холодный свет", kind: "light", canvas: "#F6F8FC", surface: "#FFFFFF", text: "#20232B" },
-                        { id: "light_warm", title: "Тёплая бумага", kind: "light", canvas: "#FAF8F3", surface: "#FFFDF9", text: "#27241F" },
-                        { id: "dark_graphite", title: "Графит", kind: "dark", canvas: "#1F1F1F", surface: "#2A2A2A", text: "#F4F4F4" },
-                        { id: "dark_midnight", title: "Полночь", kind: "dark", canvas: "#0F172A", surface: "#162033", text: "#E8EEF8" }
-                    ]
-                    delegate: Button {
-                        id: themeButton
-                        required property var modelData
-                        readonly property bool selected: root.controller.effectiveThemeId === modelData.id
-                        objectName: "theme_" + modelData.id
-                        width: Math.max(0, (themePresetRow.width - themePresetRow.spacing * 3) / 4)
-                        height: 136
-                        onClicked: {
-                            if (modelData.kind === "light")
-                                root.controller.setLightThemeId(modelData.id)
-                            else
-                                root.controller.setDarkThemeId(modelData.id)
-                            if (root.controller.appearanceMode !== "system")
-                                root.controller.setAppearanceMode(modelData.kind)
-                        }
-                        contentItem: ColumnLayout {
-                            spacing: 8
-                            clip: true
-                            Rectangle {
-                                objectName: "themePreview_" + modelData.id
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 78
-                                radius: 6
-                                clip: true
-                                color: modelData.canvas
-                                border.width: 1
-                                border.color: modelData.kind === "dark" ? "#46566D" : "#D8DEE8"
-                                Rectangle {
-                                    x: 8; y: 8; width: 34; height: parent.height - 16
-                                    radius: 4; color: modelData.surface
-                                }
-                                Column {
-                                    x: 52; y: 14; spacing: 7
-                                    Rectangle { width: Math.max(0, Math.min(72, parent.parent.width - 64)); height: 7; radius: 3; color: modelData.text }
-                                    Rectangle { width: Math.max(0, Math.min(106, parent.parent.width - 64)); height: 5; radius: 2; color: modelData.text; opacity: 0.45 }
-                                    Rectangle { width: Math.max(0, Math.min(92, parent.parent.width - 64)); height: 5; radius: 2; color: FluentTheme.accent }
-                                }
-                            }
-                            RowLayout {
-                                Layout.fillWidth: true
-                                FluentText {
-                                    Layout.fillWidth: true
-                                    text: modelData.title
-                                    color: FluentTheme.textPrimary
-                                    font.pixelSize: 13
-                                    font.weight: Font.DemiBold
-                                    elide: Text.ElideRight
-                                }
-                                Text {
-                                    visible: themeButton.selected
-                                    text: "\uE73E"
-                                    color: FluentTheme.accent
-                                    font.family: "Segoe MDL2 Assets"
-                                    font.pixelSize: 14
-                                }
-                            }
-                        }
-                        background: Rectangle {
-                            radius: 10
-                            color: themeButton.hovered ? FluentTheme.hover : FluentTheme.surface
-                            border.width: themeButton.selected ? 2 : 1
-                            border.color: themeButton.selected ? FluentTheme.accent : FluentTheme.stroke
-                        }
+                Row {
+                    id: presetRow
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 18
+
+                    ThemePresetGroup {
+                        groupTitle: "Светлые"
+                        presets: [
+                            { id: "light_cool", title: "Холодный свет", kind: "light", canvas: "#F6F8FC", surface: "#FFFFFF", text: "#20232B" },
+                            { id: "light_warm", title: "Тёплая бумага", kind: "light", canvas: "#FAF8F3", surface: "#FFFDF9", text: "#27241F" },
+                            { id: "light_mist", title: "Утренний туман", kind: "light", canvas: "#EEF3F7", surface: "#F9FBFD", text: "#1F2933" },
+                            { id: "light_sage", title: "Шалфей", kind: "light", canvas: "#F2F6F1", surface: "#FBFDF9", text: "#263028" }
+                        ]
+                    }
+
+                    Rectangle {
+                        objectName: "themePresetDivider"
+                        width: 1
+                        height: 334
+                        color: FluentTheme.strokeStrong
+                    }
+
+                    ThemePresetGroup {
+                        groupTitle: "Тёмные"
+                        presets: [
+                            { id: "dark_graphite", title: "Графит", kind: "dark", canvas: "#1F1F1F", surface: "#2A2A2A", text: "#F4F4F4" },
+                            { id: "dark_midnight", title: "Полночь", kind: "dark", canvas: "#0F172A", surface: "#162033", text: "#E8EEF8" },
+                            { id: "dark_slate", title: "Сланец", kind: "dark", canvas: "#182026", surface: "#222D34", text: "#EDF4F7" },
+                            { id: "dark_umber", title: "Тёмная бронза", kind: "dark", canvas: "#211D1A", surface: "#2C2723", text: "#F5EFE9" }
+                        ]
                     }
                 }
             }

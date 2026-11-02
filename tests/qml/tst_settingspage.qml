@@ -87,28 +87,51 @@ TestCase {
         compare(fakeController.motionMode, "on")
     }
 
+    function test_themePresetOverridesSystemMode() {
+        const page = createTemporaryObject(pageComponent, this)
+        verify(page)
+        compare(fakeController.appearanceMode, "system")
+
+        findChild(page, "theme_dark_slate").clicked()
+        compare(fakeController.darkThemeId, "dark_slate")
+        compare(fakeController.appearanceMode, "dark")
+        compare(fakeController.effectiveThemeId, "dark_slate")
+
+        fakeController.appearanceMode = "system"
+        findChild(page, "theme_light_sage").clicked()
+        compare(fakeController.lightThemeId, "light_sage")
+        compare(fakeController.appearanceMode, "light")
+        compare(fakeController.effectiveThemeId, "light_sage")
+    }
+
     function test_themePresetButtonsUseEqualGeometry() {
         const page = createTemporaryObject(pageComponent, this)
         verify(page)
 
         const cool = findChild(page, "theme_light_cool")
         const warm = findChild(page, "theme_light_warm")
+        const mist = findChild(page, "theme_light_mist")
+        const sage = findChild(page, "theme_light_sage")
         const graphite = findChild(page, "theme_dark_graphite")
         const midnight = findChild(page, "theme_dark_midnight")
-        verify(cool && warm && graphite && midnight)
-
-        compare(cool.width, warm.width)
-        compare(cool.width, graphite.width)
-        compare(cool.width, midnight.width)
-        compare(cool.height, 136)
-        compare(warm.height, cool.height)
-        compare(graphite.height, cool.height)
-        compare(midnight.height, cool.height)
+        const slate = findChild(page, "theme_dark_slate")
+        const umber = findChild(page, "theme_dark_umber")
+        const presets = [cool, warm, mist, sage, graphite, midnight, slate, umber]
+        for (let i = 0; i < presets.length; ++i) {
+            verify(presets[i])
+            compare(presets[i].width, 148)
+            compare(presets[i].height, presets[i].width)
+        }
 
         const preview = findChild(page, "themePreview_dark_midnight")
         verify(preview)
         verify(preview.width <= midnight.width)
         compare(preview.clip, true)
+
+        const divider = findChild(page, "themePresetDivider")
+        verify(divider)
+        compare(divider.width, 1)
+        compare(divider.height, 334)
     }
 
     function test_presentsDebugLoggingSetting() {

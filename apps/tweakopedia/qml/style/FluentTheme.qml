@@ -11,38 +11,27 @@ QtObject {
     property real uiScale: 1.0
     property bool reduceMotion: false
 
-    readonly property bool dark: themeId === "dark_graphite" || themeId === "dark_midnight"
-    readonly property bool warm: themeId === "light_warm"
+    readonly property bool dark: themeId.indexOf("dark_") === 0
     readonly property bool midnight: themeId === "dark_midnight"
+    readonly property var palette: paletteFor(themeId)
 
-    readonly property color canvas: midnight ? "#0F172A"
-        : dark ? "#1F1F1F" : warm ? "#FAF8F3" : "#F6F8FC"
-    readonly property color surface: midnight ? "#162033"
-        : dark ? "#2A2A2A" : warm ? "#FFFDF9" : "#FFFFFF"
-    readonly property color surfaceRaised: midnight ? "#1B2940"
-        : dark ? "#323232" : "#FFFFFF"
-    readonly property color surfaceInset: midnight ? "#111B2D"
-        : dark ? "#252525" : warm ? "#F4F0E8" : "#F1F4F9"
-    readonly property color navigation: midnight ? "#111A2B"
-        : dark ? "#242424" : warm ? "#F5F1E9" : "#F3F6FA"
-    readonly property color textPrimary: dark ? "#F4F4F4" : warm ? "#27241F" : "#20232B"
-    readonly property color textSecondary: midnight ? "#AAB7CA"
-        : dark ? "#B8B8B8" : warm ? "#696257" : "#5D6878"
-    readonly property color stroke: midnight ? "#30415C"
-        : dark ? "#454545" : warm ? "#E4DED3" : "#DDE3EC"
-    readonly property color strokeStrong: midnight ? "#49617F"
-        : dark ? "#606060" : warm ? "#C8BFB0" : "#BCC6D3"
+    readonly property color canvas: palette.canvas
+    readonly property color surface: palette.surface
+    readonly property color surfaceRaised: palette.surfaceRaised
+    readonly property color surfaceInset: palette.surfaceInset
+    readonly property color navigation: palette.navigation
+    readonly property color textPrimary: palette.textPrimary
+    readonly property color textSecondary: palette.textSecondary
+    readonly property color stroke: palette.stroke
+    readonly property color strokeStrong: palette.strokeStrong
 
     readonly property color accent: accentColor(accentId, dark)
     readonly property color accentHover: dark ? Qt.lighter(accent, 1.12) : Qt.darker(accent, 1.10)
     readonly property color accentPressed: dark ? Qt.lighter(accent, 1.22) : Qt.darker(accent, 1.22)
-    readonly property color hover: midnight ? "#21304A"
-        : dark ? "#363636" : warm ? "#F1ECE3" : "#EDF2F8"
+    readonly property color hover: palette.hover
     readonly property color selected: accentTint(accentId, dark, midnight)
-    readonly property color disabledSurface: midnight ? "#1B2537"
-        : dark ? "#303030" : warm ? "#F3EFE8" : "#F2F4F7"
-    readonly property color disabledText: midnight ? "#6F7D91"
-        : dark ? "#7F7F7F" : warm ? "#9B9388" : "#8B95A3"
+    readonly property color disabledSurface: palette.disabledSurface
+    readonly property color disabledText: palette.disabledText
 
     readonly property color stateOn: dark ? "#6CCB75" : "#107C10"
     readonly property color stateOff: dark ? "#FF7B72" : "#C42B1C"
@@ -70,6 +59,65 @@ QtObject {
     readonly property int compactBreakpoint: 1100
     readonly property int animationFast: reduceMotion ? 0 : 120
     readonly property int animationNormal: reduceMotion ? 0 : 180
+
+    function paletteFor(id) {
+        if (id === "light_warm") return {
+            canvas: "#FAF8F3", surface: "#FFFDF9", surfaceRaised: "#FFFFFF",
+            surfaceInset: "#F4F0E8", navigation: "#F5F1E9",
+            textPrimary: "#27241F", textSecondary: "#696257",
+            stroke: "#E4DED3", strokeStrong: "#C8BFB0", hover: "#F1ECE3",
+            disabledSurface: "#F3EFE8", disabledText: "#9B9388"
+        }
+        if (id === "light_mist") return {
+            canvas: "#EEF3F7", surface: "#F9FBFD", surfaceRaised: "#FFFFFF",
+            surfaceInset: "#E7EDF3", navigation: "#EAF0F5",
+            textPrimary: "#1F2933", textSecondary: "#5E6B78",
+            stroke: "#CDD7E1", strokeStrong: "#A9B7C5", hover: "#E4EBF2",
+            disabledSurface: "#E8EDF2", disabledText: "#83909C"
+        }
+        if (id === "light_sage") return {
+            canvas: "#F2F6F1", surface: "#FBFDF9", surfaceRaised: "#FFFFFF",
+            surfaceInset: "#EAF0E8", navigation: "#EDF3EB",
+            textPrimary: "#263028", textSecondary: "#657066",
+            stroke: "#D6DED2", strokeStrong: "#B4C1AF", hover: "#E7EEE4",
+            disabledSurface: "#EBF0E9", disabledText: "#879187"
+        }
+        if (id === "dark_midnight") return {
+            canvas: "#0F172A", surface: "#162033", surfaceRaised: "#1B2940",
+            surfaceInset: "#111B2D", navigation: "#111A2B",
+            textPrimary: "#F4F4F4", textSecondary: "#AAB7CA",
+            stroke: "#30415C", strokeStrong: "#49617F", hover: "#21304A",
+            disabledSurface: "#1B2537", disabledText: "#6F7D91"
+        }
+        if (id === "dark_slate") return {
+            canvas: "#182026", surface: "#222D34", surfaceRaised: "#29363E",
+            surfaceInset: "#1C252B", navigation: "#1B252C",
+            textPrimary: "#EDF4F7", textSecondary: "#AFBEC5",
+            stroke: "#3D4D56", strokeStrong: "#566A75", hover: "#2E3C44",
+            disabledSurface: "#28333A", disabledText: "#788891"
+        }
+        if (id === "dark_umber") return {
+            canvas: "#211D1A", surface: "#2C2723", surfaceRaised: "#352F2A",
+            surfaceInset: "#27221E", navigation: "#25211E",
+            textPrimary: "#F5EFE9", textSecondary: "#C2B6AA",
+            stroke: "#4A413A", strokeStrong: "#655A50", hover: "#3A332D",
+            disabledSurface: "#332D28", disabledText: "#887D73"
+        }
+        if (id === "dark_graphite") return {
+            canvas: "#1F1F1F", surface: "#2A2A2A", surfaceRaised: "#323232",
+            surfaceInset: "#252525", navigation: "#242424",
+            textPrimary: "#F4F4F4", textSecondary: "#B8B8B8",
+            stroke: "#454545", strokeStrong: "#606060", hover: "#363636",
+            disabledSurface: "#303030", disabledText: "#7F7F7F"
+        }
+        return {
+            canvas: "#F6F8FC", surface: "#FFFFFF", surfaceRaised: "#FFFFFF",
+            surfaceInset: "#F1F4F9", navigation: "#F3F6FA",
+            textPrimary: "#20232B", textSecondary: "#5D6878",
+            stroke: "#DDE3EC", strokeStrong: "#BCC6D3", hover: "#EDF2F8",
+            disabledSurface: "#F2F4F7", disabledText: "#8B95A3"
+        }
+    }
 
     function configure(nextThemeId, nextAccentId, nextScale, nextReduceMotion) {
         themeId = nextThemeId || "light_cool"

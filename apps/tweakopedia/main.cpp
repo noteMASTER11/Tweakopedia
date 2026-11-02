@@ -727,11 +727,15 @@ int main(int argc, char* argv[])
     }
     auto* window = qobject_cast<QQuickWindow*>(engine.rootObjects().constFirst());
     const auto updateTitleBar = [window, &settingsController] {
-        QColor caption = settingsController.effectiveDark()
-            ? (settingsController.effectiveThemeId() == u"dark_midnight"_s
-                ? QColor(u"#0F172A"_s) : QColor(u"#1F1F1F"_s))
-            : (settingsController.effectiveThemeId() == u"light_warm"_s
-                ? QColor(u"#FAF8F3"_s) : QColor(u"#F6F8FC"_s));
+        const auto theme = settingsController.effectiveThemeId();
+        QColor caption = QColor(u"#F6F8FC"_s);
+        if (theme == u"light_warm"_s) caption = QColor(u"#FAF8F3"_s);
+        else if (theme == u"light_mist"_s) caption = QColor(u"#EEF3F7"_s);
+        else if (theme == u"light_sage"_s) caption = QColor(u"#F2F6F1"_s);
+        else if (theme == u"dark_graphite"_s) caption = QColor(u"#1F1F1F"_s);
+        else if (theme == u"dark_midnight"_s) caption = QColor(u"#0F172A"_s);
+        else if (theme == u"dark_slate"_s) caption = QColor(u"#182026"_s);
+        else if (theme == u"dark_umber"_s) caption = QColor(u"#211D1A"_s);
         applyTitleBar(window, settingsController.effectiveDark(), caption);
     };
     updateTitleBar();

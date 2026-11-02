@@ -49,5 +49,23 @@ TestCase {
         compare(FluentTheme.canvas.toString(), "#0f172a")
         compare(FluentTheme.surface.toString(), "#162033")
         compare(FluentTheme.accent.toString(), "#4dd4c6")
+
+        FluentTheme.configure("dark_slate", "blue", 1.0, false)
+        compare(FluentTheme.canvas.toString(), "#182026")
+        compare(FluentTheme.surface.toString(), "#222d34")
+
+        FluentTheme.configure("dark_umber", "amber", 1.0, false)
+        compare(FluentTheme.canvas.toString(), "#211d1a")
+        compare(FluentTheme.surface.toString(), "#2c2723")
+    }
+
+    function test_switchesAdditionalLightPalettes() {
+        FluentTheme.configure("light_mist", "blue", 1.0, false)
+        compare(FluentTheme.canvas.toString(), "#eef3f7")
+        compare(FluentTheme.surface.toString(), "#f9fbfd")
+
+        FluentTheme.configure("light_sage", "teal", 1.0, false)
+        compare(FluentTheme.canvas.toString(), "#f2f6f1")
+        compare(FluentTheme.surface.toString(), "#fbfdf9")
     }
 }

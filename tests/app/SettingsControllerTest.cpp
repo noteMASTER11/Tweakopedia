@@ -111,6 +111,10 @@ private slots:
         QCOMPARE(changed.count(), 5);
         QVERIFY(!controller.setUiScale(1.13));
         QVERIFY(!controller.setAccentId(QStringLiteral("unknown")));
+        QVERIFY(controller.setLightThemeId(QStringLiteral("light_sage")));
+        QVERIFY(controller.setDarkThemeId(QStringLiteral("dark_slate")));
+        QVERIFY(!controller.setLightThemeId(QStringLiteral("light_unknown")));
+        QVERIFY(!controller.setDarkThemeId(QStringLiteral("dark_unknown")));
         QVERIFY(controller.setUiScale(1.0));
         QVERIFY(!controller.uiScaleRestartRequired());
     }

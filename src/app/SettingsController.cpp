@@ -88,7 +88,9 @@ bool SettingsController::setAppearanceMode(const QString& value)
 
 bool SettingsController::setLightThemeId(const QString& value)
 {
-    if (value != QStringLiteral("light_cool") && value != QStringLiteral("light_warm")) return false;
+    static const QStringList allowed{QStringLiteral("light_cool"), QStringLiteral("light_warm"),
+        QStringLiteral("light_mist"), QStringLiteral("light_sage")};
+    if (!allowed.contains(value)) return false;
     if (lightThemeId_ == value) return true;
     if (!services_->setLightThemeId(value)) return false;
     lightThemeId_ = value;
@@ -98,7 +100,9 @@ bool SettingsController::setLightThemeId(const QString& value)
 
 bool SettingsController::setDarkThemeId(const QString& value)
 {
-    if (value != QStringLiteral("dark_graphite") && value != QStringLiteral("dark_midnight")) return false;
+    static const QStringList allowed{QStringLiteral("dark_graphite"), QStringLiteral("dark_midnight"),
+        QStringLiteral("dark_slate"), QStringLiteral("dark_umber")};
+    if (!allowed.contains(value)) return false;
     if (darkThemeId_ == value) return true;
     if (!services_->setDarkThemeId(value)) return false;
     darkThemeId_ = value;
