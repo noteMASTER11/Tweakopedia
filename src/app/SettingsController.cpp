@@ -14,6 +14,7 @@ SettingsController::SettingsController(ISettingsServices &services, QObject *par
     , accentId_(services.accentId())
     , fontId_(services.fontId())
     , uiScale_(services.uiScale())
+    , startupUiScale_(uiScale_)
     , motionMode_(services.motionMode())
     , systemDarkMode_(services.systemDarkMode())
     , systemReduceMotion_(services.systemReduceMotion())
@@ -51,6 +52,10 @@ QString SettingsController::darkThemeId() const { return darkThemeId_; }
 QString SettingsController::accentId() const { return accentId_; }
 QString SettingsController::fontId() const { return fontId_; }
 qreal SettingsController::uiScale() const { return uiScale_; }
+bool SettingsController::uiScaleRestartRequired() const
+{
+    return qAbs(uiScale_ - startupUiScale_) >= 0.001;
+}
 QString SettingsController::motionMode() const { return motionMode_; }
 
 bool SettingsController::effectiveDark() const

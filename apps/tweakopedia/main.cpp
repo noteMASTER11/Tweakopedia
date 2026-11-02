@@ -56,6 +56,7 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 #include <QQuickWindow>
+#include <QSettings>
 #include <QStyleHints>
 #include <QTimer>
 #include <QTemporaryDir>
@@ -63,6 +64,7 @@
 #include <QUrl>
 #include <QWindow>
 #include <QUuid>
+#include <QtMath>
 
 #ifdef Q_OS_WIN
 #include <dwmapi.h>
@@ -76,6 +78,20 @@ using namespace tweakopedia;
 using namespace Qt::StringLiterals;
 
 namespace {
+
+qreal configuredUiScale()
+{
+    const auto path = QDir(qEnvironmentVariable("LOCALAPPDATA"))
+        .filePath(u"Tweakopedia/Data/settings.ini"_s);
+    QSettings settings(path, QSettings::IniFormat);
+    bool valid{};
+    const auto value = settings.value(u"appearance/uiScale"_s, 1.0).toDouble(&valid);
+    if (!valid) return 1.0;
+    for (const auto allowed : {0.9, 1.0, 1.1, 1.25}) {
+        if (qAbs(value - allowed) < 0.001) return value;
+    }
+    return 1.0;
+}
 
 #ifdef Q_OS_WIN
 void applyTitleBar(QWindow* window, bool dark, const QColor& color)
@@ -601,6 +617,9 @@ public:
 
 int main(int argc, char* argv[])
 {
+    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(
+        Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+    qputenv("QT_SCALE_FACTOR", QByteArray::number(configuredUiScale(), 'f', 2));
     QQuickStyle::setStyle(u"Basic"_s);
     QGuiApplication app(argc, argv);
     QCoreApplication::setApplicationName(u"Tweakopedia"_s);

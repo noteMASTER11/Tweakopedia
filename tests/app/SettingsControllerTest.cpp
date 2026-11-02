@@ -102,6 +102,7 @@ private slots:
         QVERIFY(controller.setAppearanceMode(QStringLiteral("dark")));
         QVERIFY(controller.setAccentId(QStringLiteral("violet")));
         QVERIFY(controller.setUiScale(1.25));
+        QVERIFY(controller.uiScaleRestartRequired());
         QVERIFY(controller.setMotionMode(QStringLiteral("on")));
 
         QCOMPARE(controller.effectiveThemeId(), QStringLiteral("dark_midnight"));
@@ -110,6 +111,8 @@ private slots:
         QCOMPARE(changed.count(), 5);
         QVERIFY(!controller.setUiScale(1.13));
         QVERIFY(!controller.setAccentId(QStringLiteral("unknown")));
+        QVERIFY(controller.setUiScale(1.0));
+        QVERIFY(!controller.uiScaleRestartRequired());
     }
 
     void followsSystemThemeInSystemMode()

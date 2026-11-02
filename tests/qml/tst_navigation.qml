@@ -11,6 +11,10 @@ TestCase {
     width: 1200
     height: 700
 
+    function init() {
+        FluentTheme.configure("light_cool", "blue", 1.0, false)
+    }
+
     Component {
         id: navigationComponent
         FluentNavigation {
@@ -111,6 +115,13 @@ TestCase {
         navigation.availableWidth = 1099
         tryCompare(logo, "visible", false)
         tryCompare(icon, "visible", true)
+    }
+
+    function test_brandUsesMonochromeLogoInDarkTheme() {
+        FluentTheme.configure("dark_graphite", "blue", 1.0, false)
+        const navigation = createTemporaryObject(navigationComponent, this)
+        const logo = findChild(navigation, "navigationBrandLogo")
+        compare(logo.source, "qrc:/images/tweakopedia-logo-dark.png")
     }
 
     function test_activationChangesCurrentDestination() {

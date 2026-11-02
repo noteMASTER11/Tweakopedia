@@ -35,11 +35,8 @@ ApplicationWindow {
     }
 
     Item {
-        id: scaledRoot
-        width: window.width / FluentTheme.uiScale
-        height: window.height / FluentTheme.uiScale
-        scale: FluentTheme.uiScale
-        transformOrigin: Item.TopLeft
+        id: contentRoot
+        anchors.fill: parent
 
         RowLayout {
             anchors.fill: parent
@@ -48,7 +45,7 @@ ApplicationWindow {
             FluentNavigation {
                 id: navigation
                 Layout.fillHeight: true
-                availableWidth: scaledRoot.width
+                availableWidth: contentRoot.width
                 queueCount: appController.queue.count
                 hideUnsupportedTweaks: appController.filteredTweaks.hideUnsupported
                 onHideUnsupportedTweaksRequested: function(hide) {
@@ -65,12 +62,12 @@ ApplicationWindow {
                 TweaksPage {
                     id: tweaksPage
                     controller: appController
-                    wideLayout: scaledRoot.width >= 1180
+                    wideLayout: contentRoot.width >= 1180
                     onReviewRequested: window.openQueue()
                 }
                 TweakopediaPage {
                     controller: appController
-                    availableWindowWidth: scaledRoot.width
+                    availableWindowWidth: contentRoot.width
                     onTweakRequested: function(tweakId) {
                         navigation.currentIndex = 1
                         tweaksPage.openTweak(tweakId)
@@ -78,7 +75,7 @@ ApplicationWindow {
                 }
                 QueuePage {
                     controller: appController
-                    wideLayout: scaledRoot.width >= 1180
+                    wideLayout: contentRoot.width >= 1180
                     onReturnToTweaksRequested: navigation.currentIndex = 1
                 }
                 HistoryPage { controller: appController }

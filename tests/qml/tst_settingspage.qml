@@ -22,6 +22,7 @@ TestCase {
         property string accentId: "blue"
         property string fontId: "segoe"
         property real uiScale: 1.0
+        property bool uiScaleRestartRequired: false
         property string motionMode: "system"
         property string effectiveThemeId: appearanceMode === "dark" ? darkThemeId : lightThemeId
         property bool effectiveDark: appearanceMode === "dark"

@@ -41,6 +41,7 @@ class SettingsController final : public QObject
     Q_PROPERTY(QString accentId READ accentId NOTIFY appearanceChanged)
     Q_PROPERTY(QString fontId READ fontId NOTIFY appearanceChanged)
     Q_PROPERTY(qreal uiScale READ uiScale NOTIFY appearanceChanged)
+    Q_PROPERTY(bool uiScaleRestartRequired READ uiScaleRestartRequired NOTIFY appearanceChanged)
     Q_PROPERTY(QString motionMode READ motionMode NOTIFY appearanceChanged)
     Q_PROPERTY(QString effectiveThemeId READ effectiveThemeId NOTIFY appearanceChanged)
     Q_PROPERTY(bool effectiveDark READ effectiveDark NOTIFY appearanceChanged)
@@ -58,6 +59,7 @@ public:
     [[nodiscard]] QString accentId() const;
     [[nodiscard]] QString fontId() const;
     [[nodiscard]] qreal uiScale() const;
+    [[nodiscard]] bool uiScaleRestartRequired() const;
     [[nodiscard]] QString motionMode() const;
     [[nodiscard]] QString effectiveThemeId() const;
     [[nodiscard]] bool effectiveDark() const;
@@ -85,6 +87,7 @@ private:
     QString accentId_;
     QString fontId_;
     qreal uiScale_{1.0};
+    qreal startupUiScale_{1.0};
     QString motionMode_;
     bool systemDarkMode_{};
     bool systemReduceMotion_{};

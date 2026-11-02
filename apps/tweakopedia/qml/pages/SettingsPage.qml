@@ -114,7 +114,7 @@ Page {
 
             FluentText {
                 Layout.fillWidth: true
-                text: "Оформление, масштаб интерфейса и средства диагностики. Изменения применяются сразу."
+                text: "Оформление, масштаб интерфейса и средства диагностики. Кроме масштаба, изменения применяются сразу."
                 color: FluentTheme.textSecondary
                 font.family: FluentTheme.fontFamily
                 font.pixelSize: 14
@@ -358,7 +358,14 @@ Page {
                             Layout.fillWidth: true
                             spacing: 2
                             FluentText { text: "Масштаб интерфейса"; color: FluentTheme.textPrimary; font.pixelSize: 15; font.weight: Font.DemiBold }
-                            FluentText { text: "Изменяет размер элементов внутри окна, не затрагивая масштаб Windows."; color: FluentTheme.textSecondary; font.pixelSize: 12 }
+                            FluentText {
+                                text: root.controller.uiScaleRestartRequired
+                                    ? "Новый масштаб будет применён после перезапуска Tweakopedia."
+                                    : "Изменяет размер интерфейса независимо от масштаба Windows."
+                                color: root.controller.uiScaleRestartRequired
+                                    ? FluentTheme.warning : FluentTheme.textSecondary
+                                font.pixelSize: 12
+                            }
                         }
                         FluentCombo {
                             id: scaleCombo

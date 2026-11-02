@@ -46,7 +46,9 @@ Rectangle {
         anchors.rightMargin: 16
         height: 62
         visible: !root.compact
-        source: "qrc:/images/tweakopedia-logo.png"
+        source: FluentTheme.dark
+            ? "qrc:/images/tweakopedia-logo-dark.png"
+            : "qrc:/images/tweakopedia-logo.png"
         fillMode: Image.PreserveAspectFit
         horizontalAlignment: Image.AlignLeft
         verticalAlignment: Image.AlignVCenter
