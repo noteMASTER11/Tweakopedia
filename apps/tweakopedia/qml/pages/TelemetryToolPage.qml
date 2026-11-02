@@ -9,6 +9,36 @@ Page {
     objectName: "telemetryToolPage"
 
     property var controller
+    property string selectedProfileId: "balanced"
+    property var profileDefinitions: [
+        {
+            id: "basic",
+            title: "Базовый",
+            subtitle: "Убрать персонализацию",
+            audience: "Для тех, кому нужны все обычные функции Windows, но не нужны персональные предложения и рекламный идентификатор.",
+            effect: "Windows оставит обязательную диагностику, но перестанет добавлять имя компьютера, предлагать отправить отзыв и использовать диагностические данные для персональных советов.",
+            remains: "Вход в Microsoft, Hello, Xbox, обновления, отчёты о сбоях и синхронизация между устройствами продолжат работать.",
+            glyph: "\uE77B"
+        },
+        {
+            id: "balanced",
+            title: "Оптимальный",
+            subtitle: "Сократить фоновый обмен",
+            audience: "Рекомендуемый вариант для обычного домашнего компьютера без межустройственной истории и экспериментальных настроек.",
+            effect: "Помимо базовых ограничений Windows прекратит загружать экспериментальные настройки, отправлять историю действий между устройствами и собирать образцы ввода для персонализации.",
+            remains: "Вход в Microsoft, Hello, Xbox, обновления, Edge и штатные отчёты о сбоях продолжат работать.",
+            glyph: "\uE73E"
+        },
+        {
+            id: "strict",
+            title: "Строгий",
+            subtitle: "Минимум фоновой отправки",
+            audience: "Для тех, кто готов отказаться от автоматических отчётов о сбоях и части встроенной диагностики проблем.",
+            effect: "Windows и Edge получат минимально доступный уровень отправки. Отчёты о сбоях и сбор сведений о влиянии приложений будут отключены; разбор редких ошибок станет менее информативным.",
+            remains: "Вход в Microsoft, Hello, Xbox и обновления не отключаются. В обычных редакциях Windows часть обязательных данных всё равно может сохраняться.",
+            glyph: "\uE72E"
+        }
+    ]
     property var profile: ({ entries: [], totalCount: 0, configuredCount: 0,
                              changeCount: 0, unsupportedCount: 0, queuedCount: 0 })
     readonly property var entries: profile.entries || []
@@ -17,10 +47,18 @@ Page {
     signal tweakRequested(string id)
 
     function refreshProfile() {
-        profile = controller ? controller.telemetryProfile() : {
+        profile = controller ? controller.telemetryProfile(selectedProfileId) : {
             entries: [], totalCount: 0, configuredCount: 0,
             changeCount: 0, unsupportedCount: 0, queuedCount: 0
         }
+    }
+
+    function selectedDefinition() {
+        for (let index = 0; index < profileDefinitions.length; ++index) {
+            if (profileDefinitions[index].id === selectedProfileId)
+                return profileDefinitions[index]
+        }
+        return profileDefinitions[1]
     }
 
     function statusText(status) {
@@ -97,7 +135,7 @@ Page {
                     text: "Добавить в очередь"
                     onClicked: {
                         if (root.controller)
-                            root.controller.queueTelemetryProfile()
+                            root.controller.queueTelemetryProfile(root.selectedProfileId)
                         root.refreshProfile()
                     }
                     contentItem: FluentText {
@@ -184,46 +222,183 @@ Page {
                 }
             }
 
+            FluentText {
+                Layout.fillWidth: true
+                Layout.leftMargin: 28
+                Layout.rightMargin: 28
+                text: "Выберите, насколько сильно ограничить фоновую отправку данных"
+                color: FluentTheme.textPrimary
+                font.family: FluentTheme.fontFamily
+                font.pixelSize: 16
+                font.weight: Font.DemiBold
+                wrapMode: Text.WordWrap
+            }
+
+            GridLayout {
+                Layout.fillWidth: true
+                Layout.leftMargin: 28
+                Layout.rightMargin: 28
+                columns: width >= 820 ? 3 : 1
+                columnSpacing: 10
+                rowSpacing: 10
+
+                Repeater {
+                    id: profileSelectorRepeater
+                    objectName: "telemetryProfileSelectorRepeater"
+                    model: root.profileDefinitions
+
+                    delegate: AbstractButton {
+                        id: profileCard
+                        required property var modelData
+                        objectName: "telemetryProfileChoice_" + modelData.id
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 126
+                        Accessible.name: modelData.title + ". " + modelData.subtitle
+                        onClicked: {
+                            root.selectedProfileId = modelData.id
+                            root.refreshProfile()
+                        }
+
+                        contentItem: ColumnLayout {
+                            spacing: 7
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.leftMargin: 15
+                                Layout.rightMargin: 15
+                                Layout.topMargin: 12
+                                spacing: 9
+                                Rectangle {
+                                    Layout.preferredWidth: 32
+                                    Layout.preferredHeight: 32
+                                    radius: 16
+                                    color: root.selectedProfileId === profileCard.modelData.id
+                                        ? FluentTheme.selected : FluentTheme.surfaceInset
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: profileCard.modelData.glyph
+                                        color: FluentTheme.accent
+                                        font.family: "Segoe MDL2 Assets"
+                                        font.pixelSize: 15
+                                    }
+                                }
+                                FluentText {
+                                    Layout.fillWidth: true
+                                    text: profileCard.modelData.title
+                                    color: FluentTheme.textPrimary
+                                    font.family: FluentTheme.fontFamily
+                                    font.pixelSize: 15
+                                    font.weight: Font.DemiBold
+                                }
+                                Rectangle {
+                                    visible: profileCard.modelData.id === "balanced"
+                                    Layout.preferredWidth: recommendedText.implicitWidth + 14
+                                    Layout.preferredHeight: 24
+                                    radius: 12
+                                    color: FluentTheme.selected
+                                    FluentText {
+                                        id: recommendedText
+                                        anchors.centerIn: parent
+                                        text: "Рекомендуется"
+                                        color: FluentTheme.accent
+                                        font.family: FluentTheme.fontFamily
+                                        font.pixelSize: 10
+                                        font.weight: Font.DemiBold
+                                    }
+                                }
+                            }
+                            FluentText {
+                                Layout.fillWidth: true
+                                Layout.leftMargin: 15
+                                Layout.rightMargin: 15
+                                text: profileCard.modelData.subtitle
+                                color: FluentTheme.textSecondary
+                                font.family: FluentTheme.fontFamily
+                                font.pixelSize: 12
+                                wrapMode: Text.WordWrap
+                            }
+                            Item { Layout.fillHeight: true }
+                        }
+                        background: Rectangle {
+                            radius: 9
+                            color: root.selectedProfileId === profileCard.modelData.id
+                                ? "#EEF5FF"
+                                : profileCard.pressed ? FluentTheme.selected
+                                : profileCard.hovered ? FluentTheme.hover : FluentTheme.surface
+                            border.width: root.selectedProfileId === profileCard.modelData.id
+                                || profileCard.hovered || profileCard.activeFocus ? 2 : 1
+                            border.color: root.selectedProfileId === profileCard.modelData.id
+                                || profileCard.hovered || profileCard.activeFocus
+                                ? FluentTheme.accent : FluentTheme.stroke
+                        }
+                    }
+                }
+            }
+
             Rectangle {
                 Layout.fillWidth: true
                 Layout.leftMargin: 28
                 Layout.rightMargin: 28
-                implicitHeight: introLayout.implicitHeight + 28
+                implicitHeight: explanationLayout.implicitHeight + 28
                 radius: 10
                 color: "#F4F8FE"
                 border.width: 1
                 border.color: "#C9DCF5"
 
                 ColumnLayout {
-                    id: introLayout
+                    id: explanationLayout
                     anchors.fill: parent
                     anchors.margins: 14
-                    spacing: 7
-                    FluentText {
-                        Layout.fillWidth: true
-                        text: "Сбалансированный профиль"
-                        color: FluentTheme.textPrimary
-                        font.family: FluentTheme.fontFamily
-                        font.pixelSize: 16
-                        font.weight: Font.DemiBold
-                    }
-                    FluentText {
-                        Layout.fillWidth: true
-                        text: "Ограничивает диагностические данные, облачную конфигурацию, эксперименты, персонализацию и Activity Feed. Не отключает WER, обновления, вход в Microsoft, Windows Hello, Xbox и связанные с ними компоненты."
-                        color: FluentTheme.textSecondary
-                        font.family: FluentTheme.fontFamily
-                        font.pixelSize: 12
-                        lineHeight: 1.15
-                        wrapMode: Text.WordWrap
-                    }
-                    FluentText {
-                        Layout.fillWidth: true
-                        text: "Сетевые адреса и файл hosts не изменяются. Каждый пункт остаётся отдельным твиком и попадёт в общую очередь."
-                        color: FluentTheme.accent
-                        font.family: FluentTheme.fontFamily
-                        font.pixelSize: 12
-                        font.weight: Font.DemiBold
-                        wrapMode: Text.WordWrap
+                    spacing: 9
+
+                    Repeater {
+                        model: [
+                            { glyph: "\uE8D7", title: "Кому подходит",
+                              text: root.selectedDefinition().audience },
+                            { glyph: "\uE7BA", title: "Что изменится",
+                              text: root.selectedDefinition().effect },
+                            { glyph: "\uE73E", title: "Что останется работать",
+                              text: root.selectedDefinition().remains }
+                        ]
+                        delegate: RowLayout {
+                            required property var modelData
+                            Layout.fillWidth: true
+                            spacing: 10
+                            Rectangle {
+                                Layout.preferredWidth: 28
+                                Layout.preferredHeight: 28
+                                Layout.alignment: Qt.AlignTop
+                                radius: 14
+                                color: FluentTheme.selected
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: modelData.glyph
+                                    color: FluentTheme.accent
+                                    font.family: "Segoe MDL2 Assets"
+                                    font.pixelSize: 13
+                                }
+                            }
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 2
+                                FluentText {
+                                    Layout.fillWidth: true
+                                    text: modelData.title
+                                    color: FluentTheme.textPrimary
+                                    font.family: FluentTheme.fontFamily
+                                    font.pixelSize: 12
+                                    font.weight: Font.DemiBold
+                                }
+                                FluentText {
+                                    Layout.fillWidth: true
+                                    text: modelData.text
+                                    color: FluentTheme.textSecondary
+                                    font.family: FluentTheme.fontFamily
+                                    font.pixelSize: 12
+                                    lineHeight: 1.12
+                                    wrapMode: Text.WordWrap
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -80,6 +80,7 @@ TestCase {
     QtObject {
         id: fakeAppController
         property int queueCalls: 0
+        property string lastProfileId: ""
         property var profileData: ({
             entries: [{
                 id: "privacy.diagnostic-data-level",
@@ -95,13 +96,18 @@ TestCase {
             unsupportedCount: 0,
             queuedCount: queueCalls > 0 ? 1 : 0
         })
-        function telemetryProfile() {
+        function telemetryProfile(profileId) {
+            lastProfileId = profileId || "balanced"
             profileData.changeCount = queueCalls > 0 ? 0 : 1
             profileData.queuedCount = queueCalls > 0 ? 1 : 0
             profileData.entries[0].status = queueCalls > 0 ? "queued" : "change"
             return profileData
         }
-        function queueTelemetryProfile() { ++queueCalls; return 1 }
+        function queueTelemetryProfile(profileId) {
+            lastProfileId = profileId || "balanced"
+            ++queueCalls
+            return 1
+        }
     }
 
     Component {
@@ -158,9 +164,13 @@ TestCase {
         const page = createTemporaryObject(toolsPageComponent, this)
         mouseClick(findChild(page, "toolCard_3"))
         verify(findChild(page, "telemetryToolPage").visible)
+        compare(findChild(page, "telemetryProfileSelectorRepeater").count, 3)
         compare(findChild(page, "telemetryProfileRepeater").count, 1)
+        mouseClick(findChild(page, "telemetryProfileChoice_strict"))
+        compare(fakeAppController.lastProfileId, "strict")
         mouseClick(findChild(page, "telemetryQueueButton"))
         compare(fakeAppController.queueCalls, 1)
+        compare(fakeAppController.lastProfileId, "strict")
         verify(findChild(page, "telemetryReviewButton").visible)
     }
 

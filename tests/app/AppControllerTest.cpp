@@ -469,12 +469,21 @@ private slots:
         QVERIFY(controller.startup());
 
         auto profile = controller.telemetryProfile();
+        QCOMPARE(profile.value(u"profileId"_s).toString(), u"balanced"_s);
         QCOMPARE(profile.value(u"totalCount"_s).toInt(), 3);
         QCOMPARE(profile.value(u"configuredCount"_s).toInt(), 1);
         QCOMPARE(profile.value(u"changeCount"_s).toInt(), 2);
         QCOMPARE(profile.value(u"unsupportedCount"_s).toInt(), 0);
         QCOMPARE(controller.queueTelemetryProfile(), 2);
         QCOMPARE(controller.queue()->rowCount(), 2);
+
+        const auto basic = controller.telemetryProfile(u"basic"_s);
+        QCOMPARE(basic.value(u"profileId"_s).toString(), u"basic"_s);
+        QCOMPARE(basic.value(u"totalCount"_s).toInt(), 3);
+        const auto strict = controller.telemetryProfile(u"strict"_s);
+        QCOMPARE(strict.value(u"profileId"_s).toString(), u"strict"_s);
+        QCOMPARE(strict.value(u"entries"_s).toList().first().toMap()
+                     .value(u"targetState"_s).toString(), u"off"_s);
 
         profile = controller.telemetryProfile();
         QCOMPARE(profile.value(u"configuredCount"_s).toInt(), 1);

@@ -120,8 +120,8 @@ public:
     Q_INVOKABLE bool selectParameterizedTarget(
         const QString& id, const QString& state, const QVariantMap& inputs);
     Q_INVOKABLE bool removeFromQueue(const QString& id);
-    Q_INVOKABLE QVariantMap telemetryProfile() const;
-    Q_INVOKABLE int queueTelemetryProfile();
+    Q_INVOKABLE QVariantMap telemetryProfile(const QString& profileId = {}) const;
+    Q_INVOKABLE int queueTelemetryProfile(const QString& profileId = {});
     Q_INVOKABLE QVariantMap openExplanation(const QString& id) const;
     Q_INVOKABLE bool buildPreview();
     Q_INVOKABLE bool applyQueue(const QString& packageName);

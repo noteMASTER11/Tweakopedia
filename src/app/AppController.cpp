@@ -56,28 +56,50 @@ struct TelemetryProfileTarget {
     QString group;
 };
 
-const QVector<TelemetryProfileTarget>& telemetryProfileTargets()
+const QVector<TelemetryProfileTarget>& telemetryProfileTargets(QStringView profileId)
 {
-    static const QVector<TelemetryProfileTarget> targets{
+    static const QVector<TelemetryProfileTarget> basic{
         {u"privacy.diagnostic-data-level"_s, u"required"_s, u"Диагностические данные"_s},
         {u"privacy.device-name-diagnostic-data"_s, u"disabled"_s, u"Диагностические данные"_s},
         {u"privacy.feedback-prompts"_s, u"disabled"_s, u"Диагностические данные"_s},
-        {u"privacy.onesettings-downloads"_s, u"disabled"_s, u"Облачная конфигурация"_s},
-        {u"privacy.onesettings-auditing"_s, u"disabled"_s, u"Облачная конфигурация"_s},
-        {u"privacy.experimentation"_s, u"disabled"_s, u"Облачная конфигурация"_s},
         {u"privacy.tailored-experiences"_s, u"disabled"_s, u"Персонализация"_s},
         {u"privacy.tailored-experiences-user"_s, u"disabled"_s, u"Персонализация"_s},
         {u"privacy.advertising-id-block"_s, u"enabled"_s, u"Персонализация"_s},
         {u"privacy.advertising-id-user"_s, u"disabled"_s, u"Персонализация"_s},
-        {u"privacy.activity-feed"_s, u"disabled"_s, u"Действия между устройствами"_s},
-        {u"privacy.publish-user-activities"_s, u"disabled"_s, u"Действия между устройствами"_s},
-        {u"privacy.upload-user-activities"_s, u"disabled"_s, u"Действия между устройствами"_s},
-        {u"privacy.inking-typing-improvement"_s, u"disabled"_s, u"Персонализация ввода"_s},
-        {u"privacy.input-personalization-consent"_s, u"disabled"_s, u"Персонализация ввода"_s},
-        {u"privacy.implicit-ink-collection"_s, u"disabled"_s, u"Персонализация ввода"_s},
-        {u"privacy.implicit-text-collection"_s, u"disabled"_s, u"Персонализация ввода"_s},
     };
-    return targets;
+    static const QVector<TelemetryProfileTarget> balanced = [] {
+        auto targets = basic;
+        targets.append({
+            {u"privacy.onesettings-downloads"_s, u"disabled"_s, u"Фоновая конфигурация"_s},
+            {u"privacy.onesettings-auditing"_s, u"disabled"_s, u"Фоновая конфигурация"_s},
+            {u"privacy.experimentation"_s, u"disabled"_s, u"Фоновая конфигурация"_s},
+            {u"privacy.activity-feed"_s, u"disabled"_s, u"История действий"_s},
+            {u"privacy.publish-user-activities"_s, u"disabled"_s, u"История действий"_s},
+            {u"privacy.upload-user-activities"_s, u"disabled"_s, u"История действий"_s},
+            {u"privacy.inking-typing-improvement"_s, u"disabled"_s, u"Персонализация ввода"_s},
+            {u"privacy.input-personalization-consent"_s, u"disabled"_s, u"Персонализация ввода"_s},
+            {u"privacy.implicit-ink-collection"_s, u"disabled"_s, u"Персонализация ввода"_s},
+            {u"privacy.implicit-text-collection"_s, u"disabled"_s, u"Персонализация ввода"_s},
+        });
+        return targets;
+    }();
+    static const QVector<TelemetryProfileTarget> strict = [] {
+        auto targets = balanced;
+        targets[0].state = u"off"_s;
+        targets.append({
+            {u"behavior.application-impact-telemetry"_s, u"disabled"_s, u"Совместимость приложений"_s},
+            {u"apps.edge-diagnostic-data"_s, u"off"_s, u"Microsoft Edge"_s},
+            {u"apps.edge-user-feedback"_s, u"disabled"_s, u"Microsoft Edge"_s},
+            {u"privacy.app-access-diagnostic-info"_s, u"force_deny"_s, u"Доступ приложений"_s},
+            {u"privacy.wer-reporting-device"_s, u"disabled"_s, u"Отчёты о сбоях"_s},
+            {u"privacy.wer-reporting-user"_s, u"disabled"_s, u"Отчёты о сбоях"_s},
+        });
+        return targets;
+    }();
+
+    if (profileId == u"basic") return basic;
+    if (profileId == u"strict") return strict;
+    return balanced;
 }
 
 QString stateTitle(const domain::TweakDefinition& tweak, QStringView stateId)
@@ -407,15 +429,17 @@ bool AppController::removeFromQueue(const QString& id)
     return true;
 }
 
-QVariantMap AppController::telemetryProfile() const
+QVariantMap AppController::telemetryProfile(const QString& profileId) const
 {
+    const auto normalizedProfileId = profileId == u"basic" || profileId == u"strict"
+        ? profileId : u"balanced"_s;
     QVariantList entries;
     int configuredCount{};
     int changeCount{};
     int unsupportedCount{};
     int queuedCount{};
 
-    for (const auto& profileTarget : telemetryProfileTargets()) {
+    for (const auto& profileTarget : telemetryProfileTargets(normalizedProfileId)) {
         const auto parsed = domain::TweakId::parse(profileTarget.id);
         const auto* tweak = parsed ? catalog_.find(*parsed) : nullptr;
         if (!tweak) continue;
@@ -463,6 +487,7 @@ QVariantMap AppController::telemetryProfile() const
     }
 
     return {
+        {u"profileId"_s, normalizedProfileId},
         {u"entries"_s, entries},
         {u"totalCount"_s, entries.size()},
         {u"configuredCount"_s, configuredCount},
@@ -472,10 +497,12 @@ QVariantMap AppController::telemetryProfile() const
     };
 }
 
-int AppController::queueTelemetryProfile()
+int AppController::queueTelemetryProfile(const QString& profileId)
 {
+    const auto normalizedProfileId = profileId == u"basic" || profileId == u"strict"
+        ? profileId : u"balanced"_s;
     int queued{};
-    for (const auto& profileTarget : telemetryProfileTargets()) {
+    for (const auto& profileTarget : telemetryProfileTargets(normalizedProfileId)) {
         const auto parsed = domain::TweakId::parse(profileTarget.id);
         if (!parsed || !catalog_.find(*parsed) || !supported_.value(*parsed, false)) continue;
         const auto actual = detected_.value(*parsed);
