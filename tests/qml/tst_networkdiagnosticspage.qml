@@ -207,7 +207,12 @@ TestCase {
               summary: "Сервер не отвечает", details: ["1.1.1.1"] }
         ]
         const page = createTemporaryObject(pageComponent, this, { width: 720, height: 760 })
-        mouseClick(findChild(page, "networkDiagnosticsCheckCard_dns"))
+        const card = findChild(page, "networkDiagnosticsCheckCard_dns")
+        const scroll = findChild(page, "networkDiagnosticsPageScroll")
+        const position = card.mapToItem(scroll.contentItem, 0, 0)
+        scroll.contentItem.contentY = Math.max(0, position.y - 16)
+        wait(0)
+        mouseClick(card)
         const panel = findChild(page, "networkDiagnosticsDetailPane")
         tryCompare(panel, "visible", true)
         compare(panel.modal, true)

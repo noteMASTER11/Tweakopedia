@@ -146,6 +146,22 @@ TestCase {
         }
     }
 
+    function test_toolDetailHeadersUseFixedPageHeaderArea() {
+        const page = createTemporaryObject(toolsPageComponent, this)
+        const expected = [
+            ["systemIntegrityPage", "systemIntegrityHeader"],
+            ["fileSystemCheckPage", "fileSystemCheckHeader"],
+            ["networkDiagnosticsPage", "networkDiagnosticsHeader"],
+            ["telemetryToolPage", "telemetryToolHeader"]
+        ]
+        for (let index = 0; index < expected.length; ++index) {
+            const toolPage = findChild(page, expected[index][0])
+            verify(toolPage)
+            verify(toolPage.header)
+            compare(toolPage.header.objectName, expected[index][1])
+        }
+    }
+
     function test_networkCardOpensDedicatedScreenAndReturns() {
         const page = createTemporaryObject(toolsPageComponent, this)
         const card = findChild(page, "toolCard_2")

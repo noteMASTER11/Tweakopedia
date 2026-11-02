@@ -82,6 +82,14 @@ Page {
     padding: 0
     background: Rectangle { color: FluentTheme.canvas }
 
+    header: ToolPageHeader {
+        objectName: "telemetryToolHeader"
+        title: "Блокировка телеметрии"
+        subtitle: "Совместимый пакет параметров Windows с предварительным просмотром и возвратом исходных значений."
+        backButtonObjectName: "telemetryBackButton"
+        onBackRequested: root.backRequested()
+    }
+
     footer: Rectangle {
         implicitHeight: 76
         color: FluentTheme.canvas
@@ -169,58 +177,6 @@ Page {
             spacing: 14
 
             Item { Layout.preferredHeight: 8 }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.leftMargin: 28
-                Layout.rightMargin: 28
-                spacing: 12
-
-                AbstractButton {
-                    id: backButton
-                    objectName: "telemetryBackButton"
-                    Layout.preferredWidth: 42
-                    Layout.preferredHeight: 38
-                    Accessible.name: "Вернуться к инструментам"
-                    onClicked: root.backRequested()
-                    contentItem: Text {
-                        text: "\uE72B"
-                        color: FluentTheme.textPrimary
-                        font.family: "Segoe MDL2 Assets"
-                        font.pixelSize: 16
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-                    background: Rectangle {
-                        radius: 6
-                        color: backButton.pressed ? FluentTheme.selected
-                            : backButton.hovered ? FluentTheme.hover : FluentTheme.surface
-                        border.width: backButton.activeFocus ? 2 : 1
-                        border.color: backButton.activeFocus ? FluentTheme.accent : FluentTheme.stroke
-                    }
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 1
-                    FluentText {
-                        Layout.fillWidth: true
-                        text: "Блокировка телеметрии"
-                        color: FluentTheme.textPrimary
-                        font.family: FluentTheme.fontFamily
-                        font.pixelSize: 27
-                        font.weight: Font.DemiBold
-                    }
-                    FluentText {
-                        Layout.fillWidth: true
-                        text: "Совместимый пакет параметров Windows с предварительным просмотром и возвратом исходных значений."
-                        color: FluentTheme.textSecondary
-                        font.family: FluentTheme.fontFamily
-                        font.pixelSize: 13
-                        wrapMode: Text.WordWrap
-                    }
-                }
-            }
 
             FluentText {
                 Layout.fillWidth: true

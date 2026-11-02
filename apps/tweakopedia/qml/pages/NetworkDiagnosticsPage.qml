@@ -102,6 +102,14 @@ Page {
     padding: 0
     background: Rectangle { color: FluentTheme.canvas }
 
+    header: ToolPageHeader {
+        objectName: "networkDiagnosticsHeader"
+        title: "Диагностика сети"
+        subtitle: "Анализ текущей сетевой конфигурации встроенными средствами Windows."
+        backButtonObjectName: "networkDiagnosticsBackButton"
+        onBackRequested: root.backRequested()
+    }
+
     footer: Item {
         implicitHeight: networkDiagnosticsResultGuide.implicitHeight + 20
 
@@ -145,62 +153,6 @@ Page {
             spacing: 14
 
             Item { Layout.preferredHeight: 8 }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.leftMargin: 28
-                Layout.rightMargin: 28
-                spacing: 12
-
-                AbstractButton {
-                    id: backButton
-                    objectName: "networkDiagnosticsBackButton"
-                    Layout.preferredWidth: 42
-                    Layout.preferredHeight: 38
-                    focusPolicy: Qt.StrongFocus
-                    Accessible.name: "Вернуться к инструментам"
-                    onClicked: root.backRequested()
-
-                    contentItem: Text {
-                        text: "\uE72B"
-                        color: FluentTheme.textPrimary
-                        font.family: "Segoe MDL2 Assets"
-                        font.pixelSize: 16
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-                    background: Rectangle {
-                        radius: 6
-                        color: backButton.pressed ? FluentTheme.selected
-                            : backButton.hovered ? FluentTheme.hover : FluentTheme.surface
-                        border.width: 1
-                        border.color: backButton.activeFocus ? FluentTheme.accent : FluentTheme.stroke
-                    }
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 2
-
-                    FluentText {
-                        Layout.fillWidth: true
-                        text: "Диагностика сети"
-                        color: FluentTheme.textPrimary
-                        font.family: FluentTheme.fontFamily
-                        font.pixelSize: 26
-                        font.weight: Font.DemiBold
-                        wrapMode: Text.WordWrap
-                    }
-                    FluentText {
-                        Layout.fillWidth: true
-                        text: "Анализ текущей сетевой конфигурации встроенными средствами Windows."
-                        color: FluentTheme.textSecondary
-                        font.family: FluentTheme.fontFamily
-                        font.pixelSize: 13
-                        wrapMode: Text.WordWrap
-                    }
-                }
-            }
 
             Rectangle {
                 Layout.fillWidth: true

@@ -45,6 +45,14 @@ Page {
     padding: 0
     background: Rectangle { color: FluentTheme.canvas }
 
+    header: ToolPageHeader {
+        objectName: "fileSystemCheckHeader"
+        title: "Проверка файловой системы"
+        subtitle: "Диагностика локальных томов NTFS средствами CHKDSK без исправления ошибок."
+        backButtonObjectName: "fileSystemCheckBackButton"
+        onBackRequested: root.backRequested()
+    }
+
     footer: Item {
         implicitHeight: fileSystemCheckResultGuide.implicitHeight + 20
 
@@ -90,60 +98,6 @@ Page {
                 y: 22
                 width: parent.width - 56
                 spacing: 14
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 12
-
-            AbstractButton {
-                id: backButton
-                objectName: "fileSystemCheckBackButton"
-                Layout.preferredWidth: 42
-                Layout.preferredHeight: 38
-                focusPolicy: Qt.StrongFocus
-                Accessible.name: "Вернуться к инструментам"
-                onClicked: root.backRequested()
-
-                contentItem: Text {
-                    text: "\uE72B"
-                    color: FluentTheme.textPrimary
-                    font.family: "Segoe MDL2 Assets"
-                    font.pixelSize: 16
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-                background: Rectangle {
-                    radius: 6
-                    color: backButton.pressed ? FluentTheme.selected
-                                              : backButton.hovered ? FluentTheme.hover : FluentTheme.surface
-                    border.width: 1
-                    border.color: backButton.activeFocus ? FluentTheme.accent : FluentTheme.stroke
-                }
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 2
-
-                FluentText {
-                    Layout.fillWidth: true
-                    text: "Проверка файловой системы"
-                    color: FluentTheme.textPrimary
-                    font.family: FluentTheme.fontFamily
-                    font.pixelSize: 26
-                    font.weight: Font.DemiBold
-                    wrapMode: Text.WordWrap
-                }
-                FluentText {
-                    Layout.fillWidth: true
-                    text: "Диагностика локальных томов NTFS средствами CHKDSK без исправления ошибок."
-                    color: FluentTheme.textSecondary
-                    font.family: FluentTheme.fontFamily
-                    font.pixelSize: 13
-                    wrapMode: Text.WordWrap
-                }
-            }
-        }
 
         Rectangle {
             Layout.fillWidth: true
