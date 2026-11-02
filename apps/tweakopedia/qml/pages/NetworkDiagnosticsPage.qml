@@ -16,7 +16,6 @@ Page {
     property var pendingRule: ({})
     property int firewallRuleLimit: 12
     signal backRequested()
-    signal recoveryRequested()
     signal articleRequested(string id)
 
     function primaryText() {
@@ -73,6 +72,17 @@ Page {
         firewallRuleLimit = 12
         selectedCheck = check
         detailPane.open()
+    }
+
+    function openFirstAttention() {
+        if (!controller || !controller.checks)
+            return
+        for (let index = 0; index < controller.checks.length; ++index) {
+            if (controller.checks[index].status === "attention") {
+                openCheckDetails(controller.checks[index])
+                return
+            }
+        }
     }
 
     function visibleFirewallRules() {
@@ -501,7 +511,7 @@ Page {
                         }
                         FluentText {
                             Layout.fillWidth: true
-                            text: "Перейдите к отдельному инструменту и выберите операции после изучения результатов."
+                            text: "Откройте отмеченный пункт: подробности и доступные действия находятся в его панели."
                             color: FluentTheme.textSecondary
                             font.family: FluentTheme.fontFamily
                             font.pixelSize: 12
@@ -514,8 +524,8 @@ Page {
                         objectName: "networkDiagnosticsRecoveryButton"
                         Layout.preferredWidth: 196
                         Layout.preferredHeight: 38
-                        text: "Перейти к восстановлению"
-                        onClicked: root.recoveryRequested()
+                        text: "Открыть отмеченный пункт"
+                        onClicked: root.openFirstAttention()
                         contentItem: FluentText {
                             text: recoveryButton.text
                             color: "white"

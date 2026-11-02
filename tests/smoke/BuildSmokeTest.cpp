@@ -80,6 +80,9 @@ private slots:
 
         QFile page(sourceRoot.filePath(
             QStringLiteral("apps/tweakopedia/qml/pages/NetworkDiagnosticsPage.qml")));
+        QVERIFY(resourceText.contains("qml/pages/TelemetryToolPage.qml"));
+        QVERIFY(QFileInfo::exists(QDir(sourceRoot).filePath(
+            QStringLiteral("apps/tweakopedia/qml/pages/TelemetryToolPage.qml"))));
         QVERIFY(page.open(QIODevice::ReadOnly));
         const auto pageText = page.readAll();
         QVERIFY(pageText.contains("networkDiagnosticsPage"));

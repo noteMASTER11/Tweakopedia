@@ -50,6 +50,43 @@ QString registryObject(const domain::RegistryKeyLocation& location)
     return hive + location.key;
 }
 
+struct TelemetryProfileTarget {
+    QString id;
+    QString state;
+    QString group;
+};
+
+const QVector<TelemetryProfileTarget>& telemetryProfileTargets()
+{
+    static const QVector<TelemetryProfileTarget> targets{
+        {u"privacy.diagnostic-data-level"_s, u"required"_s, u"Диагностические данные"_s},
+        {u"privacy.device-name-diagnostic-data"_s, u"disabled"_s, u"Диагностические данные"_s},
+        {u"privacy.feedback-prompts"_s, u"disabled"_s, u"Диагностические данные"_s},
+        {u"privacy.onesettings-downloads"_s, u"disabled"_s, u"Облачная конфигурация"_s},
+        {u"privacy.onesettings-auditing"_s, u"disabled"_s, u"Облачная конфигурация"_s},
+        {u"privacy.experimentation"_s, u"disabled"_s, u"Облачная конфигурация"_s},
+        {u"privacy.tailored-experiences"_s, u"disabled"_s, u"Персонализация"_s},
+        {u"privacy.tailored-experiences-user"_s, u"disabled"_s, u"Персонализация"_s},
+        {u"privacy.advertising-id-block"_s, u"enabled"_s, u"Персонализация"_s},
+        {u"privacy.advertising-id-user"_s, u"disabled"_s, u"Персонализация"_s},
+        {u"privacy.activity-feed"_s, u"disabled"_s, u"Действия между устройствами"_s},
+        {u"privacy.publish-user-activities"_s, u"disabled"_s, u"Действия между устройствами"_s},
+        {u"privacy.upload-user-activities"_s, u"disabled"_s, u"Действия между устройствами"_s},
+        {u"privacy.inking-typing-improvement"_s, u"disabled"_s, u"Персонализация ввода"_s},
+        {u"privacy.input-personalization-consent"_s, u"disabled"_s, u"Персонализация ввода"_s},
+        {u"privacy.implicit-ink-collection"_s, u"disabled"_s, u"Персонализация ввода"_s},
+        {u"privacy.implicit-text-collection"_s, u"disabled"_s, u"Персонализация ввода"_s},
+    };
+    return targets;
+}
+
+QString stateTitle(const domain::TweakDefinition& tweak, QStringView stateId)
+{
+    const auto state = std::find_if(tweak.states.cbegin(), tweak.states.cend(),
+        [stateId](const auto& candidate) { return candidate.id == stateId; });
+    return state == tweak.states.cend() ? stateId.toString() : state->title;
+}
+
 } // namespace
 
 AppController::AppController(IAppServices& services, QObject* parent)
@@ -368,6 +405,96 @@ bool AppController::removeFromQueue(const QString& id)
     emit previewChanged();
     resetOperationState();
     return true;
+}
+
+QVariantMap AppController::telemetryProfile() const
+{
+    QVariantList entries;
+    int configuredCount{};
+    int changeCount{};
+    int unsupportedCount{};
+    int queuedCount{};
+
+    for (const auto& profileTarget : telemetryProfileTargets()) {
+        const auto parsed = domain::TweakId::parse(profileTarget.id);
+        const auto* tweak = parsed ? catalog_.find(*parsed) : nullptr;
+        if (!tweak) continue;
+
+        const auto supported = supported_.value(*parsed, false);
+        const auto actual = detected_.value(*parsed);
+        const auto queued = std::find_if(
+            queueData_.items().cbegin(), queueData_.items().cend(),
+            [&parsed](const auto& item) { return item.tweakId == *parsed; });
+        const auto queuedState = queued == queueData_.items().cend()
+            ? QString{} : queued->targetState;
+
+        QString status;
+        if (!supported) {
+            status = u"unsupported"_s;
+            ++unsupportedCount;
+        } else if (queuedState == profileTarget.state) {
+            status = u"queued"_s;
+            ++queuedCount;
+        } else if (actual.status == domain::DetectionStatus::Named
+                   && actual.stateId == profileTarget.state) {
+            status = u"configured"_s;
+            ++configuredCount;
+        } else {
+            status = queuedState.isEmpty() ? u"change"_s : u"replace"_s;
+            ++changeCount;
+        }
+
+        entries.append(QVariantMap{
+            {u"id"_s, profileTarget.id},
+            {u"title"_s, tweak->title},
+            {u"summary"_s, tweak->summary},
+            {u"group"_s, profileTarget.group},
+            {u"currentState"_s, actual.stateId},
+            {u"currentTitle"_s,
+             actual.status == domain::DetectionStatus::Named
+                 ? stateTitle(*tweak, actual.stateId) : u"Не определено"_s},
+            {u"targetState"_s, profileTarget.state},
+            {u"targetTitle"_s, stateTitle(*tweak, profileTarget.state)},
+            {u"queuedState"_s, queuedState},
+            {u"status"_s, status},
+            {u"supported"_s, supported},
+            {u"restart"_s, restartName(tweak->restart)},
+        });
+    }
+
+    return {
+        {u"entries"_s, entries},
+        {u"totalCount"_s, entries.size()},
+        {u"configuredCount"_s, configuredCount},
+        {u"changeCount"_s, changeCount},
+        {u"unsupportedCount"_s, unsupportedCount},
+        {u"queuedCount"_s, queuedCount},
+    };
+}
+
+int AppController::queueTelemetryProfile()
+{
+    int queued{};
+    for (const auto& profileTarget : telemetryProfileTargets()) {
+        const auto parsed = domain::TweakId::parse(profileTarget.id);
+        if (!parsed || !catalog_.find(*parsed) || !supported_.value(*parsed, false)) continue;
+        const auto actual = detected_.value(*parsed);
+        const auto queuedTarget = std::find_if(
+            queueData_.items().cbegin(), queueData_.items().cend(),
+            [&parsed](const auto& item) { return item.tweakId == *parsed; });
+        if (queuedTarget != queueData_.items().cend()
+            && queuedTarget->targetState == profileTarget.state) {
+            continue;
+        }
+        if (actual.status == domain::DetectionStatus::Named
+            && actual.stateId == profileTarget.state) {
+            if (queuedTarget != queueData_.items().cend())
+                (void)selectTarget(profileTarget.id, profileTarget.state);
+            continue;
+        }
+        if (selectTarget(profileTarget.id, profileTarget.state)) ++queued;
+    }
+    return queued;
 }
 
 QVariantMap AppController::openExplanation(const QString& id) const

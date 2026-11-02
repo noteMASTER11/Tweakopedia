@@ -99,7 +99,7 @@ TestCase {
         verify(!findChild(page, "networkDiagnosticsPrimaryButton").enabled)
     }
 
-    function test_resultBuildsCardsCountersAndRecoveryAction() {
+    function test_resultBuildsCardsCountersAndOpensFirstAttentionItem() {
         fakeController.state = "issues_found"
         fakeController.resultTitle = "Обнаружены параметры, требующие внимания"
         fakeController.resultDescription = "Просмотрите отмеченные блоки."
@@ -119,16 +119,14 @@ TestCase {
         compare(findChild(page, "networkDiagnosticsAttentionCount").text, "1")
         compare(findChild(page, "networkDiagnosticsUnavailableCount").text, "1")
         compare(findChild(page, "networkDiagnosticsCheckRepeater").count, 3)
-        const recoverySpy = signalSpy.createObject(page, {
-            target: page,
-            signalName: "recoveryRequested"
-        })
         const scroll = findChild(page, "networkDiagnosticsPageScroll")
         scroll.contentItem.contentY = Math.max(0,
             scroll.contentItem.contentHeight - scroll.contentItem.height)
         wait(0)
         mouseClick(findChild(page, "networkDiagnosticsRecoveryButton"))
-        compare(recoverySpy.count, 1)
+        const panel = findChild(page, "networkDiagnosticsDetailPane")
+        tryCompare(panel, "visible", true)
+        compare(findChild(page, "networkDiagnosticsDetailTitle").text, "DNS")
     }
 
     function test_secondaryActionsAndBackSignal() {

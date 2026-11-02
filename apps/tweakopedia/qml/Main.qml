@@ -62,12 +62,18 @@ ApplicationWindow {
             }
             HistoryPage { controller: appController }
             ToolsPage {
+                controller: appController
                 integrityController: systemIntegrityController
                 fileSystemController: fileSystemCheckController
                 networkController: networkDiagnosticsController
                 onArticleRequested: function(articleId) {
                     appController.encyclopedia.openArticle(articleId)
                     navigation.currentIndex = 2
+                }
+                onReviewRequested: window.openQueue()
+                onTweakRequested: function(tweakId) {
+                    navigation.currentIndex = 1
+                    tweaksPage.openTweak(tweakId)
                 }
             }
             SettingsPage { controller: settingsController }

@@ -11,8 +11,11 @@ Page {
     property var integrityController
     property var fileSystemController
     property var networkController
+    property var controller
     readonly property bool wideLayout: width >= 820
     signal articleRequested(string id)
+    signal reviewRequested()
+    signal tweakRequested(string id)
     padding: 0
 
     background: Rectangle {
@@ -48,17 +51,9 @@ Page {
             tint: "#F1ECFB"
         }
         ListElement {
-            title: "Восстановление сети"
-            description: "Подготавливает выбранные операции очистки и сброса сетевых параметров."
-            badge: "С подтверждением"
-            glyph: "\uE777"
-            accent: "#CA5010"
-            tint: "#FFF0E5"
-        }
-        ListElement {
             title: "Блокировка телеметрии"
-            description: "Настраивает сетевую блокировку и связанные параметры Windows."
-            badge: "Профили совместимости"
+            description: "Собирает совместимый пакет ограничений из проверенных параметров Windows."
+            badge: "Через общую очередь"
             glyph: "\uEA18"
             accent: "#C42B1C"
             tint: "#FDEBED"
@@ -256,105 +251,14 @@ Page {
         NetworkDiagnosticsPage {
             controller: root.networkController
             onBackRequested: root.selectedToolIndex = -1
-            onRecoveryRequested: root.selectedToolIndex = 3
             onArticleRequested: id => root.articleRequested(id)
         }
 
-        Item {
-            id: placeholder
-            objectName: "toolPlaceholder"
-
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.leftMargin: 28
-                anchors.rightMargin: 28
-                anchors.topMargin: 24
-                anchors.bottomMargin: 24
-                spacing: 12
-
-                AbstractButton {
-                    id: backButton
-                    objectName: "toolPlaceholderBackButton"
-                    Layout.preferredWidth: 132
-                    Layout.preferredHeight: 38
-                    focusPolicy: Qt.StrongFocus
-                    Accessible.name: "Вернуться к инструментам"
-                    onClicked: root.selectedToolIndex = -1
-
-                    contentItem: Row {
-                        anchors.centerIn: parent
-                        spacing: 9
-
-                        Text {
-                            text: "\uE72B"
-                            color: FluentTheme.textPrimary
-                            font.family: "Segoe MDL2 Assets"
-                            font.pixelSize: 15
-                        }
-                        FluentText {
-                            text: "Назад"
-                            color: FluentTheme.textPrimary
-                            font.family: FluentTheme.fontFamily
-                            font.pixelSize: 13
-                        }
-                    }
-
-                    background: Rectangle {
-                        radius: 6
-                        color: backButton.pressed
-                            ? FluentTheme.selected
-                            : backButton.hovered ? FluentTheme.hover : FluentTheme.surface
-                        border.width: 1
-                        border.color: backButton.activeFocus ? FluentTheme.accent : FluentTheme.stroke
-                    }
-                }
-
-                Item { Layout.fillHeight: true }
-
-                Rectangle {
-                    Layout.preferredWidth: 92
-                    Layout.preferredHeight: 92
-                    Layout.alignment: Qt.AlignHCenter
-                    radius: 46
-                    color: root.selectedToolIndex >= 0
-                        ? toolsModel.get(root.selectedToolIndex).tint : FluentTheme.selected
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: root.selectedToolIndex >= 0
-                            ? toolsModel.get(root.selectedToolIndex).glyph : ""
-                        color: root.selectedToolIndex >= 0
-                            ? toolsModel.get(root.selectedToolIndex).accent : FluentTheme.accent
-                        font.family: "Segoe MDL2 Assets"
-                        font.pixelSize: 38
-                    }
-                }
-
-                FluentText {
-                    objectName: "toolPlaceholderTitle"
-                    Layout.fillWidth: true
-                    text: root.selectedToolIndex >= 0
-                        ? toolsModel.get(root.selectedToolIndex).title : ""
-                    color: FluentTheme.textPrimary
-                    font.family: FluentTheme.fontFamily
-                    font.pixelSize: 28
-                    font.weight: Font.DemiBold
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.WordWrap
-                }
-
-                FluentText {
-                    objectName: "toolPlaceholderStatus"
-                    Layout.fillWidth: true
-                    text: "В разработке"
-                    color: FluentTheme.textSecondary
-                    font.family: FluentTheme.fontFamily
-                    font.pixelSize: 16
-                    horizontalAlignment: Text.AlignHCenter
-                }
-
-                Item { Layout.fillHeight: true }
-            }
+        TelemetryToolPage {
+            controller: root.controller
+            onBackRequested: root.selectedToolIndex = -1
+            onReviewRequested: root.reviewRequested()
+            onTweakRequested: id => root.tweakRequested(id)
         }
     }
 }

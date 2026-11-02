@@ -435,6 +435,61 @@ private slots:
         QCOMPARE(controller.queue()->rowCount(), 0);
     }
 
+    void telemetryProfileUsesCatalogTweaksAndQueuesOnlyRequiredChanges()
+    {
+        auto backend = services();
+        const auto loaded = content::TweakCatalogLoader{}.loadDirectory(
+            QStringLiteral(TWEAKOPEDIA_TEST_CONTENT_ROOT));
+        QVERIFY(loaded.catalog.has_value());
+
+        QVector<domain::TweakDefinition> selected;
+        for (const auto& textId : {
+                 u"privacy.diagnostic-data-level"_s,
+                 u"privacy.device-name-diagnostic-data"_s,
+                 u"privacy.advertising-id-block"_s,
+             }) {
+            const auto id = domain::TweakId::parse(textId);
+            QVERIFY(id.has_value());
+            const auto* tweak = loaded.catalog->find(*id);
+            QVERIFY(tweak != nullptr);
+            selected.append(*tweak);
+        }
+        backend.catalog = content::TweakCatalog(std::move(selected));
+        backend.categoryCatalog = content::CategoryCatalog({{
+            .id = u"privacy"_s,
+            .title = u"Конфиденциальность и облачные функции"_s,
+            .subcategories = {
+                {.id = u"diagnostics"_s, .title = u"Диагностика"_s},
+                {.id = u"personalization"_s, .title = u"Персонализация"_s},
+            },
+        }});
+        backend.detected.stateId = u"disabled"_s;
+
+        app::AppController controller(backend);
+        QVERIFY(controller.startup());
+
+        auto profile = controller.telemetryProfile();
+        QCOMPARE(profile.value(u"totalCount"_s).toInt(), 3);
+        QCOMPARE(profile.value(u"configuredCount"_s).toInt(), 1);
+        QCOMPARE(profile.value(u"changeCount"_s).toInt(), 2);
+        QCOMPARE(profile.value(u"unsupportedCount"_s).toInt(), 0);
+        QCOMPARE(controller.queueTelemetryProfile(), 2);
+        QCOMPARE(controller.queue()->rowCount(), 2);
+
+        profile = controller.telemetryProfile();
+        QCOMPARE(profile.value(u"configuredCount"_s).toInt(), 1);
+        QCOMPARE(profile.value(u"queuedCount"_s).toInt(), 2);
+        QCOMPARE(profile.value(u"changeCount"_s).toInt(), 0);
+        QCOMPARE(controller.queueTelemetryProfile(), 0);
+        QCOMPARE(controller.queue()->rowCount(), 2);
+
+        QVERIFY(controller.selectTarget(
+            u"privacy.device-name-diagnostic-data"_s, u"enabled"_s));
+        QCOMPARE(controller.queue()->rowCount(), 3);
+        QCOMPARE(controller.queueTelemetryProfile(), 0);
+        QCOMPARE(controller.queue()->rowCount(), 2);
+    }
+
     void queuesParameterizedTargetAndExposesNormalizedInputSummary()
     {
         auto backend = services();
