@@ -87,6 +87,30 @@ TestCase {
         compare(fakeController.motionMode, "on")
     }
 
+    function test_themePresetButtonsUseEqualGeometry() {
+        const page = createTemporaryObject(pageComponent, this)
+        verify(page)
+
+        const cool = findChild(page, "theme_light_cool")
+        const warm = findChild(page, "theme_light_warm")
+        const graphite = findChild(page, "theme_dark_graphite")
+        const midnight = findChild(page, "theme_dark_midnight")
+        verify(cool && warm && graphite && midnight)
+
+        compare(cool.width, warm.width)
+        compare(cool.width, graphite.width)
+        compare(cool.width, midnight.width)
+        compare(cool.height, 136)
+        compare(warm.height, cool.height)
+        compare(graphite.height, cool.height)
+        compare(midnight.height, cool.height)
+
+        const preview = findChild(page, "themePreview_dark_midnight")
+        verify(preview)
+        verify(preview.width <= midnight.width)
+        compare(preview.clip, true)
+    }
+
     function test_presentsDebugLoggingSetting() {
         const page = createTemporaryObject(pageComponent, this)
         verify(page)

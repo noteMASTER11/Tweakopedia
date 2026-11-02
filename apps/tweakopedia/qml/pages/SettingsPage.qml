@@ -197,12 +197,10 @@ Page {
                 }
             }
 
-            GridLayout {
-                id: themeGrid
+            Row {
+                id: themePresetRow
                 Layout.fillWidth: true
-                columns: width >= 820 ? 4 : 2
-                columnSpacing: 10
-                rowSpacing: 10
+                spacing: 10
 
                 Repeater {
                     model: [
@@ -216,8 +214,8 @@ Page {
                         required property var modelData
                         readonly property bool selected: root.controller.effectiveThemeId === modelData.id
                         objectName: "theme_" + modelData.id
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 136
+                        width: Math.max(0, (themePresetRow.width - themePresetRow.spacing * 3) / 4)
+                        height: 136
                         onClicked: {
                             if (modelData.kind === "light")
                                 root.controller.setLightThemeId(modelData.id)
@@ -228,10 +226,13 @@ Page {
                         }
                         contentItem: ColumnLayout {
                             spacing: 8
+                            clip: true
                             Rectangle {
+                                objectName: "themePreview_" + modelData.id
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 78
                                 radius: 6
+                                clip: true
                                 color: modelData.canvas
                                 border.width: 1
                                 border.color: modelData.kind === "dark" ? "#46566D" : "#D8DEE8"
@@ -241,9 +242,9 @@ Page {
                                 }
                                 Column {
                                     x: 52; y: 14; spacing: 7
-                                    Rectangle { width: 72; height: 7; radius: 3; color: modelData.text }
-                                    Rectangle { width: 106; height: 5; radius: 2; color: modelData.text; opacity: 0.45 }
-                                    Rectangle { width: 92; height: 5; radius: 2; color: FluentTheme.accent }
+                                    Rectangle { width: Math.max(0, Math.min(72, parent.parent.width - 64)); height: 7; radius: 3; color: modelData.text }
+                                    Rectangle { width: Math.max(0, Math.min(106, parent.parent.width - 64)); height: 5; radius: 2; color: modelData.text; opacity: 0.45 }
+                                    Rectangle { width: Math.max(0, Math.min(92, parent.parent.width - 64)); height: 5; radius: 2; color: FluentTheme.accent }
                                 }
                             }
                             RowLayout {
@@ -254,6 +255,7 @@ Page {
                                     color: FluentTheme.textPrimary
                                     font.pixelSize: 13
                                     font.weight: Font.DemiBold
+                                    elide: Text.ElideRight
                                 }
                                 Text {
                                     visible: themeButton.selected

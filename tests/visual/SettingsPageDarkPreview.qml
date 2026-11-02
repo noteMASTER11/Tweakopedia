@@ -18,6 +18,7 @@ ApplicationWindow {
         property string accentId: "violet"
         property string fontId: "segoe"
         property real uiScale: 1.0
+        property bool uiScaleRestartRequired: false
         property string motionMode: "off"
         function setDebugLoggingEnabled(value) { debugLoggingEnabled = value; return true }
         function openLogsDirectory() { return true }
