@@ -29,7 +29,7 @@ ApplicationWindow {
                 font.weight: Font.Bold
             }
             FluentText {
-                text: "Обычный текст: параметры Windows, Fluent UI и Tweakopedia 0.9.4"
+                text: "Обычный текст: параметры Windows, Fluent UI и Tweakopedia 0.10.0"
                 color: FluentTheme.textPrimary
                 font.pixelSize: 17
                 font.weight: Font.Normal
